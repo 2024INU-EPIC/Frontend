@@ -1,10 +1,12 @@
 ---
-name: Issue template-8753
-about: Issue template 입니다.
+name: Issue template
+about: Issue template입니다.
 title: ''
 labels: ''
 assignees: ''
+
 ---
+
 ## ⚙️ 작업 요약  
   
 ## 🔧 세부 단계  
