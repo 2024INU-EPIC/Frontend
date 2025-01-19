@@ -1,46 +1,18 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
-import styled from "styled-components";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import MainLayout from "./layouts/MainLayout";
+import Main from "./pages/MainPage";
 
-// styled component 적용 용 임시 css
-const TempDiv = styled.button`
-  font-size: 2rem;
-  background-color: #ffffff;
-`;
-
-function App() {
-  const [count, setCount] = useState(0);
-
+const App: React.FC = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <TempDiv>
-          <button>임시 문장입니다.</button>
-        </TempDiv>
-
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Router>
+      <MainLayout>
+        <Routes>
+          <Route path="/" element={<Main />} />
+        </Routes>
+      </MainLayout>
+    </Router>
   );
-}
+};
 
 export default App;
