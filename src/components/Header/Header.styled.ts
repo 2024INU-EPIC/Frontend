@@ -13,11 +13,6 @@ export const HeaderContainer = styled.header`
 `;
 
 export const LogoContainer = styled.div`
-  display: flex;
-  align-items: center;
-
-  height: 100%;
-
   img {
     margin: 1.63rem 0rem 1.63rem 2.5rem;
     height: 3rem;
