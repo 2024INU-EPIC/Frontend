@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import * as S from "./Header.styled";
-import Logo from "../../assets/img/logo.svg"; // 로고 파일 경로
+import Logo from "../../assets/img/logo.svg";
 
 const Header: React.FC = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);

@@ -21,7 +21,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           flex: 1,
           display: "flex",
           justifyContent: "center",
-          alignItems: "center",
         }}
       >
         {children}
