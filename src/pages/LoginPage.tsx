@@ -19,7 +19,7 @@ const LeftPane = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 1.5rem;
   font-weight: 100;
 `;
 
@@ -37,13 +37,13 @@ const WelcomeLogo = styled.img`
   width: 23.95vw; // 460px;
 `;
 
-const LoginPage: React.FC = () => {
+const Login: React.FC = () => {
   return (
     <div>
       <SplitScreen>
         <LeftPane>
           <WelcomeLogo src={Logo}></WelcomeLogo>
-          <h1>English Pronunciation Improvement Coach</h1>
+          <p>English Pronunciation Improvement Coach</p>
         </LeftPane>
         <RightPane>
           <p>Welcome back!</p>
@@ -53,4 +53,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
