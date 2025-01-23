@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 
 import Logo from "../assets/img/logo.svg"; // 로고 파일 경로
+import emailIcon from "../assets/img/email.svg";
+import passwordIcon from "../assets/img/password.svg";
+import userIcon from "../assets/img/user.svg";
+
 import {
   SplitScreen,
   LeftPane,
@@ -31,18 +35,22 @@ const SignIn: React.FC = () => {
             <p>{isSignUp ? "Welcome!" : "Welcome back!"}</p>
             <InputArea>
               <input placeholder="example@company.com" type="text"></input>
+              <img src={emailIcon} />
             </InputArea>
             {isSignUp ? (
               <InputArea>
-                <input placeholder="사용자 닉네임(영문)" type="text"></input>
+                <input placeholder="사용자 닉네임 (영문)" type="text"></input>
+                <img src={userIcon} />
               </InputArea>
             ) : null}
             <InputArea>
               <input placeholder="비밀번호" type="password"></input>
+              <img src={passwordIcon} />
             </InputArea>
             {isSignUp ? (
               <InputArea>
                 <input placeholder="비밀번호 확인" type="password"></input>
+                <img src={passwordIcon} />
               </InputArea>
             ) : null}
             <SignButton>

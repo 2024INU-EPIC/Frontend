@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Main from "./pages/MainPage";
-import LoginPage from "./pages/SignInPage";
+import LoginPage from "./pages/SignPage";
 import AuthLayout from "./layouts/AuthLayout";
 
 const App: React.FC = () => {

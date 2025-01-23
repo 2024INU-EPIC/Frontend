@@ -18,8 +18,13 @@ export const LeftPane = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 100;
+
+  p {
+    margin: 2rem 0;
+    font-weight: normal;
+  }
 `;
 
 // WelcomeLogo: 로고 스타일
@@ -36,6 +41,10 @@ export const RightPane = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+
+  p {
+    // margin: 1rem 0;
+  }
 `;
 
 // InnerPane: 오른쪽 내부 영역
@@ -49,6 +58,7 @@ export const InnerPane = styled.div`
 
   p {
     color: white;
+    font-weight: bold;
     font-size: 3.5rem;
   }
 `;
@@ -60,14 +70,14 @@ export const InputArea = styled.div`
   background-color: #ffffff;
   display: flex;
   align-items: center;
-  margin: 1.5rem 0;
+  margin: 1.375rem 0;
   border-radius: 3rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   input {
     border: none;
-    width: 25.5rem;
-    margin: 0 2.5rem;
+    width: 23.5rem;
+    margin: 0 0.5rem 0 2.5rem;
     background-color: transparent;
     font-size: 1.5rem;
   }
@@ -85,10 +95,11 @@ export const SignButton = styled.button`
   border-radius: 3rem;
   background-color: #fb6e5c;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
-  margin: 1.5rem;
+  margin: 2.75rem 0 1.5rem 0;
 
   p {
     font-size: 1.5rem;
+    font-weight: bold;
     color: white;
   }
 `;
@@ -109,13 +120,13 @@ export const SecondaryArea = styled.div`
   }
 
   p {
-    font-size: 1.2rem;
+    font-size: 1rem;
     margin: 0.25rem 0.5rem;
     color: black;
   }
 
   a {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     margin: 0.1rem;
     color: inherit;
     text-decoration: none;
