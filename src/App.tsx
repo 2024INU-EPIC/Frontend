@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Main from "./pages/MainPage";
-import LoginPage from "./pages/LoginPage";
+import LoginPage from "./pages/SignInPage";
 import AuthLayout from "./layouts/AuthLayout";
 
 const App: React.FC = () => {
@@ -17,8 +17,6 @@ const App: React.FC = () => {
             </MainLayout>
           }
         />
-      </Routes>
-      <Routes>
         <Route
           path="/login"
           element={
