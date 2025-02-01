@@ -32,6 +32,22 @@ export const ContentBody = styled.div`
   }
 `;
 
+// 빨간색 하이라이트 (틀린 단어)
+export const RedHighlight = styled.span`
+  background-color: #ff6b6b;
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+`;
+
+// 주황색 하이라이트 (부분 점수)
+export const OrangeHighlight = styled.span`
+  background-color: #f5a623;
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+`;
+
 export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   margin-top: 5.75rem;
   margin-bottom: 1.5rem;
