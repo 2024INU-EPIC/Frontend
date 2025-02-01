@@ -4,6 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 import Main from "./pages/MainPage";
 import LoginPage from "./pages/SignPage";
 import AuthLayout from "./layouts/AuthLayout";
+import TestPage from "./pages/TestPage";
 
 const App: React.FC = () => {
   return (
@@ -14,6 +15,14 @@ const App: React.FC = () => {
           element={
             <MainLayout>
               <Main />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/test"
+          element={
+            <MainLayout>
+              <TestPage />
             </MainLayout>
           }
         />
