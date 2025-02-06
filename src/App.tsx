@@ -5,6 +5,7 @@ import Main from "./pages/MainPage";
 import MyPage from "./pages/MyPage";
 import LoginPage from "./pages/SignPage";
 import AuthLayout from "./layouts/AuthLayout";
+import VocaPage from "./pages/VocaPage";
 import TestPage from "./pages/TestPage";
 
 const App: React.FC = () => {
@@ -28,7 +29,7 @@ const App: React.FC = () => {
           }   
         />
         <Route
-          path="MyPage"
+          path="/mypage"
           element={
             <MainLayout>
               <MyPage />
@@ -41,6 +42,14 @@ const App: React.FC = () => {
             <AuthLayout>
               <LoginPage />
             </AuthLayout>
+          }
+        />
+        <Route
+          path="/voca"
+          element={
+            <MainLayout>
+              <VocaPage />
+            </MainLayout>
           }
         />
       </Routes>
