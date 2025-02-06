@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import * as S from "./Main.styled";
 import tLogo from "../assets/img/toeicLogo.svg";
 import tClip from "../assets/img/testClip.png";
@@ -7,11 +8,24 @@ import wClip from "../assets/img/wordClip.png";
 
 const Main: React.FC = () => {
   const targetRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const scrollToSection = () => {
     if (targetRef.current) {
       targetRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const handleMockClick = () => {
+    navigate("/mock");
+  };
+
+  const handlePartClick = () => {
+    navigate("/mock");
+  };
+
+  const handleVocaClick = () => {
+    navigate("/voca");
   };
 
   return (
@@ -57,7 +71,7 @@ const Main: React.FC = () => {
         <span>학습을 시작해볼까요?</span>
       </S.learnButton>
       <S.botContent ref={targetRef}>
-        <S.learnCard>
+        <S.learnCard onClick={handleMockClick}>
           <S.cardImg>
             <img src={tClip} alt="" />
           </S.cardImg>
@@ -66,7 +80,7 @@ const Main: React.FC = () => {
             <div>실제 토익 스피킹 시험 환경에서 연습</div>
           </S.cardExp>
         </S.learnCard>
-        <S.learnCard>
+        <S.learnCard onClick={handlePartClick}>
           <S.cardImg>
             <img src={pClip} alt="" />
           </S.cardImg>
@@ -75,7 +89,7 @@ const Main: React.FC = () => {
             <div>원하는 파트만 골라서 무한 학습!</div>
           </S.cardExp>
         </S.learnCard>
-        <S.learnCard>
+        <S.learnCard onClick={handleVocaClick}>
           <S.cardImg>
             <img src={wClip} alt="" />
           </S.cardImg>
