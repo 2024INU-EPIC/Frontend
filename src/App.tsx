@@ -6,6 +6,7 @@ import MyPage from "./pages/MyPage";
 import LoginPage from "./pages/SignPage";
 import AuthLayout from "./layouts/AuthLayout";
 import VocaPage from "./pages/VocaPage";
+import TestPage from "./pages/TestPage";
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,14 @@ const App: React.FC = () => {
               <Main />
             </MainLayout>
           }
+        />
+        <Route
+          path="/test"
+          element={
+            <MainLayout>
+              <TestPage />
+            </MainLayout>
+          }   
         />
         <Route
           path="/mypage"
