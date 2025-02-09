@@ -1,31 +1,55 @@
+// TestPage.tsx
 import React, { useEffect, useState } from "react";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
-import {
-  ContentBody,
-  TimeRemainingIndicator,
-  TimeInfoText,
-  RedHighlight,
-  OrangeHighlight,
-} from "./Test.styled";
+import ContentBody, { highlightText } from "../components/ContentBody";
+
+import styled from "styled-components";
+
+type TimeIndicatorProps = { bgColor?: string };
+// type TipProps = { text: string };
+
+export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
+  margin-top: 5.75rem;
+  margin-bottom: 1.5rem;
+  width: 12.25rem;
+  height: 12.25rem;
+
+  border-radius: 50%;
+  border-color: black;
+
+  font-size: 2rem;
+  color: white;
+  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+
+  // props에 따라 배경색 변경. true이면
+  background-color: ${(props) => props.bgColor || "#ff7b7b"};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const TimeInfoText = styled.p`
+  font-size: 1.5rem;
+`;
 
 const TestPage: React.FC = () => {
   const [isPreparing, setPreparing] = useState(true);
   const [isResponding, setResponding] = useState(false);
   const [isScoring, setScoring] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(10); // 개발용 5초 설정
+  const [remainingTime, setRemainingTime] = useState(1); // 개발용 5초 설정
 
   useEffect(() => {
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
         setRemainingTime(remainingTime - 1);
-      }, 1000);
+      }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
       return () => clearTimeout(timer);
     } else {
       if (isPreparing) {
         setPreparing(false);
         setResponding(true);
-        setRemainingTime(10);
+        setRemainingTime(1);
       } else if (isResponding) {
         setResponding(false);
         setScoring(true);
@@ -33,46 +57,24 @@ const TestPage: React.FC = () => {
     }
   }, [remainingTime, isPreparing, isResponding]);
 
+  // 개발용 함수
   function handleNextStep() {
     if (isPreparing) {
       setPreparing(false);
       setResponding(true);
-      setRemainingTime(10);
+      setRemainingTime(5);
     } else if (isResponding) {
       setResponding(false);
       setScoring(true);
     }
   }
 
-  // ✅ 특정 단어를 하이라이트하는 함수
-  function highlightText(text: string) {
-    if (!isScoring) return text; // 점수 출력 상태가 아니면 원본 텍스트 그대로 출력
-
-    const words = text.split(" "); // 단어별로 분리
-    return words.map((word, index) => {
-      if (word.includes("International")) {
-        return <RedHighlight key={index}>{word}</RedHighlight>;
-      } else if (word.includes("identification")) {
-        return <OrangeHighlight key={index}>{word}</OrangeHighlight>;
-      } else if (word.includes("luggage")) {
-        return <RedHighlight key={index}>{word}</RedHighlight>;
-      }
-      return ` ${word} `; // 원래 단어 그대로 반환
-    });
-  }
+  const textContent =
+    "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
 
   return (
     <S.mainContainer>
-      <ContentBody>
-        <p className="question">Question 1 of 2</p>
-        <div onClick={handleNextStep}>
-          <p className="paragraph">
-            {highlightText(
-              "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.",
-            )}
-          </p>
-        </div>
-      </ContentBody>
+      <ContentBody text={textContent} isScoring={isScoring} />
       {isPreparing && (
         <>
           <TimeRemainingIndicator>
