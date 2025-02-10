@@ -10,6 +10,7 @@ export const ScoreContainer = styled.div`
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   p {
+    text-align: left;
     margin: 0;
     font-size: 1.5rem;
     font-weight: bold;
@@ -90,6 +91,8 @@ export const GridBody = styled.div`
 
 // 점수 줄 (각 항목)
 export const ScoreRow = styled.div`
+  position: relative;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -188,6 +191,8 @@ export const ScoreBarContainer = styled.div`
 
 // 바 차트 (점수값에 따라 길이 조정)
 export const ScoreBar = styled.div<{ width: number; color: string }>`
+  position: relative;
+
   width: ${(props) => props.width}%;
   height: 100%;
   background: ${(props) => props.color};
@@ -197,6 +202,7 @@ export const ScoreBar = styled.div<{ width: number; color: string }>`
 
 export const ScoreValue = styled.div<{ width: number; color: string }>`
   padding-left: ${({ width }) => width / 4 - 0.5}rem;
+  text-align: left;
   font-size: 1rem;
   font-weight: bold;
   color: ${(props) => props.color};

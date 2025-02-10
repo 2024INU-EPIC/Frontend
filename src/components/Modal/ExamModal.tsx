@@ -7,16 +7,19 @@ import {
   ModalCloseButton,
   ModalTitleArea,
   PartArea,
-  QuestionBox,
-  QuestionTitle,
-  QuestionText,
+  ResultArea,
 } from "./ExamModal.styled";
+import PassageBody from "../PassageBody";
+import ScoreBody from "../ScoreBody";
 
 interface ExamModalProps {
   isOpen: boolean;
   onClose: () => void;
   examDate: string | null;
 }
+
+const textContent =
+  "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
 
 const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
   if (!isOpen) return null;
@@ -42,129 +45,185 @@ const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
         </ModalTitleArea>
         <ModalContent>
           <PartArea>
-            <p>Part1</p>
-            <QuestionBox>
-              <QuestionTitle>Question 1 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
-            <QuestionBox>
-              <QuestionTitle>Question 2 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
+            <div></div>
+            <p className="partInfo">Part1</p>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={1}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={2}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
           </PartArea>
           <PartArea>
-            <p>Part2</p>
-            <QuestionBox>
-              <QuestionTitle>Question 3 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
-            <QuestionBox>
-              <QuestionTitle>Question 4 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
+            <p className="partInfo">Part2</p>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={3}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={4}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
           </PartArea>
           <PartArea>
-            <p>Part3</p>
-            <QuestionBox>
-              <QuestionTitle>Question 5 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
-            <QuestionBox>
-              <QuestionTitle>Question 6 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
-            <QuestionBox>
-              <QuestionTitle>Question 7 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
+            <p className="partInfo">Part3</p>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={5}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={6}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={7}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
           </PartArea>
           <PartArea>
-            <p>Part4</p>
-            <QuestionBox>
-              <QuestionTitle>Question 8 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
-            <QuestionBox>
-              <QuestionTitle>Question 9 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
-            <QuestionBox>
-              <QuestionTitle>Question 10 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
+            <p className="partInfo">Part4</p>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={8}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={9}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={10}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
           </PartArea>
           <PartArea>
-            <p>Part5</p>
-            <QuestionBox>
-              <QuestionTitle>Question 11 of 11</QuestionTitle>
-              <QuestionText>
-                Welcome to the Boston International Airport. Your check-in
-                process will take ten to fifteen minutes. In order to speed up
-                the process, please have your identification and boardingpass
-                ready as you approach the counter. Also, please make sure your
-                luggage is labeled with your name, address and telephone number.
-              </QuestionText>
-            </QuestionBox>
+            <p className="partInfo">Part5</p>
+            <ResultArea>
+              <PassageBody
+                text={textContent}
+                isScoring={true}
+                questionNum={11}
+                totalQuestions={11}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </ResultArea>
           </PartArea>
         </ModalContent>
       </ModalContainer>
