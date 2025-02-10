@@ -21,7 +21,7 @@ const Main: React.FC = () => {
   };
 
   const handlePartClick = () => {
-    navigate("/mock");
+    navigate("/partselect");
   };
 
   const handleVocaClick = () => {
