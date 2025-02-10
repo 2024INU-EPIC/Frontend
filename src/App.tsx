@@ -8,6 +8,7 @@ import AuthLayout from "./layouts/AuthLayout";
 import VocaPage from "./pages/VocaPage";
 import TestPage from "./pages/TestPage";
 import PartSelectPage from "./pages/PartSelectPage";
+import OnboardingPage from "./pages/OnboardingPage";
 
 const App: React.FC = () => {
   return (
@@ -58,6 +59,14 @@ const App: React.FC = () => {
           element={
             <MainLayout>
               <VocaPage />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <MainLayout>
+              <OnboardingPage />
             </MainLayout>
           }
         />
