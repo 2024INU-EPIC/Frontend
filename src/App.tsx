@@ -7,6 +7,7 @@ import LoginPage from "./pages/SignPage";
 import AuthLayout from "./layouts/AuthLayout";
 import VocaPage from "./pages/VocaPage";
 import TestPage from "./pages/TestPage";
+import PartSelectPage from "./pages/PartSelectPage";
 
 const App: React.FC = () => {
   return (
@@ -26,7 +27,7 @@ const App: React.FC = () => {
             <MainLayout>
               <TestPage />
             </MainLayout>
-          }   
+          }
         />
         <Route
           path="/mypage"
@@ -42,6 +43,14 @@ const App: React.FC = () => {
             <AuthLayout>
               <LoginPage />
             </AuthLayout>
+          }
+        />
+        <Route
+          path="/partselect"
+          element={
+            <MainLayout>
+              <PartSelectPage />
+            </MainLayout>
           }
         />
         <Route
