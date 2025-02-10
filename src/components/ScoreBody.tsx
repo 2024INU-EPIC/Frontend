@@ -56,13 +56,6 @@ const ScoreBody: React.FC<ScoreProps> = ({
 
   return (
     <ScoreContainer>
-      {/* ✅ InfoTip */}
-      {/* <InfoTip
-        content={tooltipContent}
-        visible={tooltipVisible}
-        position={tooltipPosition}
-      /> */}
-
       <TotalScoreArea>
         <div style={{ margin: "1.5rem 1.875rem" }}>
           <p>발음 점수</p>

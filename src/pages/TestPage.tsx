@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
-import ContentBody, { highlightText } from "../components/ContentBody";
+import PassageBody from "../components/PassageBody";
 
 import styled from "styled-components";
 
@@ -33,6 +33,10 @@ export const TimeInfoText = styled.p`
   font-size: 1.5rem;
 `;
 
+export const TopBlank = styled.div`
+  height: 9rem;
+`;
+
 const TestPage: React.FC = () => {
   const [isPreparing, setPreparing] = useState(true);
   const [isResponding, setResponding] = useState(false);
@@ -58,23 +62,29 @@ const TestPage: React.FC = () => {
   }, [remainingTime, isPreparing, isResponding]);
 
   // 개발용 함수
-  function handleNextStep() {
-    if (isPreparing) {
-      setPreparing(false);
-      setResponding(true);
-      setRemainingTime(5);
-    } else if (isResponding) {
-      setResponding(false);
-      setScoring(true);
-    }
-  }
+  // function handleNextStep() {
+  //   if (isPreparing) {
+  //     setPreparing(false);
+  //     setResponding(true);
+  //     setRemainingTime(5);
+  //   } else if (isResponding) {
+  //     setResponding(false);
+  //     setScoring(true);
+  //   }
+  // }
 
   const textContent =
     "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
 
   return (
     <S.mainContainer>
-      <ContentBody text={textContent} isScoring={isScoring} />
+      <TopBlank />
+      <PassageBody
+        text={textContent}
+        isScoring={isScoring}
+        questionNum={1}
+        totalQuestions={2}
+      />
       {isPreparing && (
         <>
           <TimeRemainingIndicator>

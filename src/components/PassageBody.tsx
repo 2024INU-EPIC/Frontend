@@ -1,4 +1,4 @@
-// ContentBody.tsx
+// PassageBody.tsx
 import styled from "styled-components";
 
 // 특정 단어를 하이라이트하는 함수
@@ -127,14 +127,13 @@ export const OrangeHighlight = styled.span`
 const Wrapper = styled.div`
   width: 87.5rem;
   height: 25rem;
-  margin-top: 9.625rem;
+  /* margin-top: 9.625rem; */
   background-color: #ffffff;
   border-radius: 1rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   display: flex;
   flex-direction: column;
-  /* justify-content: center; */
   align-items: center;
 
   p.question {
@@ -153,19 +152,29 @@ const Wrapper = styled.div`
     font-size: 2rem;
     font-weight: 400;
     line-height: 3rem; // 48px
+    text-align: left;
     /* display: inline-block; */
   }
 `;
 
-type ContentBodyProps = {
+type PassageBodyProps = {
   text: string;
   isScoring: boolean;
+  questionNum: number;
+  totalQuestions: number;
 };
 
-const ContentBody: React.FC<ContentBodyProps> = ({ text, isScoring }) => {
+const PassageBody: React.FC<PassageBodyProps> = ({
+  text,
+  isScoring,
+  questionNum,
+  totalQuestions,
+}) => {
   return (
     <Wrapper>
-      <p className="question">Question 1 of 2</p>
+      <p className="question">
+        Question {questionNum} of {totalQuestions}
+      </p>
       <div>
         <p className="paragraph">{highlightText(text, isScoring)}</p>
       </div>
@@ -173,4 +182,4 @@ const ContentBody: React.FC<ContentBodyProps> = ({ text, isScoring }) => {
   );
 };
 
-export default ContentBody;
+export default PassageBody;
