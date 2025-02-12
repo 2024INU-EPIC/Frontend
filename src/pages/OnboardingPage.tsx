@@ -1,15 +1,36 @@
+// OnboardingPage.tsx
+
 import styled from "styled-components";
 import React from "react";
 import Logo from "../assets/img/logo.svg";
-import { learnButton as LearnButton } from "./Main.styled";
+import clickIcon from "../assets/img/clickIcon.svg";
+import OnboardingBackgroundImage from "../assets/img/GradationBackground.png";
+import gptIcon from "../assets/img/gptIcon.svg";
+import azureIcon from "../assets/img/azureIcon.svg";
+import numOneIcon from "../assets/img/numoneIcon.svg";
+import numTwoIcon from "../assets/img/numtwoIcon.svg";
+import githubIcon from "../assets/img/githubIcon.svg";
 
-export const Wrapper = styled.div``;
+import PassageBody from "../components/PassageBody";
+import ScoreBody from "../components/ScoreBody";
 
-export const FHDBody = styled.div`
-  width: 120rem; // 왜 100%로 하면 이상해지지? 바깥 컨테이너 때문?
-  height: 61.25rem;
-  background-color: white;
+export const Wrapper = styled.div`
+  width: 100%;
+  padding-top: 6.25rem;
+  /* background-color: white; */
 
+  background-image: url(${OnboardingBackgroundImage});
+  /* 이미지를 컨테이너에 맞게 조절 */
+  background-size: contain;
+  /* 이미지가 중앙에 오도록 조정 */
+  background-position: center;
+  /* 반복 방지 */
+  /* background-repeat: no-repeat; */
+`;
+
+export const FirstScene = styled.div`
+  width: 100%;
+  height: 61.25rem; // 980px
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -28,29 +49,325 @@ export const FHDBody = styled.div`
   }
 `;
 
+export const StartButton = styled.button`
+  display: flex;
+  width: 29.5rem;
+  height: 6.5rem;
+  border: none;
+  border-radius: 6.25rem;
+
+  /* 버튼 배경에 그라데이션 추가 */
+  background: linear-gradient(
+    90deg,
+    #ff7b7b,
+    #ffa166
+  ); // 나중에 애니메이션 추가하기
+
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+
+  img {
+    width: 3rem;
+    height: 3rem;
+    fill: white;
+  }
+  span {
+    color: white;
+    text-align: center;
+    font-family: "Noto Sans HK";
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-left: 1.75rem;
+  }
+`;
+
+export const SecondScene = styled.div`
+  width: 100%;
+  height: 78.25rem; // 1252px
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: white;
+
+  p {
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 4.25rem;
+  }
+`;
+
+export const ThirdScene = styled.div`
+  width: 100%;
+  height: 21.25rem; // 340px
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #ea5a47;
+  p {
+    color: white;
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 4.25rem;
+  }
+`;
+
+export const FourthScene = styled.div`
+  width: 100%;
+  height: 28.5rem; // 456px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 3rem;
+
+  p {
+    margin: 1rem;
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-align: center;
+    line-height: 4.25rem;
+  }
+`;
+
+export const IconsBody = styled.div`
+  width: 100%;
+  height: 28.5rem; // 456px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    width: 11.5rem;
+    height: 11.5rem;
+  }
+`;
+
+export const FifthScene = styled.div`
+  width: 100%;
+  height: 157rem; // 2512px;
+
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+`;
+
+export const FeatureContainer = styled.div`
+  width: 100%;
+  margin-top: 9rem;
+
+  img {
+    margin-top: -0.3rem;
+    margin-right: 1.75rem;
+  }
+
+  p {
+    display: flex;
+    align-items: flex-start;
+    margin-left: 9rem;
+
+    font-size: 3.5rem;
+    font-weight: bold;
+  }
+`;
+
+export const BrowserWindow = styled.div`
+  width: 93.75rem;
+  height: 50rem;
+  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+`;
+
+export const TitleBar = styled.div`
+  width: 100%;
+  /* width: 93.75rem; // 1500px; */
+  height: 4.5rem; // 72px;
+
+  background-color: #ebebeb;
+
+  border-top-left-radius: 1.75rem; // 28px
+  border-top-right-radius: 1.75rem; // 28px
+
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  padding-left: 1.5rem;
+  box-sizing: border-box; // padding을 포함한 크기 계산
+`;
+
+export const ButtonIcon = styled.div<{ color: string }>`
+  width: 1.5rem;
+  height: 1.5rem;
+
+  margin: 0 0.5rem 0 0.5rem;
+
+  border-color: black;
+
+  border-radius: 50%;
+  background-color: ${(props) => props.color};
+`;
+
+export const BrowserContent = styled.div`
+  width: 93.75rem; // 1500px;
+  height: 45.5rem; // 728px;
+
+  border-bottom-left-radius: 1.75rem;
+  border-bottom-right-radius: 1.75rem;
+
+  background-color: white;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4.625rem;
+  box-sizing: border-box;
+
+  p {
+    /* margin-top: 1rem; */
+    font-size: 1.25rem;
+  }
+`;
+
+// 빨간색 하이라이트 (틀린 단어)
+export const RedHighlight = styled.span`
+  position: relative;
+
+  background-color: #ff5151;
+  color: white;
+  text-decoration: underline;
+  padding: 0.2rem 0.2rem;
+  border-radius: 4px;
+`;
+
+const Footer = styled.div`
+  margin-top: 6.25rem;
+  width: 100%;
+  height: 6.25rem;
+
+  background-color: #d9d9d9;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  img {
+    margin-left: 2rem;
+  }
+
+  p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-right: 2rem;
+  }
+`;
+
+const textContent =
+  "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+
 const OnboardingPage: React.FC = () => {
   return (
     <Wrapper>
-      <FHDBody>
+      <FirstScene>
         <img src={Logo} />
         <p>
           공인 영어 회화 시험,
           <br />
           AI로 준비하세요
         </p>
-        <LearnButton>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="40"
-            height="40"
-            viewBox="0 0 40 40"
-            fill="none"
-          >
-            <path d="M15.8 5.78154C12.9773 4.43388 9.03204 3.77372 3.75 3.75029C3.25185 3.74352 2.76348 3.88878 2.35 4.16669C2.01062 4.39609 1.73281 4.70537 1.541 5.06733C1.34919 5.42929 1.24926 5.83283 1.25 6.24247V28.594C1.25 30.105 2.325 31.2448 3.75 31.2448C9.30235 31.2448 14.8719 31.7636 18.2078 34.9167C18.2535 34.96 18.3108 34.989 18.3728 35C18.4347 35.011 18.4986 35.0036 18.5563 34.9786C18.6141 34.9536 18.6632 34.9122 18.6977 34.8596C18.7321 34.8069 18.7503 34.7452 18.75 34.6823V8.3456C18.7501 8.16792 18.7121 7.99228 18.6385 7.83055C18.5649 7.66883 18.4575 7.52477 18.3234 7.4081C17.5593 6.75484 16.7105 6.20772 15.8 5.78154ZM37.65 4.16435C37.2363 3.88712 36.7479 3.74268 36.25 3.75029C30.968 3.77372 27.0227 4.43075 24.2 5.78154C23.2895 6.20694 22.4405 6.75299 21.6758 7.40497C21.542 7.52181 21.4348 7.66592 21.3614 7.82763C21.288 7.98933 21.25 8.16488 21.25 8.34247V34.6808C21.25 34.7412 21.2678 34.8004 21.3012 34.8507C21.3347 34.9011 21.3822 34.9405 21.438 34.964C21.4937 34.9874 21.5551 34.9939 21.6145 34.9825C21.6739 34.9712 21.7287 34.9426 21.7719 34.9003C23.7773 32.9081 27.2969 31.2425 36.2531 31.2433C36.9162 31.2433 37.5521 30.9799 38.0209 30.511C38.4897 30.0422 38.7531 29.4063 38.7531 28.7433V6.24326C38.754 5.83281 38.6539 5.42845 38.4615 5.06588C38.2691 4.70331 37.9904 4.39369 37.65 4.16435Z" />
-          </svg>
+        {/* {그림자가 현재 없음} */}
+        <StartButton>
+          <img src={clickIcon} />
           <span>로그인하여 시작하기</span>
-        </LearnButton>
-      </FHDBody>
+        </StartButton>
+      </FirstScene>
+      <SecondScene>
+        <p>
+          토익 스피킹 준비,
+          <br /> 이런 고민은 없으셨나요?
+        </p>
+        <div></div>
+      </SecondScene>
+      <ThirdScene>
+        <p>
+          EPIC은, AI 기술을 활용해 <br />
+          해답을 제시합니다.
+        </p>
+      </ThirdScene>
+      <FourthScene>
+        <IconsBody>
+          <img src={gptIcon} />
+          <p style={{ color: "black" }}>Chat GPT</p>
+        </IconsBody>
+        <IconsBody>
+          <img src={azureIcon} />
+          <p style={{ color: "#31ACE8" }}>Microsoft Azure</p>
+        </IconsBody>
+      </FourthScene>
+      <FifthScene>
+        <FeatureContainer>
+          <p>
+            <img src={numOneIcon} />
+            발음의 핵심은 정확한 음소 발화!
+            <br />
+            틀린 부분을 음소 단위로 알려줍니다.
+          </p>
+        </FeatureContainer>
+        <BrowserWindow>
+          <TitleBar>
+            <ButtonIcon color="#FF4444" />
+            <ButtonIcon color="#FDB241" />
+            <ButtonIcon color="#65D81F" />
+          </TitleBar>
+          <BrowserContent>
+            <PassageBody
+              text={textContent}
+              isScoring={true}
+              questionNum={1}
+              totalQuestions={2}
+            />
+            <p>
+              *<RedHighlight>하이라이트된 단어</RedHighlight>에 마우스를
+              올려보세요!
+            </p>
+          </BrowserContent>
+        </BrowserWindow>
+        <FeatureContainer>
+          <p>
+            <img src={numTwoIcon} />
+            실제 평가에 쓰이는 지표로
+            <br />
+            점수를 측정합니다.
+          </p>
+        </FeatureContainer>
+        <BrowserWindow>
+          <TitleBar>
+            <ButtonIcon color="#FF4444" />
+            <ButtonIcon color="#FDB241" />
+            <ButtonIcon color="#65D81F" />
+          </TitleBar>
+          <BrowserContent>
+            <ScoreBody
+              totalScore={86}
+              accuracy={80}
+              completeness={60}
+              fluency={85}
+              prosody={70}
+            />
+          </BrowserContent>
+        </BrowserWindow>
+      </FifthScene>
+      <Footer>
+        <img src={githubIcon} />
+        <p>개인정보 처리방침</p>
+      </Footer>
     </Wrapper>
   );
 };
