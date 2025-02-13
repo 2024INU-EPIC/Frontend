@@ -136,6 +136,12 @@ export const learnCard = styled.div`
   display: flex;
   flex-direction: column;
   filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.25));
+  &:hover {
+    transition:
+      transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+      box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    transform: translateY(-2rem);
+  }
 `;
 
 export const cardImg = styled.div`
@@ -151,11 +157,11 @@ export const cardImg = styled.div`
   }
 
   ${learnCard}:nth-child(2) & {
-    background: #cce5ff;
+    background: #aeb9ff;
   }
 
   ${learnCard}:nth-child(3) & {
-    background: #ccffcc;
+    background: #88e5ff;
   }
 
   img {
