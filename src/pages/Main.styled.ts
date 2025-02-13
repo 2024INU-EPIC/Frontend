@@ -117,7 +117,7 @@ export const learnButton = styled.button`
   span {
     color: white;
     text-align: center;
-    font-family: "Noto Sans HK";
+    font-family: "Noto Sans KR", sans-serif;
     font-size: 1.75rem;
     font-weight: 700;
     margin-left: 1.75rem;

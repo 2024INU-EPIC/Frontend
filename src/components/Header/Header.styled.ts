@@ -26,7 +26,7 @@ export const UserContainer = styled.div`
 `;
 
 export const UserName = styled.span`
-  font-family: Vibur;
+  font-family: "Vibur";
   font-size: 2.5rem;
   font-weight: 400;
   color: black;
@@ -60,7 +60,7 @@ export const DropdownMenu = styled.div`
 
 export const DropdownItem = styled.a`
   text-decoration: none;
-  font-family: Inter;
+  font-family: "Inter";
   text-align: center;
   color: #7f7f7f;
   font-size: 1rem;

@@ -20,7 +20,7 @@ export const MainContainer = styled.div`
 
 export const AreaTitle = styled.h2`
   color: black;
-  font-family: "inter";
+  font-family: "Inter";
   font-size: 2rem;
   font-weight: 600;
 `;
@@ -64,14 +64,14 @@ export const PhonemeTab = styled.div<{ isActive?: boolean }>`
 export const PhoneticAlpha = styled.div<{ isActive?: boolean }>`
   margin: 0 0 0.5rem 1.75rem;
   color: ${({ isActive }) => (isActive ? "white" : "#FF5151")};
-  font-family: Inter;
+  font-family: "Inter";
   font-size: 2.5rem;
   font-weight: 600;
 `;
 
 export const IPA = styled.span<{ isActive?: boolean }>`
   color: ${({ isActive }) => (isActive ? "white" : "#FF5151")};
-  font-family: Inter;
+  font-family: "Inter";
   font-size: 1rem;
   font-style: normal;
   font-weight: 600;
@@ -83,7 +83,7 @@ export const ExampleWord = styled.div<{ isActive?: boolean }>`
   margin: 0 1.3rem 1rem 0;
   color: ${({ isActive }) => (isActive ? "white" : "black")};
   text-align: right;
-  font-family: Inter;
+  font-family: "Inter";
   font-size: 1rem;
   font-weight: 300;
 `;
@@ -118,7 +118,7 @@ export const GuideMessage = styled.div`
   justify-content: center;
 
   color: white;
-  font-family: Inter;
+  font-family: "Inter";
   font-size: 1.5rem;
   font-weight: 700;
 `;
@@ -161,7 +161,7 @@ export const SentenceText = styled.div`
 export const WordIPA = styled.div`
   color: #000;
   text-align: center;
-  font-family: "inter";
+  font-family: "Inter";
   font-size: 2rem;
   font-weight: 700;
 `;
@@ -169,7 +169,7 @@ export const WordIPA = styled.div`
 export const SentenceIPA = styled.div`
   color: #000;
   text-align: center;
-  font-family: "inter";
+  font-family: "Inter";
   font-size: 2rem;
   font-weight: 400;
 `;
@@ -195,7 +195,7 @@ export const ButtonText = styled.p`
   transform: translateY(-350%);
   margin: 0;
   text-align: center;
-  font-family: Inter;
+  font-family: "Inter";
   font-size: 1rem;
 `;
 
@@ -219,7 +219,7 @@ export const PracticeBefore = styled.div`
 
   color: white;
   text-align: center;
-  font-family: Inter;
+  font-family: "Inter";
   font-size: 1.5rem;
   font-weight: 700;
 `;
@@ -363,7 +363,7 @@ export const WordButtonArea = styled.div`
   p {
     color: black;
     text-align: center;
-    font-family: Inter;
+    font-family: "Inter";
     font-size: 1rem;
     font-weight: 700;
     margin: 0.75rem 0 0 0;

@@ -23,7 +23,7 @@ export const GuideMessage = styled.h2`
   flex-direction: column;
   color: #ff5151;
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", sans-serif;
   font-size: 2.5rem;
   font-style: normal;
   font-weight: 700;
@@ -47,7 +47,7 @@ export const PartCard = styled.div`
   color: black;
   text-align: center;
   font-size: 1.5rem;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", sans-serif;
   font-weight: 700;
 
   &:hover {
@@ -118,7 +118,7 @@ export const LearnButton = styled.button`
   span {
     color: white;
     text-align: center;
-    font-family: "Noto Sans HK";
+    font-family: "Noto Sans KR", sans-serif;
     font-size: 1.75rem;
     font-weight: 700;
     margin-left: 2.5rem;
