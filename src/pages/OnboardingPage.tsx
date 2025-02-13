@@ -1,5 +1,5 @@
 // OnboardingPage.tsx
-
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import React from "react";
 import Logo from "../assets/img/logo.svg";
@@ -328,6 +328,16 @@ const textContent =
   "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
 
 const OnboardingPage: React.FC = () => {
+  const navigate = useNavigate(); // useNavigate 훅 사용
+
+  const handleStartClick = () => {
+    navigate("/login"); // "/login" 경로로 이동
+  };
+
+  // const handleGithubClick = () => {
+  //   window.location.href = "https://github.com/your-repo"; // 이동할 GitHub 링크
+  // };
+
   return (
     <Wrapper>
       <FirstScene>
@@ -337,8 +347,8 @@ const OnboardingPage: React.FC = () => {
           <br />
           AI로 준비하세요
         </p>
-        {/* {그림자가 현재 없음} */}
-        <StartButton>
+
+        <StartButton onClick={handleStartClick}>
           <img src={clickIcon} />
           <span>로그인하여 시작하기</span>
         </StartButton>
@@ -450,7 +460,13 @@ const OnboardingPage: React.FC = () => {
         </BrowserWindow>
       </FifthScene>
       <Footer>
-        <img src={githubIcon} />
+        <a
+          href="https://github.com/your-repo"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src={githubIcon} alt="GitHub" />
+        </a>
         <p>개인정보 처리방침</p>
       </Footer>
     </Wrapper>
