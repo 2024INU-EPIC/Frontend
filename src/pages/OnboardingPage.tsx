@@ -10,6 +10,10 @@ import azureIcon from "../assets/img/azureIcon.svg";
 import numOneIcon from "../assets/img/numoneIcon.svg";
 import numTwoIcon from "../assets/img/numtwoIcon.svg";
 import githubIcon from "../assets/img/githubIcon.svg";
+import consideringMan from "../assets/img/consideringMan.svg";
+import redBubble from "../assets/img/redBubble.svg";
+import blueBubble from "../assets/img/blueBubble.svg";
+import greenBubble from "../assets/img/greenBubble.svg";
 
 import PassageBody from "../components/PassageBody";
 import ScoreBody from "../components/ScoreBody";
@@ -75,7 +79,7 @@ export const StartButton = styled.button`
   span {
     color: white;
     text-align: center;
-    font-family: "Noto Sans HK";
+    /* font-family: "Noto Sans HK"; */
     font-size: 1.75rem;
     font-weight: 700;
     margin-left: 1.75rem;
@@ -97,6 +101,57 @@ export const SecondScene = styled.div`
     font-weight: bold;
     text-align: center;
     line-height: 4.25rem;
+  }
+`;
+
+export const WonderingContainer = styled.div`
+  width: 100%;
+  height: 50rem;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+`;
+
+export const BubbleContainer = styled.div`
+  width: 31.25rem; // 500px
+  height: 37.5rem; // 600px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+`;
+
+export const BubbleText = styled.div`
+  position: absolute;
+  top: 38%;
+  left: 65%;
+  width: 100%;
+  transform: translate(-50%, -50%);
+
+  /* 정확히 가운데 정렬 */
+
+  color: white;
+  font-size: 1.75rem;
+  font-weight: bold;
+  line-height: 2rem;
+
+  margin: 0;
+`;
+
+export const Bubble = styled.div`
+  position: relative;
+
+  img {
+    vertical-align: middle;
+  }
+
+  .green {
+    top: 55%;
+    left: 65%;
+    width: 100%;
+    transform: translate(-50%, -50%);
   }
 `;
 
@@ -293,7 +348,37 @@ const OnboardingPage: React.FC = () => {
           토익 스피킹 준비,
           <br /> 이런 고민은 없으셨나요?
         </p>
-        <div></div>
+        <WonderingContainer>
+          <BubbleContainer>
+            <Bubble>
+              <img src={redBubble} />
+              <BubbleText>
+                요즘 토익 스피킹은 필수라던데,
+                <br />
+                학원비는 왜 이렇게 비싼거야..
+              </BubbleText>
+            </Bubble>
+            <Bubble>
+              <img src={greenBubble} />
+              <BubbleText className="green">
+                난 MBTI I 인데..사람 안만나고도
+                <br />
+                실력 늘릴 수 있는 방법 없나?
+              </BubbleText>
+            </Bubble>
+          </BubbleContainer>
+          <img src={consideringMan} />
+          <BubbleContainer>
+            <Bubble>
+              <img src={blueBubble} />
+              <BubbleText>
+                응시료 한 번에 7만원대??
+                <br />
+                연습삼아 보는 것조차 부담스러워..
+              </BubbleText>
+            </Bubble>
+          </BubbleContainer>
+        </WonderingContainer>
       </SecondScene>
       <ThirdScene>
         <p>
