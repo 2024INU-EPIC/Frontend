@@ -57,7 +57,7 @@ export const SideBar = styled.div`
   a {
     color: black;
     text-align: center;
-    font-family: "Noto Sans HK";
+    font-family: "Noto Sans KR", serif;
     font-size: 1.25rem;
     text-decoration: none;
     font-weight: normal;
@@ -127,7 +127,7 @@ export const ScoreaArea = styled.div`
 
 export const ExamDate = styled.div`
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 1.5rem;
   font-weight: bold;
   margin: 2rem 0 3rem 0;
@@ -135,14 +135,14 @@ export const ExamDate = styled.div`
 
 export const ExamScoreText = styled.div`
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 1.5rem;
   font-weight: bold;
 `;
 
 export const ExamScore = styled.div`
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 4rem;
   font-weight: bold;
 `;
@@ -167,7 +167,7 @@ export const ProfileArea = styled.div`
 
 export const PassText = styled.div`
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 1.25rem;
   font-weight: 400;
   margin: 3rem 0 0 0;
@@ -199,7 +199,7 @@ export const PassButton = styled.button`
   box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.25);
   color: white;
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 1.25rem;
   font-weight: 400;
 `;
@@ -232,14 +232,14 @@ export const PopupTitle = styled.h3`
   display: flex;
   justify-content: center;
   flex-shrink: 0;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 2rem;
 `;
 
 export const PopupText = styled.div`
   margin: 4.5rem 0 3.7rem 0;
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 2rem;
   font-weight: 400;
 `;
@@ -259,7 +259,7 @@ export const PopupButton = styled.button<{ primary?: boolean }>`
   background-color: ${({ primary }) => (primary ? "#ff4d4f" : "#a4a4a4")};
 
   text-align: center;
-  font-family: "Noto Sans HK";
+  font-family: "Noto Sans KR", serif;
   font-size: 1.5rem;
   color: white;
   &:hover {
