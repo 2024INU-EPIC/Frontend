@@ -28,6 +28,7 @@ import {
   ProfileArea,
 } from "./My.styled";
 import ExamModal from "../components/Modal/ExamModal";
+import StudyStatChart from "../components/StudyStatChart";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -150,7 +151,7 @@ const MyPage: React.FC = () => {
                   <ExamScore>IM1</ExamScore>
                 </ScoreaArea>
                 <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
+                  <StudyStatChart />
                 </ExamGraph>
               </ExamRecord>
               <ExamRecord onClick={() => openModal("2025/01/03")}>
