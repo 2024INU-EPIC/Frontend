@@ -9,6 +9,7 @@ import VocaPage from "./pages/VocaPage";
 import TestPage from "./pages/TestPage";
 import PartSelectPage from "./pages/PartSelectPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import Part2Page from "./pages/Part2Page";
 
 const App: React.FC = () => {
   return (
@@ -27,6 +28,14 @@ const App: React.FC = () => {
           element={
             <MainLayout>
               <TestPage />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/part2"
+          element={
+            <MainLayout>
+              <Part2Page />
             </MainLayout>
           }
         />
