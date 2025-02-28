@@ -123,7 +123,7 @@ export const OrangeHighlight = styled.span`
 
 const Wrapper = styled.div`
   width: 87.5rem;
-  height: 36rem;
+  min-height: 36rem;
   margin: 3rem 0 -1.5rem 0;
   background-color: #ffffff;
   border-radius: 1rem;
@@ -155,7 +155,7 @@ const Wrapper = styled.div`
 
   div.gpt {
     position: relative;
-    margin-top: 2rem;
+    margin: 2rem 0 2rem 0;
     width: 78.25rem;
     height: 12rem;
     border-radius: 1.25rem;
