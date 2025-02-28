@@ -115,7 +115,7 @@ export const ScoreLabel = styled.div`
   p {
     font-size: 1.25rem;
     font-weight: bold;
-    margin-right: 0.5rem;
+    margin-right: 0.3rem;
   }
 `;
 
