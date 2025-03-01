@@ -1,0 +1,178 @@
+import React, { useEffect, useState } from "react";
+import * as S from "./Main.styled";
+import ScoreBody from "../components/ScoreBody";
+import MutipleReplyBody from "../components/MutipleReplyBox";
+import styled from "styled-components";
+import SituationBody from "../components/SituationBody";
+
+type TimeIndicatorProps = { bgColor?: string };
+
+export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
+  margin-top: 1.6rem;
+  margin-bottom: 1.5rem;
+  width: 12.25rem;
+  height: 12.25rem;
+  border-radius: 50%;
+  border-color: black;
+  font-size: 2rem;
+  color: white;
+  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+  background-color: ${(props) => props.bgColor || "#ff7b7b"};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const TimeInfoText = styled.p`
+  margin: 0;
+  font-size: 1.5rem;
+`;
+
+export const TopBlank = styled.div`
+  height: 9rem;
+`;
+
+const Part3Page: React.FC = () => {
+  const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
+  const [remainingTime, setRemainingTime] = useState(5); // 처음 45초 동안 SituationBody만 표시
+  const [stage, setStage] = useState<
+    "image" | "preparing" | "responding" | "scoring"
+  >("image"); // 현재 단계
+
+  function increaseNum() {
+    setCurrentNum((prevNum) => prevNum + 1);
+  }
+
+  useEffect(() => {
+    if (remainingTime > 0) {
+      const timer = setTimeout(() => {
+        setRemainingTime(remainingTime - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      switch (stage) {
+        case "image":
+          setStage("preparing");
+          setRemainingTime(3); // 8번 문제 준비 시간
+          break;
+        case "preparing":
+          setStage("responding");
+          setRemainingTime(currentNum === 7 ? 3 : 1); // 7번 문제만 답변 시간 30초, 5, 6번은 15초
+          break;
+        case "responding":
+          if (currentNum < 7) {
+            // 5번 혹은 6번 문제를 풀고 있었을 경우
+            increaseNum(); // 문제 번호 증가
+            setStage("preparing");
+            setRemainingTime(3); // 다음 문제 준비시간 설정
+          } else {
+            setStage("scoring"); // 해당 파트 마지막 문제(7번) 이후 채점 화면
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }, [remainingTime, stage, currentNum]);
+
+  const situationText =
+    "Imagine that an American newspaper company is doing research in your country, and you have agreed to participate in a telephone interview about your friendship.";
+
+  const questionTextArray = [
+    {
+      id: 1,
+      value:
+        "When was the last time you met your childhood friend? And what did you talk about?",
+    },
+    { id: 2, value: "Where did you meet the childhood friend?" },
+    {
+      id: 3,
+      value:
+        "What is the most important factor that you could keep the friendship for many year?",
+    },
+  ];
+
+  return (
+    <S.mainContainer>
+      <TopBlank />
+      <SituationBody
+        stage={stage}
+        partNum={3}
+        situationText={situationText}
+        questionText={questionTextArray[currentNum - 5].value}
+        questionNum={currentNum}
+        totalQuestions={11}
+      />
+
+      {stage === "image" && (
+        <>
+          <TopBlank />
+          <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
+          <TimeInfoText>Preparation Time</TimeInfoText>
+        </>
+      )}
+
+      {stage === "preparing" && (
+        <>
+          <TopBlank />
+          <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
+          <TimeInfoText>Preparation Time</TimeInfoText>
+        </>
+      )}
+
+      {stage === "responding" && (
+        <>
+          <TopBlank />
+          <TimeRemainingIndicator bgColor="#59BED4">{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
+          <TimeInfoText>Response Time</TimeInfoText>
+        </>
+      )}
+
+      {stage === "scoring" && (
+        <>
+          <MutipleReplyBody
+            questionNum={5}
+            questionText={questionTextArray[0].value}
+            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
+            isScoring={false}
+          />
+          <ScoreBody
+            totalScore={86}
+            accuracy={80}
+            completeness={60}
+            fluency={85}
+            prosody={70}
+          />
+          <MutipleReplyBody
+            questionNum={6}
+            questionText={questionTextArray[1].value}
+            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
+            isScoring={false}
+          />
+          <ScoreBody
+            totalScore={86}
+            accuracy={80}
+            completeness={60}
+            fluency={85}
+            prosody={70}
+          />
+          <MutipleReplyBody
+            questionNum={7}
+            questionText={questionTextArray[2].value}
+            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
+            isScoring={false}
+          />
+          <ScoreBody
+            totalScore={86}
+            accuracy={80}
+            completeness={60}
+            fluency={85}
+            prosody={70}
+          />
+        </>
+      )}
+    </S.mainContainer>
+  );
+};
+
+export default Part3Page;

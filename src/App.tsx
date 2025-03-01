@@ -10,7 +10,8 @@ import TestPage from "./pages/TestPage";
 import PartSelectPage from "./pages/PartSelectPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Part2Page from "./pages/Part2Page";
-import Part3Page from "./pages/Part4Page";
+import Part3Page from "./pages/Part3Page";
+import Part4Page from "./pages/Part4Page";
 import Part5Page from "./pages/Part5Page";
 
 const App: React.FC = () => {
@@ -53,7 +54,7 @@ const App: React.FC = () => {
           path="/part4"
           element={
             <MainLayout>
-              <Part3Page />
+              <Part4Page />
             </MainLayout>
           }
         />
