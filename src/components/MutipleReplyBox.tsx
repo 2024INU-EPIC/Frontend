@@ -124,7 +124,7 @@ export const OrangeHighlight = styled.span`
 const Wrapper = styled.div`
   width: 87.5rem;
   min-height: 36rem;
-  margin: 3rem 0 -1.5rem 0;
+  margin: 4rem 0 -1.5rem 0;
   background-color: #ffffff;
   border-radius: 1rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
