@@ -34,10 +34,10 @@ export const TopBlank = styled.div`
 
 const Part3Page: React.FC = () => {
   const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
-  const [remainingTime, setRemainingTime] = useState(5); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(45); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
-    "image" | "preparing" | "responding" | "scoring"
-  >("image"); // 현재 단계
+    "situation" | "preparing" | "responding" | "scoring"
+  >("situation"); // 현재 단계
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -51,13 +51,13 @@ const Part3Page: React.FC = () => {
       return () => clearTimeout(timer);
     } else {
       switch (stage) {
-        case "image":
+        case "situation":
           setStage("preparing");
           setRemainingTime(3); // 8번 문제 준비 시간
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(currentNum === 7 ? 3 : 1); // 7번 문제만 답변 시간 30초, 5, 6번은 15초
+          setRemainingTime(currentNum === 7 ? 30 : 15); // 7번 문제만 답변 시간 30초, 5, 6번은 15초
           break;
         case "responding":
           if (currentNum < 7) {
@@ -104,7 +104,7 @@ const Part3Page: React.FC = () => {
         totalQuestions={11}
       />
 
-      {stage === "image" && (
+      {stage === "situation" && (
         <>
           <TopBlank />
           <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>

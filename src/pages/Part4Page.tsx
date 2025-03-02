@@ -74,17 +74,32 @@ const Part4Page: React.FC = () => {
     }
   }, [remainingTime, stage, currentNum]);
 
+  const questionTextArray = [
+    {
+      id: 1,
+      value:
+        "When does the summer semester begin? What is the deadline for registration?",
+    },
+    {
+      id: 2,
+      value: "The prices are $80 for each course. Can you confirm that for me?",
+    },
+    {
+      id: 3,
+      value:
+        "I am specifically interested in learning about fusion cuisine. Can you give me all the details for the fusion courses?",
+    },
+  ];
+
   return (
     <S.mainContainer>
       <TopBlank />
       <SituationBody
+        stage={stage}
         partNum={4}
         imageSrc={"/src/assets/img/part4image.png"}
-        questionNum={
-          stage === "image" || stage === "scoring"
-            ? "8-10"
-            : currentNum.toString()
-        }
+        questionText={questionTextArray[currentNum - 8].value}
+        questionNum={currentNum}
         totalQuestions={11}
       />
 
