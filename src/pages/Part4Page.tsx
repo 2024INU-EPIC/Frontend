@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 import MutipleReplyBody from "../components/MutipleReplyBox";
@@ -33,8 +34,13 @@ export const TopBlank = styled.div`
 `;
 
 const Part4Page: React.FC = () => {
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
+
+  const [searchParams] = useSearchParams();
+  const isMockExam = searchParams.get("mockExam") === "true";
+
   const [currentNum, setCurrentNum] = useState(8); // 문제 번호 (8 → 9 → 10)
-  const [remainingTime, setRemainingTime] = useState(45); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(3); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
     "image" | "preparing" | "responding" | "scoring"
   >("image"); // 현재 단계
@@ -53,19 +59,26 @@ const Part4Page: React.FC = () => {
       switch (stage) {
         case "image":
           setStage("preparing");
-          setRemainingTime(3); // 8번 문제 준비 시간
+          setRemainingTime(1); // 8번 문제 준비 시간
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(currentNum === 10 ? 30 : 15); // 10번 문제만 30초, 나머지는 15초
+          setRemainingTime(currentNum === 10 ? 1 : 1); // 10번 문제만 30초, 나머지는 15초
           break;
         case "responding":
           if (currentNum < 10) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(3); // 다음 문제 준비시간
+            setRemainingTime(1); // 다음 문제 준비시간
           } else {
             setStage("scoring"); // 마지막 문제(10번) 이후 채점 화면
+
+            // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
+            if (isMockExam) {
+              setTimeout(() => {
+                navigate("/part5?mockExam=true"); // 7번 문제 완료 후 Part4로 이동
+              }, 0); //  딜레이없이 바로 이동
+            }
           }
           break;
         default:
@@ -124,47 +137,25 @@ const Part4Page: React.FC = () => {
         </>
       )}
 
-      {stage === "scoring" && (
+      {stage === "scoring" && !isMockExam && (
         <>
-          <MutipleReplyBody
-            questionNum={8}
-            questionText="When was the last time you met your childhood friend? And what did you talk about?"
-            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-            isScoring={false}
-          />
-          <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
-          />
-          <MutipleReplyBody
-            questionNum={9}
-            questionText="When was the last time you met your childhood friend? And what did you talk about?"
-            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-            isScoring={false}
-          />
-          <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
-          />
-          <MutipleReplyBody
-            questionNum={10}
-            questionText="When was the last time you met your childhood friend? And what did you talk about?"
-            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-            isScoring={false}
-          />
-          <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
-          />
+          {questionTextArray.map((q, index) => (
+            <React.Fragment key={index}>
+              <MutipleReplyBody
+                questionNum={8 + index}
+                questionText={q.value}
+                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
+                isScoring={false}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </React.Fragment>
+          ))}
         </>
       )}
     </S.mainContainer>
