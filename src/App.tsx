@@ -6,9 +6,9 @@ import MyPage from "./pages/MyPage";
 import LoginPage from "./pages/SignPage";
 import AuthLayout from "./layouts/AuthLayout";
 import VocaPage from "./pages/VocaPage";
-import TestPage from "./pages/TestPage";
 import PartSelectPage from "./pages/PartSelectPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import Part1Page from "./pages/Part1Page";
 import Part2Page from "./pages/Part2Page";
 import Part3Page from "./pages/Part3Page";
 import Part4Page from "./pages/Part4Page";
@@ -27,10 +27,10 @@ const App: React.FC = () => {
           }
         />
         <Route
-          path="/test"
+          path="/part1"
           element={
             <MainLayout>
-              <TestPage />
+              <Part1Page />
             </MainLayout>
           }
         />
