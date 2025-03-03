@@ -5,6 +5,7 @@ import ScoreBody from "../components/ScoreBody";
 import MutipleReplyBody from "../components/MutipleReplyBox";
 import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
+import loadingGif from "../assets/img/loading.gif";
 
 type TimeIndicatorProps = { bgColor?: string };
 
@@ -33,12 +34,9 @@ export const TopBlank = styled.div`
   height: 9rem;
 `;
 
-// interface Part3PageProps {
-//   isMockExam?: boolean; // 실전 모의고사 여부
-// }
-
-// const Part3Page: React.FC<Part3PageProps> = ({ isMockExam = false }) => {
 const Part3Page: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
@@ -52,6 +50,15 @@ const Part3Page: React.FC = () => {
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
+
+  useEffect(() => {
+    setLoading(true);
+    const loadingTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2초 동안 로딩 유지
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -107,6 +114,13 @@ const Part3Page: React.FC = () => {
         "What is the most important factor that you could keep the friendship for many years?",
     },
   ];
+
+  if (loading)
+    return (
+      <div style={{ margin: "400px" }}>
+        <img src={loadingGif} />
+      </div>
+    );
 
   return (
     <S.mainContainer>

@@ -5,6 +5,7 @@ import ScoreBody from "../components/ScoreBody";
 import MutipleReplyBody from "../components/MutipleReplyBox";
 import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
+import loadingGif from "../assets/img/loading.gif";
 
 type TimeIndicatorProps = { bgColor?: string };
 
@@ -34,8 +35,9 @@ export const TopBlank = styled.div`
 `;
 
 const Part4Page: React.FC = () => {
-  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
+  const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true";
 
@@ -48,6 +50,15 @@ const Part4Page: React.FC = () => {
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
+
+  useEffect(() => {
+    setLoading(true);
+    const loadingTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2초 동안 로딩 유지
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -85,7 +96,7 @@ const Part4Page: React.FC = () => {
           break;
       }
     }
-  }, [remainingTime, stage, currentNum]);
+  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
 
   const questionTextArray = [
     {
@@ -103,6 +114,13 @@ const Part4Page: React.FC = () => {
         "I am specifically interested in learning about fusion cuisine. Can you give me all the details for the fusion courses?",
     },
   ];
+
+  if (loading)
+    return (
+      <div style={{ margin: "400px" }}>
+        <img src={loadingGif} />
+      </div>
+    );
 
   return (
     <S.mainContainer>
