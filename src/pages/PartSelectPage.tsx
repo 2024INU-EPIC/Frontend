@@ -14,7 +14,11 @@ const PartSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
   const handleLearnClick = () => {
-    navigate("/test");
+    if (selectedPart) {
+      navigate(`/${selectedPart.toLowerCase()}`, {
+        state: { fromPartSelect: true },
+      });
+    }
   };
 
   return (

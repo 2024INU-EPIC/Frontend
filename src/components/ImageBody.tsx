@@ -43,17 +43,25 @@ type PassageBodyProps = {
   imageSrc?: string;
   questionNum: number;
   totalQuestions: number;
+  fromPartSelect?: boolean;
+  questionCount: number;
+  partId?: string;
 };
 
 const PassageBody: React.FC<PassageBodyProps> = ({
   imageSrc,
   questionNum,
   totalQuestions,
+  fromPartSelect = false,
+  questionCount,
+  partId = "Part",
 }) => {
   return (
     <Wrapper>
       <p className="question">
-        Question {questionNum} of {totalQuestions}
+        {fromPartSelect
+          ? `Question ${questionCount} of ${partId}`
+          : `Question ${questionNum} of ${totalQuestions}`}
       </p>
       <div className="content">
         <img src={imageSrc} alt="Question Image" />

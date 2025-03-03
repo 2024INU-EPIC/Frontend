@@ -37,7 +37,7 @@ export const TopBlank = styled.div`
   height: 9rem;
 `;
 
-const TestPage: React.FC = () => {
+const Part1Page: React.FC = () => {
   const [isPreparing, setPreparing] = useState(true);
   const [isResponding, setResponding] = useState(false);
   const [isScoring, setScoring] = useState(false);
@@ -114,4 +114,4 @@ const TestPage: React.FC = () => {
   );
 };
 
-export default TestPage;
+export default Part1Page;
