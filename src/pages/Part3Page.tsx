@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 import MutipleReplyBody from "../components/MutipleReplyBox";
 import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
+import loadingGif from "../assets/img/loading.gif";
 
 type TimeIndicatorProps = { bgColor?: string };
 
@@ -33,15 +35,30 @@ export const TopBlank = styled.div`
 `;
 
 const Part3Page: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
+  const [searchParams] = useSearchParams();
+  const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
+
   const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
-  const [remainingTime, setRemainingTime] = useState(45); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(1); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
     "situation" | "preparing" | "responding" | "scoring"
-  >("situation"); // 현재 단계
+  >("situation");
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
+
+  useEffect(() => {
+    setLoading(true);
+    const loadingTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2000); // 2초 동안 로딩 유지
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -53,27 +70,33 @@ const Part3Page: React.FC = () => {
       switch (stage) {
         case "situation":
           setStage("preparing");
-          setRemainingTime(3); // 8번 문제 준비 시간
+          setRemainingTime(1);
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(currentNum === 7 ? 30 : 15); // 7번 문제만 답변 시간 30초, 5, 6번은 15초
+          setRemainingTime(currentNum === 7 ? 1 : 1);
           break;
         case "responding":
           if (currentNum < 7) {
-            // 5번 혹은 6번 문제를 풀고 있었을 경우
-            increaseNum(); // 문제 번호 증가
+            increaseNum();
             setStage("preparing");
-            setRemainingTime(3); // 다음 문제 준비시간 설정
+            setRemainingTime(1);
           } else {
-            setStage("scoring"); // 해당 파트 마지막 문제(7번) 이후 채점 화면
+            setStage("scoring");
+
+            // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
+            if (isMockExam) {
+              setTimeout(() => {
+                navigate("/part4?mockExam=true"); // 7번 문제 완료 후 Part4로 이동
+              }, 0); //  딜레이없이 바로 이동
+            }
           }
           break;
         default:
           break;
       }
     }
-  }, [remainingTime, stage, currentNum]);
+  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
 
   const situationText =
     "Imagine that an American newspaper company is doing research in your country, and you have agreed to participate in a telephone interview about your friendship.";
@@ -88,9 +111,16 @@ const Part3Page: React.FC = () => {
     {
       id: 3,
       value:
-        "What is the most important factor that you could keep the friendship for many year?",
+        "What is the most important factor that you could keep the friendship for many years?",
     },
   ];
+
+  if (loading)
+    return (
+      <div style={{ margin: "400px" }}>
+        <img src={loadingGif} />
+      </div>
+    );
 
   return (
     <S.mainContainer>
@@ -128,47 +158,25 @@ const Part3Page: React.FC = () => {
         </>
       )}
 
-      {stage === "scoring" && (
+      {stage === "scoring" && !isMockExam && (
         <>
-          <MutipleReplyBody
-            questionNum={5}
-            questionText={questionTextArray[0].value}
-            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-            isScoring={false}
-          />
-          <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
-          />
-          <MutipleReplyBody
-            questionNum={6}
-            questionText={questionTextArray[1].value}
-            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-            isScoring={false}
-          />
-          <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
-          />
-          <MutipleReplyBody
-            questionNum={7}
-            questionText={questionTextArray[2].value}
-            contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-            isScoring={false}
-          />
-          <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
-          />
+          {questionTextArray.map((q, index) => (
+            <React.Fragment key={index}>
+              <MutipleReplyBody
+                questionNum={5 + index}
+                questionText={q.value}
+                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
+                isScoring={false}
+              />
+              <ScoreBody
+                totalScore={86}
+                accuracy={80}
+                completeness={60}
+                fluency={85}
+                prosody={70}
+              />
+            </React.Fragment>
+          ))}
         </>
       )}
     </S.mainContainer>
