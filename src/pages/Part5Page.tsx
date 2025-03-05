@@ -3,7 +3,7 @@ import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 import ReplyBody from "../components/ReplyBody";
 import styled from "styled-components";
-import DirectionBody from "../components/DirectionBody";
+import QuestionBody from "../components/QuestionBody";
 
 type TimeIndicatorProps = { bgColor?: string };
 // type TipProps = { text: string };
@@ -78,11 +78,7 @@ const Part5Page: React.FC = () => {
   return (
     <S.mainContainer>
       <TopBlank />
-      <DirectionBody
-        text={formattedText}
-        questionNum={11}
-        totalQuestions={11}
-      />
+      <QuestionBody text={formattedText} questionNum={11} totalQuestions={11} />
       {isPreparing && (
         <>
           <TimeRemainingIndicator>

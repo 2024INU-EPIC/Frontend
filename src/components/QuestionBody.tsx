@@ -12,7 +12,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
 
-  p.title {
+  p.question {
     margin: 2.25rem 0 1.75rem 0;
     font-size: 2rem;
     font-weight: bold;
@@ -23,7 +23,7 @@ const Wrapper = styled.div`
     display: flex;
   }
 
-  p.direction {
+  p.paragraph {
     position: relative;
     font-size: 2rem;
     font-weight: 400;
@@ -33,20 +33,27 @@ const Wrapper = styled.div`
   }
 `;
 
-type DirectionBodyProps = {
-  title: string;
-  direction: string;
+type QuestionBodyProps = {
+  text: React.ReactNode;
+  questionNum: number;
+  totalQuestions: number;
 };
 
-const DirectionBody: React.FC<DirectionBodyProps> = ({ title, direction }) => {
+const QuestionBody: React.FC<QuestionBodyProps> = ({
+  text,
+  questionNum,
+  totalQuestions,
+}) => {
   return (
     <Wrapper>
-      <p className="title">{title}</p>
+      <p className="question">
+        Question {questionNum} of {totalQuestions}
+      </p>
       <div>
-        <p className="direction">{direction}</p>
+        <p className="paragraph">{text}</p>
       </div>
     </Wrapper>
   );
 };
 
-export default DirectionBody;
+export default QuestionBody;
