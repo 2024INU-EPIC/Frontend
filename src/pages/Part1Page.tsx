@@ -51,6 +51,7 @@ const Part1Page: React.FC = () => {
   >("direction");
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasPlayedRef = useRef(false);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -67,18 +68,18 @@ const Part1Page: React.FC = () => {
         case "direction":
           if (currentNum !== 2) {
             setStage("preparing");
-            setRemainingTime(1);
+            setRemainingTime(45);
           }
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(currentNum === 3 ? 1 : 1);
+          setRemainingTime(currentNum === 2 ? 1 : 1);
           break;
         case "responding":
-          if (currentNum < 3) {
+          if (currentNum < 2) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(1);
+            setRemainingTime(45);
           } else {
             setStage("scoring");
 
@@ -108,6 +109,7 @@ const Part1Page: React.FC = () => {
   //   }
   // }
 
+// "direction"일 때만 오디오 자동 재생
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio("/src/assets/audio/part1.mp3");
@@ -115,8 +117,12 @@ const Part1Page: React.FC = () => {
 
     const audio = audioRef.current;
 
-    if (stage === "direction") {
-      audio.play().catch((e) => console.error("Audio play error:", e));
+    if (stage === "direction" && !hasPlayedRef.current) {
+      audio.play()
+        .then(() => {
+          hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+        })
+        .catch((e) => console.error("Audio play error:", e));
     } else {
       audio.pause();
       audio.currentTime = 0;
@@ -128,11 +134,10 @@ const Part1Page: React.FC = () => {
     };
   }, [stage]);
 
+  // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
   const handleUserInteraction = () => {
-    if (audioRef.current) {
-      audioRef.current
-        .play()
-        .catch((e) => console.error("Audio play error:", e));
+    if (!hasPlayedRef.current) {
+      console.log("Audio is not allowed to play after direction stage.");
     }
   };
 
