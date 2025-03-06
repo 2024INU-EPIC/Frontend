@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 import ImageBody from "../components/ImageBody";
 import ReplyBody from "../components/ReplyBody";
+import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -39,16 +40,28 @@ export const TopBlank = styled.div`
 `;
 
 const Part2Page: React.FC = () => {
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
+  const [searchParams] = useSearchParams();
+  const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
+  
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
   const partId = location.state?.partId || "Part2";
 
-  const [isPreparing, setPreparing] = useState(true);
-  const [isResponding, setResponding] = useState(false);
-  const [isScoring, setScoring] = useState(false);
-  const [remainingTime, setRemainingTime] = useState(1); // 개발용 5초 설정정
+  const [currentNum, setCurrentNum] = useState(3);
+    const [remainingTime, setRemainingTime] = useState(14); // 음성 시간 12초
+    const [stage, setStage] = useState<
+      "direction" | "preparing" | "responding" | "scoring"
+    >("direction");
   const [questionCount, setQuestionCount] = useState(1);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+    const hasPlayedRef = useRef(false);
+  
+    function increaseNum() {
+      setCurrentNum((prevNum) => prevNum + 1);
+    }
+    
   const imageList = [
     "/src/assets/img/part2_1.png",
     "/src/assets/img/part2_2.png",
@@ -58,28 +71,78 @@ const Part2Page: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-    if (remainingTime > 0) {
-      const timer = setTimeout(() => {
-        setRemainingTime(remainingTime - 1);
-      }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
-      return () => clearTimeout(timer);
-    } else {
-      if (isPreparing) {
-        setPreparing(false);
-        setResponding(true);
-        setRemainingTime(1);
-      } else if (isResponding) {
-        setResponding(false);
-        setScoring(true);
+      if (remainingTime > 0) {
+        const timer = setTimeout(() => {
+          setRemainingTime(remainingTime - 1);
+        }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
+        return () => clearTimeout(timer);
+      } else {
+        switch (stage) {
+          case "direction":
+            if (currentNum !== 4) {
+              setStage("preparing");
+              setRemainingTime(1);
+            }
+            break;
+          case "preparing":
+            setStage("responding");
+            setRemainingTime(1);
+            break;
+          case "responding":
+            if (currentNum < 4) {
+              increaseNum();
+              setStage("preparing");
+              setRemainingTime(1);
+            } else {
+              setStage("scoring");
+  
+              // 실전 모의고사 모드에서는 자동으로 Part3 페이지로 이동
+              if (isMockExam) {
+                setTimeout(() => {
+                  navigate("/part3?mockExam=true"); // 4번 문제 완료 후 Part3로 이동
+                }, 0); //  딜레이없이 바로 이동
+              }
+            }
+            break;
+          default:
+            break;
+        }
       }
+    }, [remainingTime, stage, currentNum, isMockExam, navigate]);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/src/assets/audio/part2.mp3");
     }
-  }, [remainingTime, isPreparing, isResponding]);
+
+    const audio = audioRef.current;
+
+    if (stage === "direction" && !hasPlayedRef.current) {
+      audio.play()
+        .then(() => {
+          hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+        })
+        .catch((e) => console.error("Audio play error:", e));
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [stage]);
+
+  const handleUserInteraction = () => {
+    if (!hasPlayedRef.current) {
+      console.log("Audio is not allowed to play after direction stage.");
+    }
+  };
 
   const nextQuestion = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % imageList.length);
-    setPreparing(true);
-    setResponding(false);
-    setScoring(false);
+    setStage("preparing");
     setRemainingTime(1);
     setQuestionCount(questionCount + 1);
   };
@@ -87,17 +150,27 @@ const Part2Page: React.FC = () => {
   const textContent =
     "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
   return (
-    <S.mainContainer>
+    <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
-      <ImageBody
-        imageSrc={imageList[currentImageIndex]}
-        questionNum={3}
-        totalQuestions={11}
-        fromPartSelect={fromPartSelect}
-        questionCount={questionCount}
-        partId={partId}
-      />
-      {isPreparing && (
+      {stage === "direction" && (
+        <DirectionBody
+          title={"Question 3-4: Describe a Picture"}
+          direction={
+            "Directions: In this part of the test, you will describe the picture on your screen in as much detail as you can. You will have 45 seconds to prepare your response. Then you will have 30 seconds to speak about the picture."
+          }
+        />
+      )}
+      {stage !== "direction" && (
+        <ImageBody
+          imageSrc={imageList[currentImageIndex]}
+          questionNum={3}
+          totalQuestions={11}
+          fromPartSelect={fromPartSelect}
+          questionCount={questionCount}
+          partId={partId}
+        />
+      )}
+      {stage === "preparing" && (
         <>
           <TimeRemainingIndicator>
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
@@ -105,7 +178,7 @@ const Part2Page: React.FC = () => {
           <TimeInfoText>Preparation Time</TimeInfoText>
         </>
       )}
-      {isResponding && (
+      {stage === "responding" && (
         <>
           <TimeRemainingIndicator bgColor="#59BED4">
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
@@ -113,7 +186,7 @@ const Part2Page: React.FC = () => {
           <TimeInfoText>Response Time</TimeInfoText>
         </>
       )}
-      {isScoring && (
+      {stage === "scoring" && !isMockExam && (
         <>
           <div
             className="midContainer"
@@ -127,7 +200,7 @@ const Part2Page: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              <ReplyBody text={textContent} isScoring={isScoring} />
+              <ReplyBody text={textContent} isScoring={false} />
               <ScoreBody
                 totalScore={86}
                 accuracy={80}

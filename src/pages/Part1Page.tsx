@@ -4,9 +4,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 import PassageBody from "../components/PassageBody";
-
-import styled from "styled-components";
 import DirectionBody from "../components/DirectionBody";
+import styled from "styled-components";
+
 
 type TimeIndicatorProps = { bgColor?: string };
 // type TipProps = { text: string };
@@ -73,7 +73,7 @@ const Part1Page: React.FC = () => {
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(currentNum === 2 ? 1 : 1);
+          setRemainingTime(45);
           break;
         case "responding":
           if (currentNum < 2) {
@@ -83,10 +83,10 @@ const Part1Page: React.FC = () => {
           } else {
             setStage("scoring");
 
-            // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
+            // 실전 모의고사 모드에서는 자동으로 Part2 페이지로 이동
             if (isMockExam) {
               setTimeout(() => {
-                navigate("/part2?mockExam=true"); // 7번 문제 완료 후 Part4로 이동
+                navigate("/part2?mockExam=true"); // 2번 문제 완료 후 Part2로 이동
               }, 0); //  딜레이없이 바로 이동
             }
           }
