@@ -122,7 +122,7 @@ export const ScoreLabel = styled.div`
   }
 `;
 
-export const InfoTip = styled.div<{ syllable: number }>`
+export const InfoTip = styled.div<{ syllable: number; line?: number }>`
   position: absolute;
 
   bottom: 200%;
@@ -142,7 +142,8 @@ export const InfoTip = styled.div<{ syllable: number }>`
   color: black;
 
   width: 27.5rem; // 440px
-  height: 6.25rem; // 100px
+  /* height: 6.25rem; // 100px */
+  height: ${(props) => (props.line === 3 ? "6.25rem" : "5rem")};
   border-radius: 1.25rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
