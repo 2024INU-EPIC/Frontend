@@ -7,6 +7,21 @@ import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
 import loadingGif from "../assets/img/loading.gif";
 
+// 개발 모드인지 여부를 플래그 변수로 설정
+// true : 개발 모드 (빠른 UI 확인용)
+// false : 배포 모드 (실제 시험 진행 방식)
+
+const IS_DEV_MODE = true;
+// const IS_DEV_MODE = false;
+
+const TIME_SETTINGS = {
+  situation: IS_DEV_MODE ? 5 : 45, //situation 단계
+  preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
+  responding: (
+    questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
+  ) => (IS_DEV_MODE ? 1 : questionNum === 7 ? 30 : 15),
+};
+
 type TimeIndicatorProps = { bgColor?: string };
 
 export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
@@ -33,21 +48,6 @@ export const TimeInfoText = styled.p`
 export const TopBlank = styled.div`
   height: 9rem;
 `;
-
-// 개발 모드인지 여부를 플래그 변수로 설정
-// true : 개발 모드 (빠른 UI 확인용)
-// false : 배포 모드 (실제 시험 진행 방식)
-
-// const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
-
-const TIME_SETTINGS = {
-  situation: IS_DEV_MODE ? 5 : 45, //situation 단계
-  preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
-  responding: (
-    questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
-  ) => (IS_DEV_MODE ? 1 : questionNum === 7 ? 30 : 15),
-};
 
 const Part3Page: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -184,11 +184,14 @@ const Part3Page: React.FC = () => {
                 isScoring={false}
               />
               <ScoreBodyGeneral
-                totalScore={86}
+                pronunciationScore={86}
                 accuracy={80}
-                completeness={60}
                 fluency={85}
                 prosody={70}
+                contentScore={90}
+                voca={81}
+                grammar={80}
+                topic={79}
               />
             </React.Fragment>
           ))}
