@@ -42,10 +42,11 @@ export const TopBlank = styled.div`
 const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
-  situation: IS_DEV_MODE ? 5 : 10, //situation 단계
-  prepraing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
-  repsonding: (questionNum: number) =>
-    IS_DEV_MODE ? 1 : questionNum === 7 ? 30 : 15,
+  situation: IS_DEV_MODE ? 5 : 45, //situation 단계
+  preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
+  responding: (
+    questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
+  ) => (IS_DEV_MODE ? 1 : questionNum === 7 ? 30 : 15),
 };
 
 const Part3Page: React.FC = () => {
@@ -84,17 +85,17 @@ const Part3Page: React.FC = () => {
       switch (stage) {
         case "situation":
           setStage("preparing");
-          setRemainingTime(TIME_SETTINGS.prepraing); // 준비 시간 설정
+          setRemainingTime(TIME_SETTINGS.preparing); // 준비 시간 설정
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(TIME_SETTINGS.repsonding); // 문항별 응답 시간 설정
+          setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 문항별 응답 시간 설정
           break;
         case "responding":
           if (currentNum < 7) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.prepraing); // 다음 문제 준비시간 설정
+            setRemainingTime(TIME_SETTINGS.preparing); // 다음 문제 준비시간 설정
           } else {
             setStage("scoring");
 
