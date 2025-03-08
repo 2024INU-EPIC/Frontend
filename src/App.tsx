@@ -13,6 +13,7 @@ import Part2Page from "./pages/Part2Page";
 import Part3Page from "./pages/Part3Page";
 import Part4Page from "./pages/Part4Page";
 import Part5Page from "./pages/Part5Page";
+import TestResultPage from "./pages/TestResult";
 
 const App: React.FC = () => {
   return (
@@ -63,6 +64,14 @@ const App: React.FC = () => {
           element={
             <MainLayout>
               <Part5Page />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/testresult"
+          element={
+            <MainLayout>
+              <TestResultPage />
             </MainLayout>
           }
         />

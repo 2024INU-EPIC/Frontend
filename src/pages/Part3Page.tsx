@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
-import ScoreBody from "../components/ScoreBody";
+import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import MutipleReplyBody from "../components/MutipleReplyBox";
 import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
@@ -18,7 +18,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   border-color: black;
   font-size: 2rem;
   color: white;
-  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0px 4px 8px rgba(168, 167, 167, 0.25));
   background-color: ${(props) => props.bgColor || "#ff7b7b"};
   display: flex;
   justify-content: center;
@@ -34,6 +34,20 @@ export const TopBlank = styled.div`
   height: 9rem;
 `;
 
+// 개발 모드인지 여부를 플래그 변수로 설정
+// true : 개발 모드 (빠른 UI 확인용)
+// false : 배포 모드 (실제 시험 진행 방식)
+
+// const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
+
+const TIME_SETTINGS = {
+  situation: IS_DEV_MODE ? 5 : 10, //situation 단계
+  prepraing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
+  repsonding: (questionNum: number) =>
+    IS_DEV_MODE ? 1 : questionNum === 7 ? 30 : 15,
+};
+
 const Part3Page: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +56,7 @@ const Part3Page: React.FC = () => {
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
 
   const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
-  const [remainingTime, setRemainingTime] = useState(1); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(TIME_SETTINGS.situation); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
     "situation" | "preparing" | "responding" | "scoring"
   >("situation");
@@ -70,17 +84,17 @@ const Part3Page: React.FC = () => {
       switch (stage) {
         case "situation":
           setStage("preparing");
-          setRemainingTime(1);
+          setRemainingTime(TIME_SETTINGS.prepraing); // 준비 시간 설정
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(currentNum === 7 ? 1 : 1);
+          setRemainingTime(TIME_SETTINGS.repsonding); // 문항별 응답 시간 설정
           break;
         case "responding":
           if (currentNum < 7) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(1);
+            setRemainingTime(TIME_SETTINGS.prepraing); // 다음 문제 준비시간 설정
           } else {
             setStage("scoring");
 
@@ -168,7 +182,7 @@ const Part3Page: React.FC = () => {
                 contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
                 isScoring={false}
               />
-              <ScoreBody
+              <ScoreBodyGeneral
                 totalScore={86}
                 accuracy={80}
                 completeness={60}
