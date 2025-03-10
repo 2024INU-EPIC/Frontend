@@ -43,25 +43,25 @@ const Part2Page: React.FC = () => {
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
-  
+
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
   const partId = location.state?.partId || "Part2";
 
   const [currentNum, setCurrentNum] = useState(3);
-    const [remainingTime, setRemainingTime] = useState(14); // 음성 시간 12초
-    const [stage, setStage] = useState<
-      "direction" | "preparing" | "responding" | "scoring"
-    >("direction");
+  const [remainingTime, setRemainingTime] = useState(14); // 음성 시간 12초
+  const [stage, setStage] = useState<
+    "direction" | "preparing" | "responding" | "scoring"
+  >("direction");
   const [questionCount, setQuestionCount] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-    const hasPlayedRef = useRef(false);
-  
-    function increaseNum() {
-      setCurrentNum((prevNum) => prevNum + 1);
-    }
-    
+  const hasPlayedRef = useRef(false);
+
+  function increaseNum() {
+    setCurrentNum((prevNum) => prevNum + 1);
+  }
+
   const imageList = [
     "/src/assets/img/part2_1.png",
     "/src/assets/img/part2_2.png",
@@ -71,44 +71,44 @@ const Part2Page: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-      if (remainingTime > 0) {
-        const timer = setTimeout(() => {
-          setRemainingTime(remainingTime - 1);
-        }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
-        return () => clearTimeout(timer);
-      } else {
-        switch (stage) {
-          case "direction":
-            if (currentNum !== 4) {
-              setStage("preparing");
-              setRemainingTime(1);
-            }
-            break;
-          case "preparing":
-            setStage("responding");
+    if (remainingTime > 0) {
+      const timer = setTimeout(() => {
+        setRemainingTime(remainingTime - 1);
+      }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
+      return () => clearTimeout(timer);
+    } else {
+      switch (stage) {
+        case "direction":
+          if (currentNum !== 4) {
+            setStage("preparing");
             setRemainingTime(1);
-            break;
-          case "responding":
-            if (currentNum < 4) {
-              increaseNum();
-              setStage("preparing");
-              setRemainingTime(1);
-            } else {
-              setStage("scoring");
-  
-              // 실전 모의고사 모드에서는 자동으로 Part3 페이지로 이동
-              if (isMockExam) {
-                setTimeout(() => {
-                  navigate("/part3?mockExam=true"); // 4번 문제 완료 후 Part3로 이동
-                }, 0); //  딜레이없이 바로 이동
-              }
+          }
+          break;
+        case "preparing":
+          setStage("responding");
+          setRemainingTime(1);
+          break;
+        case "responding":
+          if (currentNum < 4) {
+            increaseNum();
+            setStage("preparing");
+            setRemainingTime(1);
+          } else {
+            setStage("scoring");
+
+            // 실전 모의고사 모드에서는 자동으로 Part3 페이지로 이동
+            if (isMockExam) {
+              setTimeout(() => {
+                navigate("/part3?mockExam=true"); // 4번 문제 완료 후 Part3로 이동
+              }, 0); //  딜레이없이 바로 이동
             }
-            break;
-          default:
-            break;
-        }
+          }
+          break;
+        default:
+          break;
       }
-    }, [remainingTime, stage, currentNum, isMockExam, navigate]);
+    }
+  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -118,7 +118,8 @@ const Part2Page: React.FC = () => {
     const audio = audioRef.current;
 
     if (stage === "direction" && !hasPlayedRef.current) {
-      audio.play()
+      audio
+        .play()
         .then(() => {
           hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
         })

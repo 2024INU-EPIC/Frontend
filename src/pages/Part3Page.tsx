@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import MutipleReplyBody from "../components/MutipleReplyBox";
 import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
 import loadingGif from "../assets/img/loading.gif";
+import DirectionBody from "../components/DirectionBody";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
@@ -50,27 +51,38 @@ export const TopBlank = styled.div`
 `;
 
 const Part3Page: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
 
+  const location = useLocation();
+  const fromPartSelect = location.state?.fromPartSelect;
+  const partId = location.state?.partId || "Part3";
+
   const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
-  const [remainingTime, setRemainingTime] = useState(TIME_SETTINGS.situation); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(15); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
-    "situation" | "preparing" | "responding" | "scoring"
-  >("situation");
+    | "loading"
+    | "direction"
+    | "situation"
+    | "preparing"
+    | "responding"
+    | "scoring"
+  >("loading");
+  const [questionCount, setQuestionCount] = useState(1);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasPlayedRef = useRef(false);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
 
   useEffect(() => {
-    setLoading(true);
+    // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
     const loadingTimer = setTimeout(() => {
-      setLoading(false);
-    }, 2000); // 2초 동안 로딩 유지
+      setStage("direction");
+    }, 2000);
 
     return () => clearTimeout(loadingTimer);
   }, []);
@@ -83,6 +95,12 @@ const Part3Page: React.FC = () => {
       return () => clearTimeout(timer);
     } else {
       switch (stage) {
+        case "direction":
+          if (currentNum !== 7) {
+            setStage("situation");
+            setRemainingTime(1);
+          }
+          break;
         case "situation":
           setStage("preparing");
           setRemainingTime(TIME_SETTINGS.preparing); // 준비 시간 설정
@@ -113,6 +131,44 @@ const Part3Page: React.FC = () => {
     }
   }, [remainingTime, stage, currentNum, isMockExam, navigate]);
 
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/src/assets/audio/part3.mp3");
+    }
+
+    const audio = audioRef.current;
+
+    if (stage === "direction" && !hasPlayedRef.current) {
+      audio
+        .play()
+        .then(() => {
+          hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+        })
+        .catch((e) => console.error("Audio play error:", e));
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [stage]);
+
+  const handleUserInteraction = () => {
+    if (!hasPlayedRef.current) {
+      console.log("Audio is not allowed to play after direction stage.");
+    }
+  };
+
+  const nextQuestion = () => {
+    setStage("preparing");
+    setRemainingTime(1);
+    setQuestionCount(questionCount + 1);
+    setCurrentNum(5); //파트별 집중학습 다음 문제 초기화용
+  };
+
   const situationText =
     "Imagine that an American newspaper company is doing research in your country, and you have agreed to participate in a telephone interview about your friendship.";
 
@@ -130,7 +186,7 @@ const Part3Page: React.FC = () => {
     },
   ];
 
-  if (loading)
+  if (stage === "loading")
     return (
       <div style={{ margin: "400px" }}>
         <img src={loadingGif} />
@@ -138,16 +194,29 @@ const Part3Page: React.FC = () => {
     );
 
   return (
-    <S.mainContainer>
+    <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
-      <SituationBody
-        stage={stage}
-        partNum={3}
-        situationText={situationText}
-        questionText={questionTextArray[currentNum - 5].value}
-        questionNum={currentNum}
-        totalQuestions={11}
-      />
+      {stage === "direction" && (
+        <DirectionBody
+          title={"Question 5-7: Respond to Questions"}
+          direction={
+            "Directions: In this part of the test, you will answer three questions. You will have 3 seconds to prepare after you hear each question. You will have 15 seconds to respond to Questions 5 and 6 and 30 seconds to respond to Question 7."
+          }
+        />
+      )}
+      {stage !== "direction" && (
+        <SituationBody
+          stage={stage}
+          partNum={3}
+          situationText={situationText}
+          questionText={questionTextArray[currentNum - 5].value}
+          questionNum={currentNum}
+          totalQuestions={11}
+          fromPartSelect={fromPartSelect}
+          questionCount={questionCount}
+          partId={partId}
+        />
+      )}
 
       {stage === "situation" && (
         <>
@@ -195,6 +264,53 @@ const Part3Page: React.FC = () => {
               />
             </React.Fragment>
           ))}
+          {fromPartSelect && (
+            <button
+              onClick={nextQuestion}
+              style={{
+                display: "flex",
+                width: "29.5rem",
+                height: "6.5rem",
+                margin: "2.25rem 0 2rem 0",
+                border: "none",
+                borderRadius: "6.25rem",
+                background: "#ff7b7b",
+                alignItems: "center",
+                justifyContent: "center",
+                filter: "drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25))",
+              }}
+            >
+              <span
+                style={{
+                  color: "white",
+                  textAlign: "center",
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontSize: "1.75rem",
+                  fontWeight: 700,
+                  marginLeft: "3.5rem",
+                  marginRight: "1.75rem",
+                }}
+              >
+                다음 문제 풀기
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
+                  fill="white"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </>
       )}
     </S.mainContainer>

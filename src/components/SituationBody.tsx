@@ -70,6 +70,9 @@ type SituationBodyProps = {
   imageSrc?: string; // part 4면 이미지를 props로 받아야함
   questionNum: number;
   totalQuestions: number;
+  fromPartSelect?: boolean;
+  questionCount: number;
+  partId?: string;
 };
 
 const SituationBody: React.FC<SituationBodyProps> = ({
@@ -80,12 +83,17 @@ const SituationBody: React.FC<SituationBodyProps> = ({
   imageSrc,
   questionNum,
   totalQuestions,
+  fromPartSelect = false,
+  questionCount,
+  partId = "Part",
 }) => {
   return (
     <Wrapper stage={stage} partNum={partNum}>
       <p className="questionInfo">
-        Question {questionNum >= 5 && questionNum <= 7 ? "5-7" : "8-10"} of{" "}
-        {totalQuestions}
+        {fromPartSelect
+          ? `Question ${questionCount} of ${partId}`
+          : `Question ${questionNum >= 5 && questionNum <= 7 ? "5-7" : "8-10"} of ${" "}
+        ${totalQuestions}`}
       </p>
 
       {/* 3번 문항일 경우 상황제시 dialog를 출력하고, 4번 문항일 경우 도표 이미지 출력 */}

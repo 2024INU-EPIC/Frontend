@@ -39,7 +39,7 @@ const Wrapper = styled.div`
   }
 `;
 
-type PassageBodyProps = {
+type ImageBodyProps = {
   imageSrc?: string;
   questionNum: number;
   totalQuestions: number;
@@ -48,7 +48,7 @@ type PassageBodyProps = {
   partId?: string;
 };
 
-const PassageBody: React.FC<PassageBodyProps> = ({
+const ImageBody: React.FC<ImageBodyProps> = ({
   imageSrc,
   questionNum,
   totalQuestions,
@@ -70,4 +70,4 @@ const PassageBody: React.FC<PassageBodyProps> = ({
   );
 };
 
-export default PassageBody;
+export default ImageBody;
