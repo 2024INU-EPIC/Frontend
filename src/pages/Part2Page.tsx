@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
-import ScoreBody from "../components/ScoreBody";
+import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import ImageBody from "../components/ImageBody";
 import ReplyBody from "../components/ReplyBody";
 import DirectionBody from "../components/DirectionBody";
@@ -164,7 +164,7 @@ const Part2Page: React.FC = () => {
       {stage !== "direction" && (
         <ImageBody
           imageSrc={imageList[currentImageIndex]}
-          questionNum={3}
+          questionNum={currentNum}
           totalQuestions={11}
           fromPartSelect={fromPartSelect}
           questionCount={questionCount}
@@ -202,12 +202,15 @@ const Part2Page: React.FC = () => {
               }}
             >
               <ReplyBody text={textContent} isScoring={false} />
-              <ScoreBody
-                totalScore={86}
+              <ScoreBodyGeneral
+                pronunciationScore={86}
                 accuracy={80}
-                completeness={60}
                 fluency={85}
                 prosody={70}
+                contentScore={50}
+                voca={81}
+                grammar={40}
+                topic={79}
               />
               {fromPartSelect && (
                 <button

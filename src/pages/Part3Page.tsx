@@ -98,7 +98,7 @@ const Part3Page: React.FC = () => {
         case "direction":
           if (currentNum !== 7) {
             setStage("situation");
-            setRemainingTime(1);
+            setRemainingTime(TIME_SETTINGS.situation);
           }
           break;
         case "situation":
