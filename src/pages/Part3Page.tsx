@@ -249,8 +249,8 @@ const Part3Page: React.FC = () => {
               <MutipleReplyBody
                 questionNum={5 + index}
                 questionText={q.value}
-                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-                isScoring={false}
+                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number."
+                isScoring={stage === "scoring"}
               />
               <ScoreBodyGeneral
                 pronunciationScore={86}
