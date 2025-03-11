@@ -7,6 +7,14 @@ import PassageBody from "../components/PassageBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
 
+const IS_DEV_MODE = true;
+// const IS_DEV_MODE = false;
+
+const TIME_SETTINGS = {
+  direction: IS_DEV_MODE ? 5 : 45, // direction 단계
+  preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
+  responding: IS_DEV_MODE ? 2 : 45, // 답변 시간. Part 1은 문제별로 답변 시간이 같음
+};
 
 type TimeIndicatorProps = { bgColor?: string };
 // type TipProps = { text: string };
@@ -68,18 +76,18 @@ const Part1Page: React.FC = () => {
         case "direction":
           if (currentNum !== 2) {
             setStage("preparing");
-            setRemainingTime(45);
+            setRemainingTime(TIME_SETTINGS.preparing);
           }
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(45);
+          setRemainingTime(TIME_SETTINGS.responding);
           break;
         case "responding":
           if (currentNum < 2) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(45);
+            setRemainingTime(TIME_SETTINGS.preparing);
           } else {
             setStage("scoring");
 
@@ -109,7 +117,7 @@ const Part1Page: React.FC = () => {
   //   }
   // }
 
-// "direction"일 때만 오디오 자동 재생
+  // "direction"일 때만 오디오 자동 재생
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio("/src/assets/audio/part1.mp3");
@@ -118,7 +126,8 @@ const Part1Page: React.FC = () => {
     const audio = audioRef.current;
 
     if (stage === "direction" && !hasPlayedRef.current) {
-      audio.play()
+      audio
+        .play()
         .then(() => {
           hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
         })
@@ -158,8 +167,8 @@ const Part1Page: React.FC = () => {
       {stage !== "direction" && (
         <PassageBody
           text={textContent}
-          isScoring={false}
-          questionNum={1}
+          isScoring={stage === "scoring"}
+          questionNum={currentNum} // 원래 1
           totalQuestions={2}
         />
       )}

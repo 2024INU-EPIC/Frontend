@@ -16,7 +16,7 @@ const IS_DEV_MODE = true;
 // const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
-  image: IS_DEV_MODE ? 5 : 45, //situation 단계
+  image: IS_DEV_MODE ? 3 : 45, //situation 단계
   preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
   responding: (
     questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
@@ -58,18 +58,18 @@ const Part4Page: React.FC = () => {
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
   const partId = location.state?.partId || "Part3";
-  
+
   const [currentNum, setCurrentNum] = useState(8); // 문제 번호 (8 → 9 → 10)
   const [remainingTime, setRemainingTime] = useState(20); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
-    "loading" | "direction"| "image" | "preparing" | "responding" | "scoring"
+    "loading" | "direction" | "image" | "preparing" | "responding" | "scoring"
   >("loading"); // 현재 단계
 
   const [questionCount, setQuestionCount] = useState(1);
-  
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
-    
+
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
@@ -128,42 +128,42 @@ const Part4Page: React.FC = () => {
   }, [remainingTime, stage, currentNum, isMockExam, navigate]);
 
   useEffect(() => {
-      if (!audioRef.current) {
-        audioRef.current = new Audio("/src/assets/audio/part4.mp3");
-      }
-  
-      const audio = audioRef.current;
-  
-      if (stage === "direction" && !hasPlayedRef.current) {
-        audio
-          .play()
-          .then(() => {
-            hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
-          })
-          .catch((e) => console.error("Audio play error:", e));
-      } else {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-  
-      return () => {
-        audio.pause();
-        audio.currentTime = 0;
-      };
-    }, [stage]);
-  
-    const handleUserInteraction = () => {
-      if (!hasPlayedRef.current) {
-        console.log("Audio is not allowed to play after direction stage.");
-      }
-    };
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/src/assets/audio/part4.mp3");
+    }
 
-    const nextQuestion = () => {
-      setStage("preparing");
-      setRemainingTime(1);
-      setQuestionCount(questionCount + 1);
-      setCurrentNum(8); //파트별 집중학습 다음 문제 초기화용
+    const audio = audioRef.current;
+
+    if (stage === "direction" && !hasPlayedRef.current) {
+      audio
+        .play()
+        .then(() => {
+          hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+        })
+        .catch((e) => console.error("Audio play error:", e));
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
     };
+  }, [stage]);
+
+  const handleUserInteraction = () => {
+    if (!hasPlayedRef.current) {
+      console.log("Audio is not allowed to play after direction stage.");
+    }
+  };
+
+  const nextQuestion = () => {
+    setStage("preparing");
+    setRemainingTime(1);
+    setQuestionCount(questionCount + 1);
+    setCurrentNum(8); //파트별 집중학습 다음 문제 초기화용
+  };
 
   const questionTextArray = [
     {
@@ -194,7 +194,9 @@ const Part4Page: React.FC = () => {
       <TopBlank />
       {stage === "direction" && (
         <DirectionBody
-          title={"Question 8-10: Respond to Questions Using Information Provided"}
+          title={
+            "Question 8-10: Respond to Questions Using Information Provided"
+          }
           direction={
             "Directions: In this part of the test, you will answer three questions based on the information provided. You will have 45 seconds to read the information before the questions begin. You will have 3 seconds to prepare after you hear each question. You will have 15 seconds to respond to Questions 8 and 9 and 30 seconds to respond to Question 10."
           }
@@ -241,8 +243,8 @@ const Part4Page: React.FC = () => {
               <MutipleReplyBody
                 questionNum={8 + index}
                 questionText={q.value}
-                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process,  Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes."
-                isScoring={false}
+                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number."
+                isScoring={stage === "scoring"}
               />
               <ScoreBody
                 totalScore={86}

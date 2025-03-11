@@ -1,11 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
-import ScoreBody from "../components/ScoreBody";
+import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import ImageBody from "../components/ImageBody";
 import ReplyBody from "../components/ReplyBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
+
+const IS_DEV_MODE = true;
+// const IS_DEV_MODE = false;
+
+const TIME_SETTINGS = {
+  direction: IS_DEV_MODE ? 5 : 45, // direction 단계
+  preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
+  responding: IS_DEV_MODE ? 2 : 45, // 답변 시간. Part 1은 문제별로 답변 시간이 같음
+};
 
 type TimeIndicatorProps = { bgColor?: string };
 // type TipProps = { text: string };
@@ -81,18 +90,18 @@ const Part2Page: React.FC = () => {
         case "direction":
           if (currentNum !== 4) {
             setStage("preparing");
-            setRemainingTime(1);
+            setRemainingTime(TIME_SETTINGS.preparing);
           }
           break;
         case "preparing":
           setStage("responding");
-          setRemainingTime(1);
+          setRemainingTime(TIME_SETTINGS.responding);
           break;
         case "responding":
           if (currentNum < 4) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(1);
+            setRemainingTime(TIME_SETTINGS.preparing);
           } else {
             setStage("scoring");
 
@@ -164,7 +173,7 @@ const Part2Page: React.FC = () => {
       {stage !== "direction" && (
         <ImageBody
           imageSrc={imageList[currentImageIndex]}
-          questionNum={3}
+          questionNum={currentNum}
           totalQuestions={11}
           fromPartSelect={fromPartSelect}
           questionCount={questionCount}
@@ -201,13 +210,16 @@ const Part2Page: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              <ReplyBody text={textContent} isScoring={false} />
-              <ScoreBody
-                totalScore={86}
+              <ReplyBody text={textContent} isScoring={stage === "scoring"} />
+              <ScoreBodyGeneral
+                pronunciationScore={86}
                 accuracy={80}
-                completeness={60}
                 fluency={85}
                 prosody={70}
+                contentScore={50}
+                voca={81}
+                grammar={40}
+                topic={79}
               />
               {fromPartSelect && (
                 <button
