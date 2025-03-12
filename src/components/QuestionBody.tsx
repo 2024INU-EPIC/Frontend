@@ -37,17 +37,25 @@ type QuestionBodyProps = {
   text: React.ReactNode;
   questionNum: number;
   totalQuestions: number;
+  fromPartSelect?: boolean;
+  questionCount: number;
+  partId?: string;
 };
 
 const QuestionBody: React.FC<QuestionBodyProps> = ({
   text,
   questionNum,
   totalQuestions,
+  fromPartSelect = false,
+  questionCount,
+  partId = "Part",
 }) => {
   return (
     <Wrapper>
       <p className="question">
-        Question {questionNum} of {totalQuestions}
+        {fromPartSelect
+          ? `Question ${questionCount} of ${partId}`
+          : `Question ${questionNum} of ${totalQuestions}`}
       </p>
       <div>
         <p className="paragraph">{text}</p>
