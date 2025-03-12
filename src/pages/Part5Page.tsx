@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
-import ReplyBody from "../components/ReplyBody";
+// import ReplyBody from "../components/ReplyBody";
+import TempReplyBody from "../components/TempReplyBody";
 import styled from "styled-components";
 import QuestionBody from "../components/QuestionBody";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
@@ -11,7 +12,7 @@ const IS_DEV_MODE = true;
 // const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
-  direction: IS_DEV_MODE ? 5 : 45, // direction 단계
+  direction: IS_DEV_MODE ? 2 : 45, // direction 단계
   preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
   responding: IS_DEV_MODE ? 2 : 60, // 답변 시간.
 };
@@ -138,7 +139,14 @@ const Part5Page: React.FC = () => {
   const textContent =
     " The only way to reduce the amount of traffic in cities today is by reducing the need for people to travel from home for work, education or shopping. Do you agree or disagree with this point of view? Use specific reasons and examples to support your choice.";
   const replyContent =
-    "The only way to reduce the amount of traffic in cities today is by reducing the need for people to travel from home for work, education or shopping. Do you agree or disagree with this point of view? Use specific reasons and examples to support your choice.The only way to reduce the amount of traffic in cities today is by reducing the need for people to travel from home for work, education or shopping. Do you agree or disagree with this point of view? Use specific reasons and examples to support your choice.The only way to reduce the amount of traffic in cities today is by reducing the need for people to travel from home for work, education or shopping. Do you agree or disagree with this point of view? Use specific reasons and examples to support your choice.";
+    "I partially disagree. Reducing the need to travel helps, but it’s not the only way to reduce traffic. First, improving public transportation can encourage people to use buses and trains instead of cars. Second, remote work and online learning help, but many jobs require physical presence, and shopping in person is still needed. Lastly, better city planning, like expanding bike lanes and pedestrian areas, can reduce congestion. So, while reducing travel helps, a combination of solutions is needed for real change.";
+
+  // api 연동으로 받을 단어 성적 JSON 예시
+  const wrongWordScore = {
+    disagree: 56,
+    transportation: 75,
+    presence: 43,
+  };
 
   // ? 이후 줄바꿈용 코드
   const formattedText = textContent.split("?").map((part, index, arr) => (
@@ -188,7 +196,11 @@ const Part5Page: React.FC = () => {
       )}
       {stage === "scoring" && !isMockExam && (
         <>
-          <ReplyBody text={replyContent} isScoring={stage === "scoring"} />
+          <TempReplyBody
+            text={replyContent}
+            wrongWordScore={wrongWordScore}
+            isScoring={stage === "scoring"}
+          />
           <ScoreBody
             totalScore={86}
             accuracy={80}
