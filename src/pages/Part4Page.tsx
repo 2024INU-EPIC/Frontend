@@ -57,10 +57,10 @@ const Part4Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part3";
+  const partId = location.state?.partId || "Part4";
 
   const [currentNum, setCurrentNum] = useState(8); // 문제 번호 (8 → 9 → 10)
-  const [remainingTime, setRemainingTime] = useState(20); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(21); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
     "loading" | "direction" | "image" | "preparing" | "responding" | "scoring"
   >("loading"); // 현재 단계
@@ -78,7 +78,7 @@ const Part4Page: React.FC = () => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
     const loadingTimer = setTimeout(() => {
       setStage("direction");
-    }, 2000);
+    }, 200);
 
     return () => clearTimeout(loadingTimer);
   }, []);
