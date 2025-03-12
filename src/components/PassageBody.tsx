@@ -162,6 +162,9 @@ type PassageBodyProps = {
   isScoring: boolean;
   questionNum: number;
   totalQuestions: number;
+  fromPartSelect?: boolean;
+  questionCount: number;
+  partId?: string;
 };
 
 const PassageBody: React.FC<PassageBodyProps> = ({
@@ -169,11 +172,16 @@ const PassageBody: React.FC<PassageBodyProps> = ({
   isScoring,
   questionNum,
   totalQuestions,
+  fromPartSelect = false,
+  questionCount,
+  partId = "Part",
 }) => {
   return (
     <Wrapper>
       <p className="question">
-        Question {questionNum} of {totalQuestions}
+        {fromPartSelect
+          ? `Question ${questionCount} of ${partId}`
+          : `Question ${questionNum} of ${totalQuestions}`}
       </p>
       <div>
         <p className="paragraph">{highlightText(text, isScoring)}</p>

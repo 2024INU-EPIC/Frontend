@@ -1,6 +1,6 @@
 // TestPage.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 import PassageBody from "../components/PassageBody";
@@ -52,11 +52,17 @@ const Part1Page: React.FC = () => {
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
 
+  const location = useLocation();
+  const fromPartSelect = location.state?.fromPartSelect;
+  const partId = location.state?.partId || "Part1";
+
   const [currentNum, setCurrentNum] = useState(1);
   const [remainingTime, setRemainingTime] = useState(12); // 음성 시간 12초
   const [stage, setStage] = useState<
     "direction" | "preparing" | "responding" | "scoring"
   >("direction");
+
+  const [questionCount, setQuestionCount] = useState(1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
@@ -84,6 +90,10 @@ const Part1Page: React.FC = () => {
           setRemainingTime(TIME_SETTINGS.responding);
           break;
         case "responding":
+          if (fromPartSelect) {
+            setStage("scoring");
+            break;
+          }
           if (currentNum < 2) {
             increaseNum();
             setStage("preparing");
@@ -103,19 +113,7 @@ const Part1Page: React.FC = () => {
           break;
       }
     }
-  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
-
-  // 개발용 함수
-  // function handleNextStep() {
-  //   if (isPreparing) {
-  //     setPreparing(false);
-  //     setResponding(true);
-  //     setRemainingTime(5);
-  //   } else if (isResponding) {
-  //     setResponding(false);
-  //     setScoring(true);
-  //   }
-  // }
+  }, [remainingTime, stage, currentNum, fromPartSelect, isMockExam, navigate]);
 
   // "direction"일 때만 오디오 자동 재생
   useEffect(() => {
@@ -150,6 +148,13 @@ const Part1Page: React.FC = () => {
     }
   };
 
+  const nextQuestion = () => {
+    setStage("preparing");
+    setRemainingTime(1);
+    setQuestionCount(questionCount + 1);
+    setCurrentNum(2); //파트별 집중학습 다음 문제 초기화용
+  };
+
   const textContent =
     "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
 
@@ -170,6 +175,9 @@ const Part1Page: React.FC = () => {
           isScoring={stage === "scoring"}
           questionNum={currentNum} // 원래 1
           totalQuestions={2}
+          fromPartSelect={fromPartSelect}
+          questionCount={questionCount}
+          partId={partId}
         />
       )}
       {stage === "preparing" && (
@@ -189,13 +197,62 @@ const Part1Page: React.FC = () => {
         </>
       )}
       {stage === "scoring" && !isMockExam && (
-        <ScoreBody
-          totalScore={86}
-          accuracy={80}
-          completeness={60}
-          fluency={85}
-          prosody={70}
-        />
+        <>
+          <ScoreBody
+            totalScore={86}
+            accuracy={80}
+            completeness={60}
+            fluency={85}
+            prosody={70}
+          />
+          {fromPartSelect && (
+            <button
+              onClick={nextQuestion}
+              style={{
+                display: "flex",
+                width: "29.5rem",
+                height: "6.5rem",
+                margin: "2.25rem 0 2rem 0",
+                border: "none",
+                borderRadius: "6.25rem",
+                background: "#ff7b7b",
+                alignItems: "center",
+                justifyContent: "center",
+                filter: "drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25))",
+              }}
+            >
+              <span
+                style={{
+                  color: "white",
+                  textAlign: "center",
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontSize: "1.75rem",
+                  fontWeight: 700,
+                  marginLeft: "3.5rem",
+                  marginRight: "1.75rem",
+                }}
+              >
+                다음 문제 풀기
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
+                  fill="white"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+        </>
       )}
     </S.mainContainer>
   );
