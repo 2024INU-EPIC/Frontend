@@ -8,11 +8,11 @@ import QuestionBody from "../components/QuestionBody";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import DirectionBody from "../components/DirectionBody";
 
-const IS_DEV_MODE = true;
-// const IS_DEV_MODE = false;
+// const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
-  direction: IS_DEV_MODE ? 2 : 45, // direction 단계
+  direction: IS_DEV_MODE ? 2 : 13, // direction 단계
   preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
   responding: IS_DEV_MODE ? 2 : 60, // 답변 시간.
 };
@@ -111,6 +111,15 @@ const Part5Page: React.FC = () => {
         .play()
         .then(() => {
           hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+
+          audio.onended = () => {
+            if (stage === "direction") {
+              setTimeout(() => {
+                setStage("preparing");
+                setRemainingTime(TIME_SETTINGS.preparing);
+              }, 1000);
+            }
+          };
         })
         .catch((e) => console.error("Audio play error:", e));
     } else {
@@ -132,7 +141,7 @@ const Part5Page: React.FC = () => {
 
   const nextQuestion = () => {
     setStage("preparing");
-    setRemainingTime(1);
+    setRemainingTime(TIME_SETTINGS.preparing);
     setQuestionCount(questionCount + 1);
   };
 

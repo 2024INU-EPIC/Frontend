@@ -12,10 +12,11 @@ import DirectionBody from "../components/DirectionBody";
 // true : 개발 모드 (빠른 UI 확인용)
 // false : 배포 모드 (실제 시험 진행 방식)
 
-const IS_DEV_MODE = true;
-// const IS_DEV_MODE = false;
+// const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
+  direction: IS_DEV_MODE ? 5 : 16, // direction 단계
   situation: IS_DEV_MODE ? 5 : 45, //situation 단계
   preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
   responding: (
@@ -60,7 +61,7 @@ const Part3Page: React.FC = () => {
   const partId = location.state?.partId || "Part3";
 
   const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
-  const [remainingTime, setRemainingTime] = useState(15); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(1); // 처음 45초 동안 SituationBody만 표시
   const [stage, setStage] = useState<
     | "loading"
     | "direction"
@@ -97,7 +98,6 @@ const Part3Page: React.FC = () => {
       switch (stage) {
         case "direction":
           if (currentNum !== 7) {
-            setStage("situation");
             setRemainingTime(TIME_SETTINGS.situation);
           }
           break;
@@ -143,6 +143,16 @@ const Part3Page: React.FC = () => {
         .play()
         .then(() => {
           hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+          setRemainingTime(TIME_SETTINGS.direction);
+
+          audio.onended = () => {
+            if (stage === "direction") {
+              setTimeout(() => {
+                setStage("situation");
+                setRemainingTime(TIME_SETTINGS.situation);
+              }, 1000);
+            }
+          };
         })
         .catch((e) => console.error("Audio play error:", e));
     } else {
@@ -164,7 +174,7 @@ const Part3Page: React.FC = () => {
 
   const nextQuestion = () => {
     setStage("preparing");
-    setRemainingTime(1);
+    setRemainingTime(TIME_SETTINGS.preparing);
     setQuestionCount(questionCount + 1);
     setCurrentNum(5); //파트별 집중학습 다음 문제 초기화용
   };
