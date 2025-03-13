@@ -150,8 +150,100 @@ const Part1Page: React.FC = () => {
     }
   };
 
-  const textContent =
-    "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+  // const textContent =
+  //   "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+  const textContent = "hello, it's me. i'm fine, thank you.";
+
+  const response = {
+    UserResponse: "Hello, it's you. I'm fine. Thank me.",
+    PronunciationAssessment: {
+      AccuracyScore: 51.0,
+      FluencyScore: 44.0,
+      ProsodyScore: 67.6,
+      CompletenessScore: 43.0,
+      PronScore: 49.7,
+    },
+    IssueWords: [
+      {
+        word: "hello",
+        AccuracyScore: 1.0,
+        ErrorType: "Mispronunciation",
+        LowScorePhonemes: [
+          {
+            phoneme: "h",
+            AccuracyScore: 56.0,
+          },
+          {
+            phoneme: "ax",
+            AccuracyScore: 6.0,
+          },
+          {
+            phoneme: "l",
+            AccuracyScore: 0.0,
+          },
+          {
+            phoneme: "ow",
+            AccuracyScore: 0.0,
+          },
+        ],
+      },
+      {
+        word: "it's",
+        AccuracyScore: 57.0,
+        ErrorType: "Mispronunciation",
+        LowScorePhonemes: [
+          {
+            phoneme: "ih",
+            AccuracyScore: 41.0,
+          },
+          {
+            phoneme: "t",
+            AccuracyScore: 43.0,
+          },
+          {
+            phoneme: "s",
+            AccuracyScore: 73.0,
+          },
+        ],
+      },
+      {
+        word: "me",
+        AccuracyScore: 0.0,
+        ErrorType: "Omission",
+        LowScorePhonemes: [],
+      },
+      {
+        word: "you",
+        AccuracyScore: 98.0,
+        ErrorType: "Insertion",
+        LowScorePhonemes: [
+          {
+            phoneme: "y",
+            AccuracyScore: 68.0,
+          },
+        ],
+      },
+      {
+        word: "you",
+        AccuracyScore: 0.0,
+        ErrorType: "Omission",
+        LowScorePhonemes: [],
+      },
+      {
+        word: "me",
+        AccuracyScore: 100.0,
+        ErrorType: "Insertion",
+        LowScorePhonemes: [],
+      },
+    ],
+  };
+
+  // api 연동으로 받을 단어 성적 JSON 예시
+  const wrongWordScore = {
+    hello: 56,
+    me: 75,
+    you: 43,
+  };
 
   return (
     <S.mainContainer onClick={handleUserInteraction}>
@@ -168,6 +260,7 @@ const Part1Page: React.FC = () => {
         <PassageBody
           text={textContent}
           isScoring={stage === "scoring"}
+          wrongWordScore={wrongWordScore}
           questionNum={currentNum} // 원래 1
           totalQuestions={2}
         />
