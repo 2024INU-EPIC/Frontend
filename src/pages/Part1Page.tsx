@@ -1,4 +1,4 @@
-// TestPage.tsx
+// Part1Page.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
@@ -239,11 +239,19 @@ const Part1Page: React.FC = () => {
   };
 
   // api 연동으로 받을 단어 성적 JSON 예시
-  const wrongWordScore = {
-    hello: 56,
-    me: 75,
-    you: 43,
-  };
+  // const wrongWordScore = {
+  //   hello: 56,
+  //   me: 75,
+  //   you: 43,
+  // };
+
+  const wrongWordScore = response.IssueWords.reduce(
+    (acc, item) => {
+      acc[item.word] = item.AccuracyScore;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
 
   return (
     <S.mainContainer onClick={handleUserInteraction}>
