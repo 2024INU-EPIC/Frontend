@@ -1,5 +1,5 @@
 // TestPage.tsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
@@ -56,7 +56,7 @@ const Part1Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part1";
+  const partId = location.state?.partId;
 
   const [currentNum, setCurrentNum] = useState(1);
   const [remainingTime, setRemainingTime] = useState(1);
@@ -74,6 +74,9 @@ const Part1Page: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  const { partData, userId } = location.state || {}; // 전달된 데이터
+  const [textContent, setTextContent] = useState<string>("");
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -167,15 +170,46 @@ const Part1Page: React.FC = () => {
     }
   };
 
-  const nextQuestion = () => {
-    setStage("preparing");
-    setRemainingTime(TIME_SETTINGS.preparing);
-    setQuestionCount(questionCount + 1);
-    setCurrentNum(2); //파트별 집중학습 다음 문제 초기화용
+  //PartSelectPage에서 데이터를 받아오지 못했을 경우 대비
+  useEffect(() => {
+    if (partData) {
+      setTextContent(partData.data[0]?.text || "Default text");
+    } else if (userId) {
+      // 데이터가 없으면 API 다시 호출
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(
+            `/api/focused-learning/part1/${userId}`,
+          );
+          setTextContent(response.data.data[0]?.text || "Default text");
+        } catch (error) {
+          console.error("Error fetching Part1 data:", error);
+        }
+      };
+
+      fetchData();
+    }
+  }, [partData, userId]);
+
+  const nextQuestion = async () => {
+    try {
+      const response = await axios.get(`/api/focused-learning/part1/${userId}`);
+
+      // 새로운 문제로 업데이트
+      setTextContent(response.data.data[0]?.text || "Default text");
+
+      // 다음 문제를 준비 단계로 전환
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error fetching next question:", error);
+    }
   };
 
   // 녹음 시작
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -201,13 +235,13 @@ const Part1Page: React.FC = () => {
     } catch (error) {
       console.error("마이크 접근 오류:", error);
     }
-  };
+  }, []);
 
   // 녹음 중지
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-  };
+  }, []);
 
   // 오디오 업로드
   const uploadAudio = async (blob: Blob) => {
@@ -228,13 +262,12 @@ const Part1Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else {
+    } else if (stage !== "preparing") {
       stopRecording();
     }
-  });
+  }, [stage, startRecording, stopRecording]);
 
-  const textContent =
-    "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+  //const textContent = "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
 
   return (
     <S.mainContainer onClick={handleUserInteraction}>
