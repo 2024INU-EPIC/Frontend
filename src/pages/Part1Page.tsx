@@ -1,3 +1,4 @@
+// Part1Page.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as S from './Main.styled';
@@ -56,16 +57,16 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
     'direction' | 'preparing' | 'responding' | 'scoring'
   >('direction');
   const [response, setResponse] = useState<any>(null); // API 응답 저장
-  const [referenceText, setReferenceText] = useState([
+  const referenceText = [
     "hello, it's me. i'm fine. thank you.",
     'Welcome to Boston Airport. In order to proceed your process,',
-  ]); // 입력된 문장
+  ]; // 입력된 문장
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
   // 🎤 녹음 및 API 요청 관련 상태 및 함수
-  const { startRecording, stopRecording, submitAssessment } = useTempRecording(
+  const { startRecording, stopRecording } = useTempRecording(
     setResponse,
     referenceText[0],
     part,
@@ -150,8 +151,14 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
 
       {/* 🎤 녹음 관련 버튼 */}
       <button onClick={startRecording}>Start Recording</button>
-      <button onClick={stopRecording}>Stop Recording</button>
-      <button onClick={submitAssessment}>Submit Assessment</button>
+      <button
+        onClick={() => {
+          stopRecording();
+        }}
+      >
+        Stop Recording
+      </button>
+      {/* <button onClick={submitAssessment}>Submit Assessment</button> */}
 
       {/* 🎯 시험 화면 */}
       {stage === 'direction' && (

@@ -1,5 +1,5 @@
 // useTempRecording.tsx
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 const useTempRecording = (
   setResponse: (data: any) => void,
@@ -16,9 +16,7 @@ const useTempRecording = (
   const isRecordingRef = useRef<boolean>(false);
   const [recorded, setRecorded] = useState<boolean>(false); // 녹음 상태
 
-  /**
-   * 녹음 시작
-   */
+  // 녹음
   async function startRecording() {
     if (isRecordingRef.current) {
       // 이미 녹음 중일 경우 또 다른 녹음이 시작되지 않게 방지
@@ -64,6 +62,7 @@ const useTempRecording = (
   }
 
   // 녹음 중지
+
   function stopRecording() {
     if (!isRecordingRef.current) return;
     isRecordingRef.current = false;
@@ -71,25 +70,36 @@ const useTempRecording = (
     scriptNodeRef.current?.disconnect();
     inputRef.current?.disconnect();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    // audioContextRef.current?.close();
 
-    setRecorded(true); // 녹음 완료 상태 업데이트
-    console.log('Recording stopped.');
+    console.log('Recording stopped. Ensuring data is saved...');
 
-    // 서버 전송 후 audioContext 닫기 (더 안전)
-    if (!isRecordingRef.current) {
-      audioContextRef.current?.close();
-      console.log('AudioContext closed.');
-    }
+    // 🔥 녹음된 데이터 길이를 강제로 반영
+    setTimeout(() => {
+      recordingLengthRef.current = leftChannelDataRef.current.reduce(
+        (total, chunk) => total + chunk.length,
+        0,
+      );
 
-    // 기존 방식
-    // setTimeout(() => {
-    //   if (!isRecordingRef.current) {
-    //     audioContextRef.current?.close();
-    //     console.log('AudioContext closed.');
-    //   }
-    // }, 500);
+      if (recordingLengthRef.current > 0) {
+        console.log(
+          `Recording data confirmed: ${recordingLengthRef.current} samples`,
+        );
+        setRecorded(true); // ✅ 상태 업데이트 (비동기적)
+      } else {
+        console.error(
+          'Recording data was not saved. Aborting assessment submission.',
+        );
+      }
+    }, 300);
   }
+
+  // 🔥 `recorded` 값이 true로 변경되면 `submitAssessment()` 실행
+  useEffect(() => {
+    if (recorded) {
+      console.log('Recorded is now true. Submitting assessment...');
+      submitAssessment();
+    }
+  }, [recorded]); // recorded 값이 변경될 때 실행
 
   async function submitAssessment() {
     if (!recorded || recordingLengthRef.current === 0) {
@@ -172,7 +182,7 @@ const useTempRecording = (
     }
   }
 
-  return { startRecording, stopRecording, submitAssessment };
+  return { startRecording, stopRecording };
 };
 
 export default useTempRecording;
