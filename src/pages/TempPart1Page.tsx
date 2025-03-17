@@ -1,4 +1,4 @@
-// Part1Page.tsx
+// TempPart1Page.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as S from './Main.styled';
@@ -12,8 +12,8 @@ const IS_DEV_MODE = true;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 45,
-  preparing: IS_DEV_MODE ? 5 : 45,
-  responding: IS_DEV_MODE ? 2 : 45,
+  preparing: IS_DEV_MODE ? 10 : 45,
+  responding: IS_DEV_MODE ? 10 : 45,
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -28,7 +28,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   font-size: 2rem;
   color: white;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
-  background-color: ${(props) => props.bgColor || '#ff7b7b'};
+  background-color: ${(props) => props.bgColor || '#59BED4'};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -46,7 +46,7 @@ type Part1PageProps = {
   part: number;
 };
 
-const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
+const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get('mockExam') === 'true';
@@ -72,9 +72,9 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
     part,
   );
 
-  function increaseNum() {
-    setCurrentNum((prevNum) => prevNum + 1);
-  }
+  //   function increaseNum() {
+  //     setCurrentNum((prevNum) => prevNum + 1);
+  //   }
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -93,22 +93,34 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
           setRemainingTime(TIME_SETTINGS.responding);
           break;
         case 'responding':
-          if (currentNum < 2) {
-            increaseNum();
-            setStage('preparing');
-            setRemainingTime(TIME_SETTINGS.preparing);
-          } else {
-            setStage('scoring');
-            if (isMockExam) {
-              setTimeout(() => navigate('/part2?mockExam=true'), 0);
-            }
-          }
+          setStage('scoring'); // 테스트용으로 1번만 나오게 구현
+          //   if (currentNum < 2) {
+          //     increaseNum();
+          //     setStage('preparing');
+          //     setRemainingTime(TIME_SETTINGS.preparing);
+          //   } else {
+          //     setStage('scoring');
+          //     if (isMockExam) {
+          //       setTimeout(() => navigate('/part2?mockExam=true'), 0);
+          //     }
+          //   }
           break;
         default:
           break;
       }
     }
   }, [remainingTime, stage, currentNum, isMockExam, navigate]);
+
+  // 🎤 자동 녹음 & 중지 (stage 변경 감지)
+  useEffect(() => {
+    if (stage === 'responding') {
+      console.log('🚀 자동 녹음 시작');
+      startRecording();
+    } else if (stage === 'scoring') {
+      console.log('자동 녹음 중지 및 서버 전송');
+      stopRecording();
+    }
+  }, [stage]);
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -148,19 +160,10 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
   return (
     <S.mainContainer>
       <TopBlank />
+      {/*임시 녹음버튼*/}
+      {/* <button onClick={startRecording}>Start Recording</button> 
+      <button onClick={stopRecording}>Stop Recording</button> */}
 
-      {/* 🎤 녹음 관련 버튼 */}
-      <button onClick={startRecording}>Start Recording</button>
-      <button
-        onClick={() => {
-          stopRecording();
-        }}
-      >
-        Stop Recording
-      </button>
-      {/* <button onClick={submitAssessment}>Submit Assessment</button> */}
-
-      {/* 🎯 시험 화면 */}
       {stage === 'direction' && (
         <DirectionBody
           title="Question 1-2: Read a Text Aloud"
@@ -189,7 +192,7 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
 
       {stage === 'responding' && (
         <>
-          <TimeRemainingIndicator bgColor="#59BED4">{`00 : ${remainingTime
+          <TimeRemainingIndicator bgColor={'#ff7b7b'}>{`00 : ${remainingTime
             .toString()
             .padStart(2, '0')}`}</TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
@@ -209,4 +212,4 @@ const Part1Page: React.FC<Part1PageProps> = ({ part }) => {
   );
 };
 
-export default Part1Page;
+export default TempPart1Page;
