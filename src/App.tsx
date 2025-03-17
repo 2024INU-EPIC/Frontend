@@ -1,19 +1,19 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import MainLayout from "./layouts/MainLayout";
-import Main from "./pages/MainPage";
-import MyPage from "./pages/MyPage";
-import LoginPage from "./pages/SignPage";
-import AuthLayout from "./layouts/AuthLayout";
-import VocaPage from "./pages/VocaPage";
-import PartSelectPage from "./pages/PartSelectPage";
-import OnboardingPage from "./pages/OnboardingPage";
-import Part1Page from "./pages/Part1Page";
-import Part2Page from "./pages/Part2Page";
-import Part3Page from "./pages/Part3Page";
-import Part4Page from "./pages/Part4Page";
-import Part5Page from "./pages/Part5Page";
-import TestResultPage from "./pages/TestResult";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import MainLayout from './layouts/MainLayout';
+import Main from './pages/MainPage';
+import MyPage from './pages/MyPage';
+import LoginPage from './pages/SignPage';
+import AuthLayout from './layouts/AuthLayout';
+import VocaPage from './pages/VocaPage';
+import PartSelectPage from './pages/PartSelectPage';
+import OnboardingPage from './pages/OnboardingPage';
+import Part1Page from './pages/Part1Page';
+import Part2Page from './pages/Part2Page';
+import Part3Page from './pages/Part3Page';
+import Part4Page from './pages/Part4Page';
+import Part5Page from './pages/Part5Page';
+import TestResultPage from './pages/TestResult';
 
 const App: React.FC = () => {
   return (
@@ -31,7 +31,7 @@ const App: React.FC = () => {
           path="/part1"
           element={
             <MainLayout>
-              <Part1Page />
+              <Part1Page part={1} />
             </MainLayout>
           }
         />
