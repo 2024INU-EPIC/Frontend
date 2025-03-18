@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   ScoreContainer,
   TotalScoreArea,
@@ -14,10 +14,10 @@ import {
   ScoreValue,
   InfoTip,
   InfoImg,
-} from "./ScoreBody.styled";
+} from './ScoreBody.styled';
 
-import infoIcon from "../assets/img/infoIcon.svg";
-import DoughnutChart from "./DoughnutChart";
+import infoIcon from '../assets/img/infoIcon.svg';
+import DoughnutChart from './DoughnutChart';
 
 interface ScoreProps {
   totalScore: number;
@@ -57,7 +57,7 @@ const ScoreBody: React.FC<ScoreProps> = ({
   return (
     <ScoreContainer>
       <TotalScoreArea>
-        <div style={{ margin: "1.5rem 1.875rem" }}>
+        <div style={{ margin: '1.5rem 1.875rem' }}>
           <p>발음 점수</p>
           <TotalScoreBody>
             <ScoreCircle>
@@ -65,13 +65,13 @@ const ScoreBody: React.FC<ScoreProps> = ({
             </ScoreCircle>
             <ScoreLegend>
               <div>
-                <span style={{ backgroundColor: "#FF5151" }}></span> 0 ~ 59
+                <span style={{ backgroundColor: '#FF5151' }}></span> 0 ~ 49
               </div>
               <div>
-                <span style={{ backgroundColor: "#FF9D00" }}></span> 60 ~ 79
+                <span style={{ backgroundColor: '#FF9D00' }}></span> 50 ~ 79
               </div>
               <div>
-                <span style={{ backgroundColor: "#59BED4" }}></span> 80 ~ 100
+                <span style={{ backgroundColor: '#59BED4' }}></span> 80 ~ 100
               </div>
             </ScoreLegend>
           </TotalScoreBody>
@@ -79,7 +79,7 @@ const ScoreBody: React.FC<ScoreProps> = ({
       </TotalScoreArea>
 
       <ScoreDetailsArea>
-        <div style={{ margin: "1.5rem 1.875rem" }}>
+        <div style={{ margin: '1.5rem 1.875rem' }}>
           <p>발음 점수 분석</p>
           <GridBody>
             {/* ✅ 정확도 점수 */}
@@ -95,7 +95,7 @@ const ScoreBody: React.FC<ScoreProps> = ({
               </ScoreLabel>
               <ScoreBarContainer>
                 <ScoreBar width={animatedAccuracy} color="#59BED4" />
-              </ScoreBarContainer>{" "}
+              </ScoreBarContainer>{' '}
               {showScores && (
                 <ScoreValue width={animatedAccuracy} color="#59BED4">
                   {animatedAccuracy}

@@ -1,33 +1,40 @@
 // PassageBody.tsx
-import styled from "styled-components";
+import styled from 'styled-components';
 
 // 특정 단어를 하이라이트하는 함수
 export function highlightText(
   text: string,
   isScoring: boolean,
-  wrongWordScore: Record<string, number>,
+  wrongWordScore: Record<string, { score: number; errorType: string }>, // 점수와 에러 타입 저장
 ) {
   if (!isScoring) return text; // 점수 출력 상태가 아니면 원본 텍스트 그대로 출력
 
   return text.split(/(\b\w+\b)/g).map((word, index) => {
     const lowerWord = word.toLowerCase(); // 소문자로 변환
 
+    // 하이라이트 대상 단어 필터링 (Mispronunciation, Omission만)
     if (wrongWordScore[lowerWord] !== undefined) {
-      const score = wrongWordScore[lowerWord];
-      return (
-        <Highlight key={index} score={score}>
-          {word}
-          <Tip>
-            {word} : <ScoreText score={score}>{score}</ScoreText>
-          </Tip>
-        </Highlight>
-      );
+      const { score, errorType } = wrongWordScore[lowerWord];
+
+      if (
+        errorType === 'Mispronunciation' ||
+        errorType === 'Omission' ||
+        errorType === 'None'
+      ) {
+        return (
+          <Highlight key={index} score={score}>
+            {word}
+            <Tip>
+              {word} : <ScoreText score={score}>{score}</ScoreText>
+            </Tip>
+          </Highlight>
+        );
+      }
     }
 
     return <span key={index}>{word}</span>; // 원래 단어 그대로 유지
   });
 }
-
 export const Tip = styled.span`
   position: absolute;
   bottom: 150%;
@@ -48,7 +55,7 @@ export const Tip = styled.span`
   z-index: 1;
 
   &::after {
-    content: ""; /* 가상 요소가 보이게 함 */
+    content: ''; /* 가상 요소가 보이게 함 */
     position: absolute;
     bottom: -0.9rem; /* 삼각형이 아래쪽에 위치하도록 설정. 얼마나 떨어질 것인지 */
     left: 50%;
@@ -75,13 +82,13 @@ export const Tip = styled.span`
 // 점수에 따라 Tip에 들어가는 글자색을 동적으로 변경하는 span 컴포넌트
 export const ScoreText = styled.span<{ score: number }>`
   color: ${(props) =>
-    props.score < 60 ? "#ff5151" : "#ff9d00"}; /* 0~59: 빨강, 60~79: 주황 */
+    props.score < 50 ? '#ff5151' : '#ff9d00'}; /* 0~49: 빨강, 50~79: 주황 */
   font-weight: bold;
 `;
 
 export const Highlight = styled.span<{ score: number }>`
   position: relative;
-  background-color: ${(props) => (props.score < 60 ? "#ff5151" : "#ff9d00")};
+  background-color: ${(props) => (props.score < 50 ? '#ff5151' : '#ff9d00')};
   color: white;
   text-decoration: underline;
   padding: 0.2rem 0.4rem;

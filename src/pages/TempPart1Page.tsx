@@ -68,7 +68,7 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   // 🎤 녹음 및 API 요청 관련 상태 및 함수
   const { startRecording, stopRecording } = useTempRecording(
     setResponse,
-    referenceText[0],
+    referenceText[1],
     part,
   );
 
@@ -150,12 +150,52 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   // 🎯 API 응답을 기반으로 wrongWordScore 생성
   const wrongWordScore =
     response?.IssueWords?.reduce(
-      (acc: Record<string, number>, item: any) => {
-        acc[item.word] = item.AccuracyScore;
+      (
+        acc: Record<string, { score: number; errorType: string }>,
+        item: any,
+      ) => {
+        if (
+          item.ErrorType === 'Mispronunciation' ||
+          item.ErrorType === 'Omission'
+        ) {
+          acc[item.word.toLowerCase()] = {
+            score: item.AccuracyScore,
+            errorType: item.ErrorType,
+          };
+        }
         return acc;
       },
-      {} as Record<string, number>,
+      {} as Record<string, { score: number; errorType: string }>,
     ) || {};
+
+  // 기존에 Errortype은 보내지않던 로직
+  // const wrongWordScore =
+  //   response?.IssueWords?.reduce(
+  //     (acc: Record<string, number>, item: any) => {
+  //       acc[item.word] = item.AccuracyScore;
+  //       return acc;
+  //     },
+  //     {} as Record<string, number>,
+  //   ) || {};
+
+  const accuracy = Math.round(
+    response?.PronunciationAssessment['AccuracyScore'],
+  );
+  const completeness = Math.round(
+    response?.PronunciationAssessment['CompletenessScore'],
+  );
+  const fluency = Math.round(response?.PronunciationAssessment['FluencyScore']);
+  const prosody = Math.round(response?.PronunciationAssessment['ProsodyScore']);
+
+  const scores = [accuracy, completeness, fluency, prosody];
+  const minScore = Math.min(...scores);
+
+  const totalScore = Math.round(
+    scores.reduce(
+      (sum, score) => sum + (score === minScore ? score * 0.4 : score * 0.2),
+      0,
+    ),
+  );
 
   return (
     <S.mainContainer>
@@ -173,7 +213,7 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
 
       {stage !== 'direction' && (
         <PassageBody
-          text="hello, it's me. i'm fine, thank you."
+          text={referenceText[1]}
           isScoring={stage === 'scoring'}
           wrongWordScore={wrongWordScore}
           questionNum={currentNum}
@@ -201,11 +241,11 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
 
       {stage === 'scoring' && !isMockExam && (
         <ScoreBody
-          totalScore={86}
-          accuracy={80}
-          completeness={60}
-          fluency={85}
-          prosody={70}
+          totalScore={totalScore}
+          accuracy={accuracy}
+          completeness={completeness}
+          fluency={fluency}
+          prosody={prosody}
         />
       )}
     </S.mainContainer>
