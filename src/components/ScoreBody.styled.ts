@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 export const ScoreContainer = styled.div`
   width: 87.5rem;
@@ -124,7 +124,7 @@ export const InfoTip = styled.div<{ syllable: number }>`
 
   bottom: 200%;
   // 2음절짜리 점수면 길이가 더 짧으므로 left를 더 짧게 설정
-  left: ${(props) => (props.syllable == 2 ? '75%' : '87.5%')};
+  left: ${(props) => (props.syllable == 2 ? "75%" : "87.5%")};
   transform: translateX(-50%);
   background-color: white;
 
@@ -146,7 +146,7 @@ export const InfoTip = styled.div<{ syllable: number }>`
   z-index: 1;
 
   &::after {
-    content: ''; /* 가상 요소가 보이게 함 */
+    content: ""; /* 가상 요소가 보이게 함 */
     position: absolute;
     bottom: -0.9rem; /* 삼각형이 아래쪽에 위치하도록 설정. 얼마나 떨어질 것인지 */
     left: 50%;
@@ -196,7 +196,7 @@ export const ScoreBar = styled.div<{ width: number; color: string }>`
   width: ${(props) => props.width}%;
   height: 100%;
   background: ${(props) =>
-    props.width < 50 ? '#ff5151' : props.width < 79 ? '#ff9d00' : '#59BED4'};
+    props.width < 50 ? "#ff5151" : props.width < 79 ? "#ff9d00" : "#59BED4"};
   border-radius: 1.25rem; //20px
   transition: width 1s ease-in-out;
 `;
@@ -207,7 +207,7 @@ export const ScoreValue = styled.div<{ width: number; color: string }>`
   font-size: 1rem;
   font-weight: bold;
   color: ${(props) =>
-    props.width < 50 ? '#ff5151' : props.width < 79 ? '#ff9d00' : '#59BED4'};
+    props.width < 50 ? "#ff5151" : props.width < 79 ? "#ff9d00" : "#59BED4"};
   opacity: 0;
   animation: fadeIn 0.5s ease-in-out 1s forwards;
 

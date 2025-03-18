@@ -1,12 +1,12 @@
 // TempPart1Page.tsx
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import * as S from './Main.styled';
-import ScoreBody from '../components/ScoreBody';
-import PassageBody from '../components/PassageBody';
-import DirectionBody from '../components/DirectionBody';
-import styled from 'styled-components';
-import useTempRecording from '../components/useTempRecording'; // 🎤 녹음 훅 추가
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import * as S from "./Main.styled";
+import ScoreBody from "../components/ScoreBody";
+import PassageBody from "../components/PassageBody";
+import DirectionBody from "../components/DirectionBody";
+import styled from "styled-components";
+import useTempRecording from "../components/useTempRecording"; // 🎤 녹음 훅 추가
 
 const IS_DEV_MODE = true;
 
@@ -28,7 +28,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   font-size: 2rem;
   color: white;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
-  background-color: ${(props) => props.bgColor || '#59BED4'};
+  background-color: ${(props) => props.bgColor || "#59BED4"};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -49,17 +49,17 @@ type Part1PageProps = {
 const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isMockExam = searchParams.get('mockExam') === 'true';
+  const isMockExam = searchParams.get("mockExam") === "true";
 
   const [currentNum, setCurrentNum] = useState(1);
   const [remainingTime, setRemainingTime] = useState(12);
   const [stage, setStage] = useState<
-    'direction' | 'preparing' | 'responding' | 'scoring'
-  >('direction');
+    "direction" | "preparing" | "responding" | "scoring"
+  >("direction");
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const referenceText = [
     "hello, it's me. i'm fine. thank you.",
-    'Welcome to Boston Airport. In order to proceed your process,',
+    "Welcome to Boston Airport. In order to proceed your process,",
   ]; // 입력된 문장
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -82,18 +82,18 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
       return () => clearTimeout(timer);
     } else {
       switch (stage) {
-        case 'direction':
+        case "direction":
           if (currentNum !== 2) {
-            setStage('preparing');
+            setStage("preparing");
             setRemainingTime(TIME_SETTINGS.preparing);
           }
           break;
-        case 'preparing':
-          setStage('responding');
+        case "preparing":
+          setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
           break;
-        case 'responding':
-          setStage('scoring'); // 테스트용으로 1번만 나오게 구현
+        case "responding":
+          setStage("scoring"); // 테스트용으로 1번만 나오게 구현
           //   if (currentNum < 2) {
           //     increaseNum();
           //     setStage('preparing');
@@ -113,29 +113,29 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
 
   // 🎤 자동 녹음 & 중지 (stage 변경 감지)
   useEffect(() => {
-    if (stage === 'responding') {
-      console.log('🚀 자동 녹음 시작');
+    if (stage === "responding") {
+      console.log("🚀 자동 녹음 시작");
       startRecording();
-    } else if (stage === 'scoring') {
-      console.log('자동 녹음 중지 및 서버 전송');
+    } else if (stage === "scoring") {
+      console.log("자동 녹음 중지 및 서버 전송");
       stopRecording();
     }
   }, [stage]);
 
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/src/assets/audio/part1.mp3');
+      audioRef.current = new Audio("/src/assets/audio/part1.mp3");
     }
 
     const audio = audioRef.current;
 
-    if (stage === 'direction' && !hasPlayedRef.current) {
+    if (stage === "direction" && !hasPlayedRef.current) {
       audio
         .play()
         .then(() => {
           hasPlayedRef.current = true;
         })
-        .catch((e) => console.error('Audio play error:', e));
+        .catch((e) => console.error("Audio play error:", e));
     } else {
       audio.pause();
       audio.currentTime = 0;
@@ -155,8 +155,8 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
         item: any,
       ) => {
         if (
-          item.ErrorType === 'Mispronunciation' ||
-          item.ErrorType === 'Omission'
+          item.ErrorType === "Mispronunciation" ||
+          item.ErrorType === "Omission"
         ) {
           acc[item.word.toLowerCase()] = {
             score: item.AccuracyScore,
@@ -179,13 +179,13 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   //   ) || {};
 
   const accuracy = Math.round(
-    response?.PronunciationAssessment['AccuracyScore'],
+    response?.PronunciationAssessment["AccuracyScore"],
   );
   const completeness = Math.round(
-    response?.PronunciationAssessment['CompletenessScore'],
+    response?.PronunciationAssessment["CompletenessScore"],
   );
-  const fluency = Math.round(response?.PronunciationAssessment['FluencyScore']);
-  const prosody = Math.round(response?.PronunciationAssessment['ProsodyScore']);
+  const fluency = Math.round(response?.PronunciationAssessment["FluencyScore"]);
+  const prosody = Math.round(response?.PronunciationAssessment["ProsodyScore"]);
 
   const scores = [accuracy, completeness, fluency, prosody];
   const minScore = Math.min(...scores);
@@ -204,42 +204,42 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
       {/* <button onClick={startRecording}>Start Recording</button> 
       <button onClick={stopRecording}>Stop Recording</button> */}
 
-      {stage === 'direction' && (
+      {stage === "direction" && (
         <DirectionBody
           title="Question 1-2: Read a Text Aloud"
           direction="Directions: In this part of the test, you will read aloud the text on the screen."
         />
       )}
 
-      {stage !== 'direction' && (
+      {stage !== "direction" && (
         <PassageBody
           text={referenceText[1]}
-          isScoring={stage === 'scoring'}
+          isScoring={stage === "scoring"}
           wrongWordScore={wrongWordScore}
           questionNum={currentNum}
           totalQuestions={2}
         />
       )}
 
-      {stage === 'preparing' && (
+      {stage === "preparing" && (
         <>
           <TimeRemainingIndicator>{`00 : ${remainingTime
             .toString()
-            .padStart(2, '0')}`}</TimeRemainingIndicator>
+            .padStart(2, "0")}`}</TimeRemainingIndicator>
           <TimeInfoText>Preparation Time</TimeInfoText>
         </>
       )}
 
-      {stage === 'responding' && (
+      {stage === "responding" && (
         <>
-          <TimeRemainingIndicator bgColor={'#ff7b7b'}>{`00 : ${remainingTime
+          <TimeRemainingIndicator bgColor={"#ff7b7b"}>{`00 : ${remainingTime
             .toString()
-            .padStart(2, '0')}`}</TimeRemainingIndicator>
+            .padStart(2, "0")}`}</TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
         </>
       )}
 
-      {stage === 'scoring' && !isMockExam && (
+      {stage === "scoring" && !isMockExam && (
         <ScoreBody
           totalScore={totalScore}
           accuracy={accuracy}

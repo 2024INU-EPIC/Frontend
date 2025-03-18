@@ -1,13 +1,13 @@
 // TestPage.tsx
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import * as S from './Main.styled';
-import ScoreBody from '../components/ScoreBody';
-import PassageBody from '../components/PassageBody';
-import DirectionBody from '../components/DirectionBody';
-import styled from 'styled-components';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import * as S from "./Main.styled";
+import ScoreBody from "../components/ScoreBody";
+import PassageBody from "../components/PassageBody";
+import DirectionBody from "../components/DirectionBody";
+import styled from "styled-components";
 
-import axios from 'axios';
+import axios from "axios";
 
 //const IS_DEV_MODE = true;
 const IS_DEV_MODE = false;
@@ -35,7 +35,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   // props에 따라 배경색 변경. true이면
-  background-color: ${(props) => props.bgColor || '#ff7b7b'};
+  background-color: ${(props) => props.bgColor || "#ff7b7b"};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,7 +52,7 @@ export const TopBlank = styled.div`
 const Part1Page: React.FC = () => {
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
   const [searchParams] = useSearchParams();
-  const isMockExam = searchParams.get('mockExam') === 'true'; // URL에서 mockExam 값 확인
+  const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -61,8 +61,8 @@ const Part1Page: React.FC = () => {
   const [currentNum, setCurrentNum] = useState(1);
   const [remainingTime, setRemainingTime] = useState(1);
   const [stage, setStage] = useState<
-    'direction' | 'preparing' | 'responding' | 'scoring'
-  >('direction');
+    "direction" | "preparing" | "responding" | "scoring"
+  >("direction");
 
   const [questionCount, setQuestionCount] = useState(1);
 
@@ -76,7 +76,7 @@ const Part1Page: React.FC = () => {
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
   const { partData, userId } = location.state || {}; // 전달된 데이터
-  const [textContent, setTextContent] = useState<string>('');
+  const [textContent, setTextContent] = useState<string>("");
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -90,32 +90,32 @@ const Part1Page: React.FC = () => {
       return () => clearTimeout(timer);
     } else {
       switch (stage) {
-        case 'direction':
+        case "direction":
           if (currentNum !== 2) {
-            setStage('preparing');
+            setStage("preparing");
             setRemainingTime(TIME_SETTINGS.preparing);
           }
           break;
-        case 'preparing':
-          setStage('responding');
+        case "preparing":
+          setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
           break;
-        case 'responding':
+        case "responding":
           if (fromPartSelect) {
-            setStage('scoring');
+            setStage("scoring");
             break;
           }
           if (currentNum < 2) {
             increaseNum();
-            setStage('preparing');
+            setStage("preparing");
             setRemainingTime(TIME_SETTINGS.preparing);
           } else {
-            setStage('scoring');
+            setStage("scoring");
 
             // 실전 모의고사 모드에서는 자동으로 Part2 페이지로 이동
             if (isMockExam) {
               setTimeout(() => {
-                navigate('/part2?mockExam=true'); // 2번 문제 완료 후 Part2로 이동
+                navigate("/part2?mockExam=true"); // 2번 문제 완료 후 Part2로 이동
               }, 0); //  딜레이없이 바로 이동
             }
           }
@@ -129,12 +129,12 @@ const Part1Page: React.FC = () => {
   // "direction"일 때만 오디오 자동 재생
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/src/assets/audio/part1.mp3');
+      audioRef.current = new Audio("/src/assets/audio/part1.mp3");
     }
 
     const audio = audioRef.current;
 
-    if (stage === 'direction' && !hasPlayedRef.current) {
+    if (stage === "direction" && !hasPlayedRef.current) {
       audio
         .play()
         .then(() => {
@@ -143,15 +143,15 @@ const Part1Page: React.FC = () => {
           setRemainingTime(TIME_SETTINGS.direction);
 
           audio.onended = () => {
-            if (stage === 'direction') {
+            if (stage === "direction") {
               setTimeout(() => {
-                setStage('preparing');
+                setStage("preparing");
                 setRemainingTime(TIME_SETTINGS.preparing);
               }, 1000);
             }
           };
         })
-        .catch((e) => console.error('Audio play error:', e));
+        .catch((e) => console.error("Audio play error:", e));
     } else {
       audio.pause();
       audio.currentTime = 0;
@@ -166,14 +166,14 @@ const Part1Page: React.FC = () => {
   // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
   const handleUserInteraction = () => {
     if (!hasPlayedRef.current) {
-      console.log('Audio is not allowed to play after direction stage.');
+      console.log("Audio is not allowed to play after direction stage.");
     }
   };
 
   //PartSelectPage에서 데이터를 받아오지 못했을 경우 대비
   useEffect(() => {
     if (partData) {
-      setTextContent(partData.data[0]?.text || 'Default text');
+      setTextContent(partData.data[0]?.text || "Default text");
     } else if (userId) {
       // 데이터가 없으면 API 다시 호출
       const fetchData = async () => {
@@ -181,9 +181,9 @@ const Part1Page: React.FC = () => {
           const response = await axios.get(
             `/api/focused-learning/part1/${userId}`,
           );
-          setTextContent(response.data.data[0]?.text || 'Default text');
+          setTextContent(response.data.data[0]?.text || "Default text");
         } catch (error) {
-          console.error('Error fetching Part1 data:', error);
+          console.error("Error fetching Part1 data:", error);
         }
       };
 
@@ -196,15 +196,15 @@ const Part1Page: React.FC = () => {
       const response = await axios.get(`/api/focused-learning/part1/${userId}`);
 
       // 새로운 문제로 업데이트
-      setTextContent(response.data.data[0]?.text || 'Default text');
+      setTextContent(response.data.data[0]?.text || "Default text");
 
       // 다음 문제를 준비 단계로 전환
-      setStage('preparing');
+      setStage("preparing");
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
       setCurrentNum((prev) => prev + 1);
     } catch (error) {
-      console.error('Error fetching next question:', error);
+      console.error("Error fetching next question:", error);
     }
   };
 
@@ -226,14 +226,14 @@ const Part1Page: React.FC = () => {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: 'audio/wav',
+          type: "audio/wav",
         });
         uploadAudio(audioBlob);
       };
 
       mediaRecorder.start();
     } catch (error) {
-      console.error('마이크 접근 오류:', error);
+      console.error("마이크 접근 오류:", error);
     }
   }, []);
 
@@ -246,23 +246,23 @@ const Part1Page: React.FC = () => {
   // 오디오 업로드
   const uploadAudio = async (blob: Blob) => {
     const formData = new FormData();
-    formData.append('audio', blob, 'recording.wav');
+    formData.append("audio", blob, "recording.wav");
 
     try {
-      const response = await axios.post('/api/upload-audio', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const response = await axios.post("/api/upload-audio", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log('응답 데이터:', response.data);
+      console.log("응답 데이터:", response.data);
     } catch (error) {
-      console.error('오디오 업로드 실패:', error);
+      console.error("오디오 업로드 실패:", error);
     }
   };
 
   // stage가 responding일 때 녹음 시작 & 종료
   useEffect(() => {
-    if (stage === 'responding') {
+    if (stage === "responding") {
       startRecording();
-    } else if (stage !== 'preparing') {
+    } else if (stage !== "preparing") {
       stopRecording();
     }
   }, [stage, startRecording, stopRecording]);
@@ -272,18 +272,18 @@ const Part1Page: React.FC = () => {
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
-      {stage === 'direction' && (
+      {stage === "direction" && (
         <DirectionBody
-          title={'Question 1-2: Read a Text Aloud'}
+          title={"Question 1-2: Read a Text Aloud"}
           direction={
-            'Directions: In this part of the test, you will read aloud the text on the screen. You will have 45 seconds to prepare. Then you will have 45 seconds to read the text aloud.'
+            "Directions: In this part of the test, you will read aloud the text on the screen. You will have 45 seconds to prepare. Then you will have 45 seconds to read the text aloud."
           }
         />
       )}
-      {stage !== 'direction' && (
+      {stage !== "direction" && (
         <PassageBody
           text={textContent}
-          isScoring={stage === 'scoring'}
+          isScoring={stage === "scoring"}
           questionNum={currentNum} // 원래 1
           totalQuestions={2}
           fromPartSelect={fromPartSelect}
@@ -291,23 +291,23 @@ const Part1Page: React.FC = () => {
           partId={partId}
         />
       )}
-      {stage === 'preparing' && (
+      {stage === "preparing" && (
         <>
           <TimeRemainingIndicator>
-            {`00 : ${remainingTime.toString().padStart(2, '0')}`}
+            {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Preparation Time</TimeInfoText>
         </>
       )}
-      {stage === 'responding' && (
+      {stage === "responding" && (
         <>
           <TimeRemainingIndicator bgColor="#59BED4">
-            {`00 : ${remainingTime.toString().padStart(2, '0')}`}
+            {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
         </>
       )}
-      {stage === 'scoring' && !isMockExam && (
+      {stage === "scoring" && !isMockExam && (
         <>
           <ScoreBody
             totalScore={86}
@@ -320,27 +320,27 @@ const Part1Page: React.FC = () => {
             <button
               onClick={nextQuestion}
               style={{
-                display: 'flex',
-                width: '29.5rem',
-                height: '6.5rem',
-                margin: '2.25rem 0 2rem 0',
-                border: 'none',
-                borderRadius: '6.25rem',
-                background: '#ff7b7b',
-                alignItems: 'center',
-                justifyContent: 'center',
-                filter: 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25))',
+                display: "flex",
+                width: "29.5rem",
+                height: "6.5rem",
+                margin: "2.25rem 0 2rem 0",
+                border: "none",
+                borderRadius: "6.25rem",
+                background: "#ff7b7b",
+                alignItems: "center",
+                justifyContent: "center",
+                filter: "drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25))",
               }}
             >
               <span
                 style={{
-                  color: 'white',
-                  textAlign: 'center',
+                  color: "white",
+                  textAlign: "center",
                   fontFamily: '"Noto Sans KR", sans-serif',
-                  fontSize: '1.75rem',
+                  fontSize: "1.75rem",
                   fontWeight: 700,
-                  marginLeft: '3.5rem',
-                  marginRight: '1.75rem',
+                  marginLeft: "3.5rem",
+                  marginRight: "1.75rem",
                 }}
               >
                 다음 문제 풀기
