@@ -2,45 +2,39 @@
 import styled from "styled-components";
 
 // 특정 단어를 하이라이트하는 함수
-export function highlightText(text: string, isScoring: boolean) {
+export function highlightText(
+  text: string,
+  isScoring: boolean,
+  wrongWordScore: Record<string, { score: number; errorType: string }>, // 점수와 에러 타입 저장
+) {
   if (!isScoring) return text; // 점수 출력 상태가 아니면 원본 텍스트 그대로 출력
 
-  const words = text.split(" "); // 단어별로 분리
-  return words.map((word, index) => {
-    if (word.includes("International")) {
-      return (
-        <RedHighlight key={index}>
-          {word}
-          <Tip>
-            {word} : <ScoreText score={56}>56</ScoreText>
-          </Tip>
-        </RedHighlight>
-      );
-    } else if (word.includes("identification")) {
-      return (
-        <OrangeHighlight key={index}>
-          {word}
-          <Tip>
-            {word} : <ScoreText score={75}>75</ScoreText>
-          </Tip>
-        </OrangeHighlight>
-      );
-    } else if (word.includes("luggage")) {
-      return (
-        <RedHighlight key={index}>
-          {word}
-          <Tip>
-            {word} : <ScoreText score={43}>43</ScoreText>
-          </Tip>
-        </RedHighlight>
-      );
+  return text.split(/(\b\w+\b)/g).map((word, index) => {
+    const lowerWord = word.toLowerCase(); // 소문자로 변환
+
+    // 하이라이트 대상 단어 필터링 (Mispronunciation, Omission만)
+    if (wrongWordScore[lowerWord] !== undefined) {
+      const { score, errorType } = wrongWordScore[lowerWord];
+
+      if (
+        errorType === "Mispronunciation" ||
+        errorType === "Omission" ||
+        errorType === "None"
+      ) {
+        return (
+          <Highlight key={index} score={score}>
+            {word}
+            <Tip>
+              {word} : <ScoreText score={score}>{score}</ScoreText>
+            </Tip>
+          </Highlight>
+        );
+      }
     }
-    // 원래 단어 그대로 반환
-    // return ` ${word} `;
-    return <span key={index}>{` ${word} `}</span>; // 원래 단어 그대로 변환
+
+    return <span key={index}>{word}</span>; // 원래 단어 그대로 유지
   });
 }
-
 export const Tip = styled.span`
   position: absolute;
   bottom: 150%;
@@ -88,15 +82,13 @@ export const Tip = styled.span`
 // 점수에 따라 Tip에 들어가는 글자색을 동적으로 변경하는 span 컴포넌트
 export const ScoreText = styled.span<{ score: number }>`
   color: ${(props) =>
-    props.score < 60 ? "#ff5151" : "#ff9d00"}; /* 0~59: 빨강, 60~79: 주황 */
+    props.score < 50 ? "#ff5151" : "#ff9d00"}; /* 0~49: 빨강, 50~79: 주황 */
   font-weight: bold;
 `;
 
-// 빨간색 하이라이트 (틀린 단어)
-export const RedHighlight = styled.span`
+export const Highlight = styled.span<{ score: number }>`
   position: relative;
-
-  background-color: #ff5151;
+  background-color: ${(props) => (props.score < 50 ? "#ff5151" : "#ff9d00")};
   color: white;
   text-decoration: underline;
   padding: 0.2rem 0.4rem;
@@ -107,22 +99,37 @@ export const RedHighlight = styled.span`
     opacity: 1;
   }
 `;
+// // 빨간색 하이라이트 (틀린 단어)
+// export const RedHighlight = styled.span`
+//   position: relative;
 
-// 주황색 하이라이트 (부분 점수)
-export const OrangeHighlight = styled.span`
-  position: relative;
+//   background-color: #ff5151;
+//   color: white;
+//   text-decoration: underline;
+//   padding: 0.2rem 0.4rem;
+//   border-radius: 4px;
 
-  background-color: #ff9d00;
-  color: white;
-  text-decoration: underline;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+//   &:hover > ${Tip} {
+//     visibility: visible;
+//     opacity: 1;
+//   }
+// `;
 
-  &:hover > ${Tip} {
-    visibility: visible;
-    opacity: 1;
-  }
-`;
+// // 주황색 하이라이트 (부분 점수)
+// export const OrangeHighlight = styled.span`
+//   position: relative;
+
+//   background-color: #ff9d00;
+//   color: white;
+//   text-decoration: underline;
+//   padding: 0.2rem 0.4rem;
+//   border-radius: 4px;
+
+//   &:hover > ${Tip} {
+//     visibility: visible;
+//     opacity: 1;
+//   }
+// `;
 
 const Wrapper = styled.div`
   width: 87.5rem;
@@ -160,6 +167,7 @@ const Wrapper = styled.div`
 type PassageBodyProps = {
   text: string;
   isScoring: boolean;
+  wrongWordScore: Record<string, number>;
   questionNum: number;
   totalQuestions: number;
   fromPartSelect?: boolean;
@@ -170,6 +178,7 @@ type PassageBodyProps = {
 const PassageBody: React.FC<PassageBodyProps> = ({
   text,
   isScoring,
+  wrongWordScore,
   questionNum,
   totalQuestions,
   fromPartSelect = false,
@@ -184,7 +193,9 @@ const PassageBody: React.FC<PassageBodyProps> = ({
           : `Question ${questionNum} of ${totalQuestions}`}
       </p>
       <div>
-        <p className="paragraph">{highlightText(text, isScoring)}</p>
+        <p className="paragraph">
+          {highlightText(text, isScoring, wrongWordScore)}
+        </p>
       </div>
     </Wrapper>
   );
