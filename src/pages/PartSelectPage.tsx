@@ -9,15 +9,31 @@ import {
   PartTime,
   TimeArea,
 } from "./PartSelect.styled";
+import axios from "axios";
 
 const PartSelectPage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedPart, setSelectedPart] = useState<string | null>(null);
-  const handleLearnClick = () => {
-    if (selectedPart) {
-      navigate(`/${selectedPart.toLowerCase()}`, {
-        state: { fromPartSelect: true },
+  const [partId, setPartId] = useState<number>(0);
+  const handleLearnClick = async (partId: number) => {
+    try {
+      const userId = "12345"; // 임시 userId
+      const response = await axios.get<{
+        status: number;
+        message: string;
+        data: { part: number; text: string }[];
+      }>(`/api/focused-learning/part${partId}/${userId}`);
+
+      // navigate의 두 번째 인수는 `state` 객체를 포함해야 함
+      navigate(`/part${partId}`, {
+        state: {
+          partData: response.data,
+          userId,
+          partId,
+          fromPartSelect: true,
+        },
       });
+    } catch (error) {
+      console.error(`Error fetching Part ${partId} data:`, error);
     }
   };
 
@@ -27,8 +43,8 @@ const PartSelectPage: React.FC = () => {
       <CardArea>
         <PartCard
           id="PART1"
-          className={selectedPart === "PART1" ? "selected" : ""}
-          onClick={() => setSelectedPart("PART1")}
+          className={partId === 1 ? "selected" : ""}
+          onClick={() => setPartId(1)}
         >
           <p>PART1</p>
           <p>Read a text aloud</p>
@@ -76,8 +92,8 @@ const PartSelectPage: React.FC = () => {
         </PartCard>
         <PartCard
           id="PART2"
-          className={selectedPart === "PART2" ? "selected" : ""}
-          onClick={() => setSelectedPart("PART2")}
+          className={partId === 2 ? "selected" : ""}
+          onClick={() => setPartId(2)}
         >
           <p>PART2</p>
           <p>Describe a picture</p>
@@ -125,8 +141,8 @@ const PartSelectPage: React.FC = () => {
         </PartCard>
         <PartCard
           id="PART3"
-          className={selectedPart === "PART3" ? "selected" : ""}
-          onClick={() => setSelectedPart("PART3")}
+          className={partId === 3 ? "selected" : ""}
+          onClick={() => setPartId(3)}
         >
           <p>PART3</p>
           <p>Respond to Questions</p>
@@ -174,8 +190,8 @@ const PartSelectPage: React.FC = () => {
         </PartCard>
         <PartCard
           id="PART4"
-          className={`special-part ${selectedPart === "PART4" ? "selected" : ""}`}
-          onClick={() => setSelectedPart("PART4")}
+          className={`special-part ${partId === 4 ? "selected" : ""}`}
+          onClick={() => setPartId(4)}
         >
           <p>PART4</p>
           <p className="two">
@@ -225,8 +241,8 @@ const PartSelectPage: React.FC = () => {
         </PartCard>
         <PartCard
           id="PART5"
-          className={selectedPart === "PART5" ? "selected" : ""}
-          onClick={() => setSelectedPart("PART5")}
+          className={partId === 5 ? "selected" : ""}
+          onClick={() => setPartId(5)}
         >
           <p>PART5</p>
           <p>Express an opinion</p>
@@ -274,9 +290,10 @@ const PartSelectPage: React.FC = () => {
         </PartCard>
       </CardArea>
       <LearnButton
-        className={selectedPart ? "active" : "disabled"}
-        disabled={!selectedPart}
-        onClick={handleLearnClick}
+        key={partId}
+        className={partId ? "active" : "disabled"}
+        disabled={!partId}
+        onClick={() => handleLearnClick(partId)}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -287,9 +304,7 @@ const PartSelectPage: React.FC = () => {
         >
           <path d="M15.8 5.78154C12.9773 4.43388 9.03204 3.77372 3.75 3.75029C3.25185 3.74352 2.76348 3.88878 2.35 4.16669C2.01062 4.39609 1.73281 4.70537 1.541 5.06733C1.34919 5.42929 1.24926 5.83283 1.25 6.24247V28.594C1.25 30.105 2.325 31.2448 3.75 31.2448C9.30235 31.2448 14.8719 31.7636 18.2078 34.9167C18.2535 34.96 18.3108 34.989 18.3728 35C18.4347 35.011 18.4986 35.0036 18.5563 34.9786C18.6141 34.9536 18.6632 34.9122 18.6977 34.8596C18.7321 34.8069 18.7503 34.7452 18.75 34.6823V8.3456C18.7501 8.16792 18.7121 7.99228 18.6385 7.83055C18.5649 7.66883 18.4575 7.52477 18.3234 7.4081C17.5593 6.75484 16.7105 6.20772 15.8 5.78154ZM37.65 4.16435C37.2363 3.88712 36.7479 3.74268 36.25 3.75029C30.968 3.77372 27.0227 4.43075 24.2 5.78154C23.2895 6.20694 22.4405 6.75299 21.6758 7.40497C21.542 7.52181 21.4348 7.66592 21.3614 7.82763C21.288 7.98933 21.25 8.16488 21.25 8.34247V34.6808C21.25 34.7412 21.2678 34.8004 21.3012 34.8507C21.3347 34.9011 21.3822 34.9405 21.438 34.964C21.4937 34.9874 21.5551 34.9939 21.6145 34.9825C21.6739 34.9712 21.7287 34.9426 21.7719 34.9003C23.7773 32.9081 27.2969 31.2425 36.2531 31.2433C36.9162 31.2433 37.5521 30.9799 38.0209 30.511C38.4897 30.0422 38.7531 29.4063 38.7531 28.7433V6.24326C38.754 5.83281 38.6539 5.42845 38.4615 5.06588C38.2691 4.70331 37.9904 4.39369 37.65 4.16435Z" />
         </svg>
-        <span>
-          {selectedPart ? `${selectedPart} 학습하기` : "파트를 선택해주세요"}
-        </span>
+        <span>{partId ? `PART${partId} 학습하기` : "파트를 선택해주세요"}</span>
       </LearnButton>
     </PageContainer>
   );

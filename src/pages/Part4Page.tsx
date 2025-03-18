@@ -12,10 +12,11 @@ import DirectionBody from "../components/DirectionBody";
 // true : 개발 모드 (빠른 UI 확인용)
 // false : 배포 모드 (실제 시험 진행 방식)
 
-const IS_DEV_MODE = true;
-// const IS_DEV_MODE = false;
+// const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
+  direction: IS_DEV_MODE ? 5 : 21, // direction 단계
   image: IS_DEV_MODE ? 3 : 45, //situation 단계
   preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
   responding: (
@@ -60,7 +61,7 @@ const Part4Page: React.FC = () => {
   const partId = location.state?.partId || "Part4";
 
   const [currentNum, setCurrentNum] = useState(8); // 문제 번호 (8 → 9 → 10)
-  const [remainingTime, setRemainingTime] = useState(21); // 처음 45초 동안 SituationBody만 표시
+  const [remainingTime, setRemainingTime] = useState(21);
   const [stage, setStage] = useState<
     "loading" | "direction" | "image" | "preparing" | "responding" | "scoring"
   >("loading"); // 현재 단계
@@ -78,7 +79,7 @@ const Part4Page: React.FC = () => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
     const loadingTimer = setTimeout(() => {
       setStage("direction");
-    }, 200);
+    }, 2000);
 
     return () => clearTimeout(loadingTimer);
   }, []);
@@ -93,8 +94,7 @@ const Part4Page: React.FC = () => {
       switch (stage) {
         case "direction":
           if (currentNum !== 10) {
-            setStage("image");
-            setRemainingTime(1);
+            setRemainingTime(TIME_SETTINGS.image);
           }
           break;
         case "image":
@@ -139,6 +139,16 @@ const Part4Page: React.FC = () => {
         .play()
         .then(() => {
           hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+          setRemainingTime(TIME_SETTINGS.direction);
+
+          audio.onended = () => {
+            if (stage === "direction") {
+              setTimeout(() => {
+                setStage("preparing");
+                setRemainingTime(TIME_SETTINGS.preparing);
+              }, 1000);
+            }
+          };
         })
         .catch((e) => console.error("Audio play error:", e));
     } else {
@@ -160,7 +170,7 @@ const Part4Page: React.FC = () => {
 
   const nextQuestion = () => {
     setStage("preparing");
-    setRemainingTime(1);
+    setRemainingTime(TIME_SETTINGS.preparing);
     setQuestionCount(questionCount + 1);
     setCurrentNum(8); //파트별 집중학습 다음 문제 초기화용
   };
