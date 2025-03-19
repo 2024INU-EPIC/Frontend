@@ -16,18 +16,15 @@ const PartSelectPage: React.FC = () => {
   const [partId, setPartId] = useState<number>(0);
   const handleLearnClick = async (partId: number) => {
     try {
-      const userId = "12345"; // 임시 userId
       const response = await axios.get<{
         status: number;
         message: string;
         data: { part: number; text: string }[];
-      }>(`/api/focused-learning/part${partId}/${userId}`);
+      }>(`/api/focused-learning/part${partId}`);
 
-      // navigate의 두 번째 인수는 `state` 객체를 포함해야 함
       navigate(`/part${partId}`, {
         state: {
-          partData: response.data,
-          userId,
+          initialQuestions: response.data,
           partId,
           fromPartSelect: true,
         },
