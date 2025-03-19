@@ -7,7 +7,7 @@ export function highlightText(text: string, isScoring: boolean) {
 
   const words = text.split(" "); // 단어별로 분리
   return words.map((word, index) => {
-    if (word.includes("International")) {
+    if (word.includes("forecast")) {
       return (
         <RedHighlight key={index}>
           {word}
@@ -16,7 +16,7 @@ export function highlightText(text: string, isScoring: boolean) {
           </Tip>
         </RedHighlight>
       );
-    } else if (word.includes("identification")) {
+    } else if (word.includes("weekend")) {
       return (
         <OrangeHighlight key={index}>
           {word}
@@ -25,7 +25,7 @@ export function highlightText(text: string, isScoring: boolean) {
           </Tip>
         </OrangeHighlight>
       );
-    } else if (word.includes("luggage")) {
+    } else if (word.includes("activities")) {
       return (
         <RedHighlight key={index}>
           {word}

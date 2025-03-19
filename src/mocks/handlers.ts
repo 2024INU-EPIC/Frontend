@@ -47,14 +47,16 @@ export const handlers = [
     });
   }),
 
-  http.get("/api/focused-learning/part1/:userId", async () => {
+  http.get("/api/focused-learning/part1", async () => {
     return HttpResponse.json({
       status: 200,
       message: "ok",
       data: [
         {
-          part: 1,
-          text: "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.",
+          question1:
+            "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+          question2:
+            "Thank you for calling Scientific Pages, home of the finest in technical and medical books. The bookstore is currently closed. For hours, directions, or information on current promotions, please press one. For all other inquiries, please leave us a message. One of our book specialists will return your call as soon as possible.",
         },
       ],
     });

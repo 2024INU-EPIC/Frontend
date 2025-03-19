@@ -9,8 +9,8 @@ import styled from "styled-components";
 
 import axios from "axios";
 
-//const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 13, // direction 단계
@@ -56,7 +56,6 @@ const Part1Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId;
 
   const [currentNum, setCurrentNum] = useState(1);
   const [remainingTime, setRemainingTime] = useState(1);
@@ -75,8 +74,10 @@ const Part1Page: React.FC = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
-  const { partData, userId } = location.state || {}; // 전달된 데이터
-  const [textContent, setTextContent] = useState<string>("");
+  const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+  const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
+  const [extraQuestions, setExtraQuestions] = useState(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -170,41 +171,41 @@ const Part1Page: React.FC = () => {
     }
   };
 
-  //PartSelectPage에서 데이터를 받아오지 못했을 경우 대비
-  useEffect(() => {
-    if (partData) {
-      setTextContent(partData.data[0]?.text || "Default text");
-    } else if (userId) {
-      // 데이터가 없으면 API 다시 호출
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(
-            `/api/focused-learning/part1/${userId}`,
-          );
-          setTextContent(response.data.data[0]?.text || "Default text");
-        } catch (error) {
-          console.error("Error fetching Part1 data:", error);
-        }
-      };
-
-      fetchData();
-    }
-  }, [partData, userId]);
+  const getCurrentQuestion = () => {
+    return questionIndex === 0 ? questions?.question1 : questions?.question2;
+  };
 
   const nextQuestion = async () => {
-    try {
-      const response = await axios.get(`/api/focused-learning/part1/${userId}`);
-
-      // 새로운 문제로 업데이트
-      setTextContent(response.data.data[0]?.text || "Default text");
-
-      // 다음 문제를 준비 단계로 전환
+    if (questionIndex === 0) {
+      // 기존 문제 세트에서 다음 문제로 이동
+      setQuestionIndex(1);
       setStage("preparing");
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
       setCurrentNum((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error fetching next question:", error);
+    } else if (extraQuestions) {
+      // 기존 문제 세트가 끝나면 extraQuestions 사용
+      setQuestions(extraQuestions);
+      setExtraQuestions(null);
+      setQuestionIndex(0);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum((prev) => prev + 1);
+    } else {
+      try {
+        // 새로운 문제 요청
+        const response = await axios.get(`/api/focused-learning/part1`);
+        setExtraQuestions(response.data.data[0]);
+        setQuestions(response.data.data[0]);
+        setQuestionIndex(0);
+        setStage("preparing");
+        setRemainingTime(TIME_SETTINGS.preparing);
+        setQuestionCount((prev) => prev + 1);
+        setCurrentNum((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error fetching next set of questions:", error);
+      }
     }
   };
 
@@ -267,8 +268,6 @@ const Part1Page: React.FC = () => {
     }
   }, [stage, startRecording, stopRecording]);
 
-  //const textContent = "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
-
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
@@ -282,7 +281,7 @@ const Part1Page: React.FC = () => {
       )}
       {stage !== "direction" && (
         <PassageBody
-          text={textContent}
+          text={getCurrentQuestion()}
           isScoring={stage === "scoring"}
           questionNum={currentNum} // 원래 1
           totalQuestions={2}
