@@ -65,10 +65,10 @@ const ScoreBody: React.FC<ScoreProps> = ({
             </ScoreCircle>
             <ScoreLegend>
               <div>
-                <span style={{ backgroundColor: "#FF5151" }}></span> 0 ~ 59
+                <span style={{ backgroundColor: "#FF5151" }}></span> 0 ~ 49
               </div>
               <div>
-                <span style={{ backgroundColor: "#FF9D00" }}></span> 60 ~ 79
+                <span style={{ backgroundColor: "#FF9D00" }}></span> 50 ~ 79
               </div>
               <div>
                 <span style={{ backgroundColor: "#59BED4" }}></span> 80 ~ 100

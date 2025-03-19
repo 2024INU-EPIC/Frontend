@@ -36,7 +36,7 @@ const DoughnutChart: React.FC<DoughnutChartProps> = ({ score }) => {
   // 점수 범위별 색상
   const getScoreColor = (score: number) => {
     if (score >= 80) return "#67B7D1"; // 파란색
-    if (score >= 60) return "#F5A623"; // 주황색
+    if (score >= 50) return "#F5A623"; // 주황색
     return "#D0021B"; // 빨간색
   };
 

@@ -195,7 +195,8 @@ export const ScoreBar = styled.div<{ width: number; color: string }>`
 
   width: ${(props) => props.width}%;
   height: 100%;
-  background: ${(props) => props.color};
+  background: ${(props) =>
+    props.width < 50 ? "#ff5151" : props.width < 79 ? "#ff9d00" : "#59BED4"};
   border-radius: 1.25rem; //20px
   transition: width 1s ease-in-out;
 `;
@@ -205,7 +206,8 @@ export const ScoreValue = styled.div<{ width: number; color: string }>`
   text-align: left;
   font-size: 1rem;
   font-weight: bold;
-  color: ${(props) => props.color};
+  color: ${(props) =>
+    props.width < 50 ? "#ff5151" : props.width < 79 ? "#ff9d00" : "#59BED4"};
   opacity: 0;
   animation: fadeIn 0.5s ease-in-out 1s forwards;
 
