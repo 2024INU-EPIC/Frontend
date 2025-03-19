@@ -15,22 +15,32 @@ const PartSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const [partId, setPartId] = useState<number>(0);
   const handleLearnClick = async (partId: number) => {
-    try {
-      const response = await axios.get<{
-        status: number;
-        message: string;
-        data: { part: number; text: string }[];
-      }>(`/api/focused-learning/part${partId}`);
-
-      navigate(`/part${partId}`, {
+    if (partId === 1) {
+      navigate(`/temppart1`, {
         state: {
-          initialQuestions: response.data,
+          // initialQuestions: response.data,
           partId,
           fromPartSelect: true,
         },
       });
-    } catch (error) {
-      console.error(`Error fetching Part ${partId} data:`, error);
+    } else {
+      try {
+        const response = await axios.get<{
+          status: number;
+          message: string;
+          data: { part: number; text: string }[];
+        }>(`/api/focused-learning/part${partId}`);
+
+        navigate(`/part${partId}`, {
+          state: {
+            initialQuestions: response.data,
+            partId,
+            fromPartSelect: true,
+          },
+        });
+      } catch (error) {
+        console.error(`Error fetching Part ${partId} data:`, error);
+      }
     }
   };
 
