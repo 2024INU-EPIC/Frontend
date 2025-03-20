@@ -1,9 +1,10 @@
 // TempPart1Page.tsx
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
-import PassageBody from "../components/PassageBody";
+// import PassageBody from "../components/PassageBody";
+import TempPassageBody from "../components/TempPassageBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
 import useTempRecording from "../components/useTempRecording"; // 🎤 녹음 훅 추가
@@ -11,9 +12,9 @@ import useTempRecording from "../components/useTempRecording"; // 🎤 녹음 �
 const IS_DEV_MODE = true;
 
 const TIME_SETTINGS = {
-  direction: IS_DEV_MODE ? 5 : 45,
-  preparing: IS_DEV_MODE ? 10 : 45,
-  responding: IS_DEV_MODE ? 10 : 45,
+  direction: IS_DEV_MODE ? 3 : 13,
+  preparing: IS_DEV_MODE ? 3 : 10,
+  responding: IS_DEV_MODE ? 20 : 45,
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -51,6 +52,9 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true";
 
+  const location = useLocation();
+  const fromPartSelect = location.state?.fromPartSelect;
+
   const [currentNum, setCurrentNum] = useState(1);
   const [remainingTime, setRemainingTime] = useState(12);
   const [stage, setStage] = useState<
@@ -58,8 +62,8 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   >("direction");
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const referenceText = [
-    "hello, it's me. i'm fine. thank you.",
-    "Welcome to Boston Airport. In order to proceed your process,",
+    "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+    "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
   ]; // 입력된 문장
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -72,9 +76,9 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
     part,
   );
 
-  //   function increaseNum() {
-  //     setCurrentNum((prevNum) => prevNum + 1);
-  //   }
+  function increaseNum() {
+    setCurrentNum((prevNum) => prevNum + 1);
+  }
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -93,23 +97,30 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
           setRemainingTime(TIME_SETTINGS.responding);
           break;
         case "responding":
-          setStage("scoring"); // 테스트용으로 1번만 나오게 구현
-          //   if (currentNum < 2) {
-          //     increaseNum();
-          //     setStage('preparing');
-          //     setRemainingTime(TIME_SETTINGS.preparing);
-          //   } else {
-          //     setStage('scoring');
-          //     if (isMockExam) {
-          //       setTimeout(() => navigate('/part2?mockExam=true'), 0);
-          //     }
-          //   }
+          if (fromPartSelect) {
+            setStage("scoring");
+            break;
+          }
+          if (currentNum < 2) {
+            increaseNum();
+            setStage("preparing");
+            setRemainingTime(TIME_SETTINGS.preparing);
+          } else {
+            setStage("scoring");
+
+            // 실전 모의고사 모드에서는 자동으로 Part2 페이지로 이동
+            if (isMockExam) {
+              setTimeout(() => {
+                navigate("/part2?mockExam=true"); // 2번 문제 완료 후 Part2로 이동
+              }, 0); //  딜레이없이 바로 이동
+            }
+          }
           break;
         default:
           break;
       }
     }
-  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
+  }, [remainingTime, stage, currentNum, fromPartSelect, isMockExam, navigate]);
 
   // 🎤 자동 녹음 & 중지 (stage 변경 감지)
   useEffect(() => {
@@ -200,20 +211,17 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   return (
     <S.mainContainer>
       <TopBlank />
-      {/*임시 녹음버튼*/}
-      {/* <button onClick={startRecording}>Start Recording</button> 
-      <button onClick={stopRecording}>Stop Recording</button> */}
 
       {stage === "direction" && (
         <DirectionBody
           title="Question 1-2: Read a Text Aloud"
-          direction="Directions: In this part of the test, you will read aloud the text on the screen."
+          direction="Directions: In this part of the test, you will read aloud the text on the screen. You will have 45 seconds to prepare. Then you will have 45 seconds to read the text aloud."
         />
       )}
 
       {stage !== "direction" && (
-        <PassageBody
-          text={referenceText[1]}
+        <TempPassageBody
+          text={referenceText[currentNum - 1]}
           isScoring={stage === "scoring"}
           wrongWordScore={wrongWordScore}
           questionNum={currentNum}
@@ -240,13 +248,64 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
       )}
 
       {stage === "scoring" && !isMockExam && (
-        <ScoreBody
-          totalScore={totalScore}
-          accuracy={accuracy}
-          completeness={completeness}
-          fluency={fluency}
-          prosody={prosody}
-        />
+        <>
+          <ScoreBody
+            totalScore={totalScore}
+            accuracy={accuracy}
+            completeness={completeness}
+            fluency={fluency}
+            prosody={prosody}
+          />
+          {fromPartSelect && (
+            <button
+              onClick={() => {
+                setStage("preparing");
+              }}
+              style={{
+                display: "flex",
+                width: "29.5rem",
+                height: "6.5rem",
+                margin: "2.25rem 0 2rem 0",
+                border: "none",
+                borderRadius: "6.25rem",
+                background: "#ff7b7b",
+                alignItems: "center",
+                justifyContent: "center",
+                filter: "drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25))",
+              }}
+            >
+              <span
+                style={{
+                  color: "white",
+                  textAlign: "center",
+                  fontFamily: '"Noto Sans KR", sans-serif',
+                  fontSize: "1.75rem",
+                  fontWeight: 700,
+                  marginLeft: "3.5rem",
+                  marginRight: "1.75rem",
+                }}
+              >
+                다음 문제 풀기
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
+                  fill="white"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          )}
+        </>
       )}
     </S.mainContainer>
   );
