@@ -74,10 +74,14 @@ const Part1Page: React.FC = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
+  //문제 불러오기 용용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
   const [extraQuestions, setExtraQuestions] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+
+  //scoring 용
+  const [response, setResponse] = useState<any>(null); // API 응답 저장
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -248,12 +252,12 @@ const Part1Page: React.FC = () => {
   const uploadAudio = async (blob: Blob) => {
     const formData = new FormData();
     formData.append("audio", blob, "recording.wav");
-
     try {
       const response = await axios.post("/api/upload-audio", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log("응답 데이터:", response.data);
+      setResponse(response.data);
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
     }
@@ -267,6 +271,47 @@ const Part1Page: React.FC = () => {
       stopRecording();
     }
   }, [stage, startRecording, stopRecording]);
+
+  const wrongWordScore =
+    response?.IssueWords?.reduce(
+      (
+        acc: Record<string, { score: number; errorType: string }>,
+        item: any,
+      ) => {
+        if (
+          item.ErrorType === "Mispronunciation" ||
+          item.ErrorType === "Omission" ||
+          item.ErrorType === "None"
+        ) {
+          acc[item.word.toLowerCase()] = {
+            score: item.AccuracyScore,
+            errorType: item.ErrorType,
+          };
+        }
+        return acc;
+      },
+      {} as Record<string, { score: number; errorType: string }>,
+    ) || {};
+
+  // 점수
+  const accuracy = Math.round(
+    response?.PronunciationAssessment["AccuracyScore"],
+  );
+  const completeness = Math.round(
+    response?.PronunciationAssessment["CompletenessScore"],
+  );
+  const fluency = Math.round(response?.PronunciationAssessment["FluencyScore"]);
+  const prosody = Math.round(response?.PronunciationAssessment["ProsodyScore"]);
+
+  const scores = [accuracy, completeness, fluency, prosody];
+  const minScore = Math.min(...scores);
+
+  const totalScore = Math.round(
+    scores.reduce(
+      (sum, score) => sum + (score === minScore ? score * 0.4 : score * 0.2),
+      0,
+    ),
+  );
 
   return (
     <S.mainContainer onClick={handleUserInteraction}>
@@ -283,6 +328,7 @@ const Part1Page: React.FC = () => {
         <PassageBody
           text={getCurrentQuestion()}
           isScoring={stage === "scoring"}
+          wrongWordScore={wrongWordScore}
           questionNum={currentNum} // 원래 1
           totalQuestions={2}
           fromPartSelect={fromPartSelect}
@@ -309,11 +355,11 @@ const Part1Page: React.FC = () => {
       {stage === "scoring" && !isMockExam && (
         <>
           <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
+            totalScore={totalScore}
+            accuracy={accuracy}
+            completeness={completeness}
+            fluency={fluency}
+            prosody={prosody}
           />
           {fromPartSelect && (
             <button
