@@ -167,7 +167,7 @@ const Wrapper = styled.div`
 type PassageBodyProps = {
   text: string;
   isScoring: boolean;
-  wrongWordScore: Record<string, number>;
+  wrongWordScore: Record<string, { score: number; errorType: string }>;
   questionNum: number;
   totalQuestions: number;
   fromPartSelect?: boolean;

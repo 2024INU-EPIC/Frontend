@@ -13,34 +13,49 @@ export const handlers = [
     }
 
     return HttpResponse.json({
+      PronunciationAssessment: {
+        AccuracyScore: 76,
+        CompletenessScore: 83,
+        FluencyScore: 80,
+        ProsodyScore: 90,
+      },
       UserResponse:
-        "Today was a beautiful day. We had a great time taking a long, long walk. In the morning. The countryside was in full bloom, yet the air was crisp and cold. Towards end of the day, clouds came in, forecasting much needed rain.",
-      LowScoreWords: [
+        "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+      IssueWords: [
         {
-          word: "countryside",
+          word: "forecast",
           AccuracyScore: 30,
           ErrorType: "Mispronunciation",
           LowScorePhonemes: [
-            { phoneme: "k", AccuracyScore: 11 },
-            { phoneme: "ʌ", AccuracyScore: 0 },
-            { phoneme: "n", AccuracyScore: 19 },
-            { phoneme: "t", AccuracyScore: 29 },
-            { phoneme: "r", AccuracyScore: 40 },
-            { phoneme: "ɪ", AccuracyScore: 30 },
-            { phoneme: "s", AccuracyScore: 18 },
-            { phoneme: "aɪ", AccuracyScore: 48 },
+            { phoneme: "f", AccuracyScore: 11 },
+            { phoneme: "ɔːr", AccuracyScore: 0 },
+            { phoneme: "k", AccuracyScore: 19 },
+            { phoneme: "æ", AccuracyScore: 29 },
+            { phoneme: "s", AccuracyScore: 40 },
+            { phoneme: "t", AccuracyScore: 30 },
           ],
         },
         {
-          word: "towards",
+          word: "breezy",
           AccuracyScore: 72,
           ErrorType: "None",
           LowScorePhonemes: [
-            { phoneme: "ə", AccuracyScore: 77 },
-            { phoneme: "t", AccuracyScore: 20 },
-            { phoneme: "w", AccuracyScore: 18 },
-            { phoneme: "ɔ", AccuracyScore: 65 },
-            { phoneme: "r", AccuracyScore: 60 },
+            { phoneme: "b", AccuracyScore: 77 },
+            { phoneme: "r", AccuracyScore: 20 },
+            { phoneme: "iː", AccuracyScore: 18 },
+            { phoneme: "z", AccuracyScore: 65 },
+            { phoneme: "i", AccuracyScore: 60 },
+          ],
+        },
+        {
+          word: "sunny",
+          AccuracyScore: 63,
+          ErrorType: "Omission",
+          LowScorePhonemes: [
+            { phoneme: "s", AccuracyScore: 70 },
+            { phoneme: "ʌ", AccuracyScore: 40 },
+            { phoneme: "n", AccuracyScore: 62 },
+            { phoneme: "i", AccuracyScore: 70 },
           ],
         },
       ],
