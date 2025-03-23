@@ -9,8 +9,8 @@ import styled from "styled-components";
 
 import axios from "axios";
 
-const IS_DEV_MODE = true;
-//const IS_DEV_MODE = false;
+//const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 13, // direction 단계
@@ -74,7 +74,7 @@ const Part1Page: React.FC = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
-  //문제 불러오기 용용
+  //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
   const [extraQuestions, setExtraQuestions] = useState(null);
