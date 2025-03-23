@@ -76,4 +76,17 @@ export const handlers = [
       ],
     });
   }),
+
+  http.get("/api/focused-learning/part5", async () => {
+    return HttpResponse.json({
+      status: 200,
+      message: "ok",
+      data: [
+        {
+          question:
+            "Do you agree or disagree with the following statement? The most famous musicians are the most talented. Give reasons or examples to support your opinion.",
+        },
+      ],
+    });
+  }),
 ];

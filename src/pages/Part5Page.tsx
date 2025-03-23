@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
 // import ReplyBody from "../components/ReplyBody";
 import TempReplyBody from "../components/TempReplyBody";
 import styled from "styled-components";
 import QuestionBody from "../components/QuestionBody";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import DirectionBody from "../components/DirectionBody";
+import axios from "axios";
 
-// const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 2 : 13, // direction 단계
@@ -56,17 +57,23 @@ const Part5Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part5";
 
-  const currentNum = 11;
   const [remainingTime, setRemainingTime] = useState(13); // 음성 시간 13초
   const [stage, setStage] = useState<
     "direction" | "preparing" | "responding" | "scoring"
   >("direction");
+
   const [questionCount, setQuestionCount] = useState(1);
 
+  //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
+
+  //문제 불러오기 용
+  const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+  const [questions, setQuestions] = useState(
+    initialQuestions?.data[0]?.question || null,
+  );
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -86,6 +93,7 @@ const Part5Page: React.FC = () => {
           break;
         case "responding":
           setStage("scoring");
+
           // 실전 모의고사 모드에서는 자동으로 결과 페이지로 이동
           if (isMockExam) {
             setTimeout(() => {
@@ -97,7 +105,7 @@ const Part5Page: React.FC = () => {
           break;
       }
     }
-  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
+  }, [remainingTime, stage, isMockExam, navigate]);
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -133,20 +141,27 @@ const Part5Page: React.FC = () => {
     };
   }, [stage]);
 
+  // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
   const handleUserInteraction = () => {
     if (!hasPlayedRef.current) {
       console.log("Audio is not allowed to play after direction stage.");
     }
   };
 
-  const nextQuestion = () => {
-    setStage("preparing");
-    setRemainingTime(TIME_SETTINGS.preparing);
-    setQuestionCount(questionCount + 1);
+  const nextQuestion = async () => {
+    try {
+      // 새로운 문제 요청
+      const response = await axios.get(`/api/focused-learning/part5`);
+      setQuestions(response.data.question);
+      console.log(questions);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error fetching next set of questions:", error);
+    }
   };
 
-  const textContent =
-    " The only way to reduce the amount of traffic in cities today is by reducing the need for people to travel from home for work, education or shopping. Do you agree or disagree with this point of view? Use specific reasons and examples to support your choice.";
   const replyContent =
     "I partially disagree. Reducing the need to travel helps, but it’s not the only way to reduce traffic. First, improving public transportation can encourage people to use buses and trains instead of cars. Second, remote work and online learning help, but many jobs require physical presence, and shopping in person is still needed. Lastly, better city planning, like expanding bike lanes and pedestrian areas, can reduce congestion. So, while reducing travel helps, a combination of solutions is needed for real change.";
 
@@ -158,13 +173,15 @@ const Part5Page: React.FC = () => {
   };
 
   // ? 이후 줄바꿈용 코드
-  const formattedText = textContent.split("?").map((part, index, arr) => (
-    <React.Fragment key={index}>
-      {part}
-      {index < arr.length - 1 && "?"}
-      {index === 0 && <br />}
-    </React.Fragment>
-  ));
+  const formattedText = questions
+    .split("?")
+    .map((part: string, index: number, arr: string[]) => (
+      <React.Fragment key={index}>
+        {part}
+        {index < arr.length - 1 && "?"}
+        {index === 0 && <br />}
+      </React.Fragment>
+    ));
 
   return (
     <S.mainContainer onClick={handleUserInteraction}>
