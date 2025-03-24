@@ -19,7 +19,7 @@ export function highlightText(
       if (
         errorType === "Mispronunciation" ||
         errorType === "Omission" ||
-        errorType === "None"
+        (errorType === "None" && score < 80)
       ) {
         return (
           <Highlight key={index} score={score}>
