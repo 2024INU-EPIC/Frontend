@@ -63,7 +63,7 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const referenceText = [
     "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
-    "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+    "Thank you for calling Scientific Pages, home of the finest in technical and medical books. The bookstore is currently closed. For hours, directions, or information on current promotions, please press one. For all other inquiries, please leave us a message. One of our book specialists will return your call as soon as possible.",
   ]; // 입력된 문장
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -72,12 +72,13 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   // 🎤 녹음 및 API 요청 관련 상태 및 함수
   const { startRecording, stopRecording } = useTempRecording(
     setResponse,
-    referenceText[1],
+    referenceText[currentNum - 1],
     part,
   );
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
+    console.log(currentNum);
   }
 
   useEffect(() => {
@@ -97,24 +98,25 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
           setRemainingTime(TIME_SETTINGS.responding);
           break;
         case "responding":
-          if (fromPartSelect) {
-            setStage("scoring");
-            break;
-          }
-          if (currentNum < 2) {
-            increaseNum();
-            setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing);
-          } else {
-            setStage("scoring");
+          setStage("scoring");
+          // if (fromPartSelect) {
+          //   setStage("scoring");
+          //   break;
+          // }
+          // if (currentNum < 2) {
+          //   increaseNum();
+          //   setStage("preparing");
+          //   setRemainingTime(TIME_SETTINGS.preparing);
+          // } else {
+          //   setStage("scoring");
 
-            // 실전 모의고사 모드에서는 자동으로 Part2 페이지로 이동
-            if (isMockExam) {
-              setTimeout(() => {
-                navigate("/part2?mockExam=true"); // 2번 문제 완료 후 Part2로 이동
-              }, 0); //  딜레이없이 바로 이동
-            }
-          }
+          //   // 실전 모의고사 모드에서는 자동으로 Part2 페이지로 이동
+          //   if (isMockExam) {
+          //     setTimeout(() => {
+          //       navigate("/part2?mockExam=true"); // 2번 문제 완료 후 Part2로 이동
+          //     }, 0); //  딜레이없이 바로 이동
+          //   }
+          // }
           break;
         default:
           break;
@@ -167,7 +169,8 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
       ) => {
         if (
           item.ErrorType === "Mispronunciation" ||
-          item.ErrorType === "Omission"
+          item.ErrorType === "Omission" ||
+          item.ErrorType === "None"
         ) {
           acc[item.word.toLowerCase()] = {
             score: item.AccuracyScore,
