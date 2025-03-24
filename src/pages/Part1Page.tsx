@@ -9,8 +9,8 @@ import styled from "styled-components";
 
 import axios from "axios";
 
-//const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 13, // direction 단계
@@ -253,7 +253,7 @@ const Part1Page: React.FC = () => {
     const formData = new FormData();
     formData.append("audio", blob, "recording.wav");
     try {
-      const response = await axios.post("/api/upload-audio", formData, {
+      const response = await axios.post("/api/upload-audio/?part=1", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       console.log("응답 데이터:", response.data);

@@ -4,6 +4,8 @@ export const handlers = [
   http.post("/api/upload-audio", async ({ request }) => {
     const formData = await request.formData();
     const audioFile = formData.get("audio");
+    const url = new URL(request.url);
+    const part = url.searchParams.get("part");
 
     if (!(audioFile instanceof File)) {
       return HttpResponse.json(
@@ -12,53 +14,112 @@ export const handlers = [
       );
     }
 
+    if (part === "1") {
+      return HttpResponse.json({
+        PronunciationAssessment: {
+          AccuracyScore: 76,
+          CompletenessScore: 83,
+          FluencyScore: 80,
+          ProsodyScore: 90,
+        },
+        UserResponse:
+          "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+        IssueWords: [
+          {
+            word: "forecast",
+            AccuracyScore: 30,
+            ErrorType: "Mispronunciation",
+            LowScorePhonemes: [
+              { phoneme: "f", AccuracyScore: 11 },
+              { phoneme: "ɔːr", AccuracyScore: 0 },
+              { phoneme: "k", AccuracyScore: 19 },
+              { phoneme: "æ", AccuracyScore: 29 },
+              { phoneme: "s", AccuracyScore: 40 },
+              { phoneme: "t", AccuracyScore: 30 },
+            ],
+          },
+          {
+            word: "breezy",
+            AccuracyScore: 72,
+            ErrorType: "None",
+            LowScorePhonemes: [
+              { phoneme: "b", AccuracyScore: 77 },
+              { phoneme: "r", AccuracyScore: 20 },
+              { phoneme: "iː", AccuracyScore: 18 },
+              { phoneme: "z", AccuracyScore: 65 },
+              { phoneme: "i", AccuracyScore: 60 },
+            ],
+          },
+          {
+            word: "sunny",
+            AccuracyScore: 63,
+            ErrorType: "Omission",
+            LowScorePhonemes: [
+              { phoneme: "s", AccuracyScore: 70 },
+              { phoneme: "ʌ", AccuracyScore: 40 },
+              { phoneme: "n", AccuracyScore: 62 },
+              { phoneme: "i", AccuracyScore: 70 },
+            ],
+          },
+        ],
+      });
+    }
+
     return HttpResponse.json({
-      PronunciationAssessment: {
-        AccuracyScore: 76,
-        CompletenessScore: 83,
-        FluencyScore: 80,
-        ProsodyScore: 90,
+      azureEvaluation: {
+        PronunciationAssessment: {
+          AccuracyScore: 76,
+          FluencyScore: 80,
+          ProsodyScore: 90,
+        },
+        UserResponse:
+          "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+        IssueWords: [
+          {
+            word: "forecast",
+            AccuracyScore: 30,
+            ErrorType: "Mispronunciation",
+            LowScorePhonemes: [
+              { phoneme: "f", AccuracyScore: 11 },
+              { phoneme: "ɔːr", AccuracyScore: 0 },
+              { phoneme: "k", AccuracyScore: 19 },
+              { phoneme: "æ", AccuracyScore: 29 },
+              { phoneme: "s", AccuracyScore: 40 },
+              { phoneme: "t", AccuracyScore: 30 },
+            ],
+          },
+          {
+            word: "breezy",
+            AccuracyScore: 72,
+            ErrorType: "None",
+            LowScorePhonemes: [
+              { phoneme: "b", AccuracyScore: 77 },
+              { phoneme: "r", AccuracyScore: 20 },
+              { phoneme: "iː", AccuracyScore: 18 },
+              { phoneme: "z", AccuracyScore: 65 },
+              { phoneme: "i", AccuracyScore: 60 },
+            ],
+          },
+          {
+            word: "sunny",
+            AccuracyScore: 63,
+            ErrorType: "Omission",
+            LowScorePhonemes: [
+              { phoneme: "s", AccuracyScore: 70 },
+              { phoneme: "ʌ", AccuracyScore: 40 },
+              { phoneme: "n", AccuracyScore: 62 },
+              { phoneme: "i", AccuracyScore: 70 },
+            ],
+          },
+        ],
+      }, // 문자열로 변환
+      gptEvaluation: {
+        grammar: 80,
+        topic: 70,
+        vocabulary: 85,
+        suggestions:
+          "문법은 전반적으로 좋았으나 몇 가지 시제 오류가 있었습니다. 주제를 좀 더 구체적으로 표현해보세요.",
       },
-      UserResponse:
-        "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
-      IssueWords: [
-        {
-          word: "forecast",
-          AccuracyScore: 30,
-          ErrorType: "Mispronunciation",
-          LowScorePhonemes: [
-            { phoneme: "f", AccuracyScore: 11 },
-            { phoneme: "ɔːr", AccuracyScore: 0 },
-            { phoneme: "k", AccuracyScore: 19 },
-            { phoneme: "æ", AccuracyScore: 29 },
-            { phoneme: "s", AccuracyScore: 40 },
-            { phoneme: "t", AccuracyScore: 30 },
-          ],
-        },
-        {
-          word: "breezy",
-          AccuracyScore: 72,
-          ErrorType: "None",
-          LowScorePhonemes: [
-            { phoneme: "b", AccuracyScore: 77 },
-            { phoneme: "r", AccuracyScore: 20 },
-            { phoneme: "iː", AccuracyScore: 18 },
-            { phoneme: "z", AccuracyScore: 65 },
-            { phoneme: "i", AccuracyScore: 60 },
-          ],
-        },
-        {
-          word: "sunny",
-          AccuracyScore: 63,
-          ErrorType: "Omission",
-          LowScorePhonemes: [
-            { phoneme: "s", AccuracyScore: 70 },
-            { phoneme: "ʌ", AccuracyScore: 40 },
-            { phoneme: "n", AccuracyScore: 62 },
-            { phoneme: "i", AccuracyScore: 70 },
-          ],
-        },
-      ],
     });
   }),
 

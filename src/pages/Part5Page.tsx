@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
-// import ReplyBody from "../components/ReplyBody";
-import TempReplyBody from "../components/TempReplyBody";
+import ReplyBody from "../components/ReplyBody";
 import styled from "styled-components";
 import QuestionBody from "../components/QuestionBody";
 import DirectionBody from "../components/DirectionBody";
@@ -69,12 +68,20 @@ const Part5Page: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
+  //recoding용
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [questions, setQuestions] = useState(
     initialQuestions?.data[0]?.question || null,
   );
 
+  //scoring 용
+  const [response, setResponse] = useState<any>(null); // API 응답 저장
+  const [replyContent, setReplyContent] = useState<string>("");
   useEffect(() => {
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
@@ -162,17 +169,118 @@ const Part5Page: React.FC = () => {
     }
   };
 
-  const replyContent =
-    "I partially disagree. Reducing the need to travel helps, but it’s not the only way to reduce traffic. First, improving public transportation can encourage people to use buses and trains instead of cars. Second, remote work and online learning help, but many jobs require physical presence, and shopping in person is still needed. Lastly, better city planning, like expanding bike lanes and pedestrian areas, can reduce congestion. So, while reducing travel helps, a combination of solutions is needed for real change.";
+  // 녹음 시작
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
 
-  // api 연동으로 받을 단어 성적 JSON 예시
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        uploadAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
+    } catch (error) {
+      console.error("마이크 접근 오류:", error);
+    }
+  }, []);
+
+  // 녹음 중지
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  // 오디오 업로드
+  const uploadAudio = async (blob: Blob) => {
+    const formData = new FormData();
+    formData.append("audio", blob, "recording.wav");
+    try {
+      const response = await axios.post("/api/upload-audio", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("응답 데이터:", response.data);
+      setResponse(response.data);
+      setReplyContent(response.data.azureEvaluation.UserResponse);
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+    }
+  };
+
+  // stage가 responding일 때 녹음 시작 & 종료
+  useEffect(() => {
+    if (stage === "responding") {
+      startRecording();
+    } else if (stage !== "preparing") {
+      stopRecording();
+    }
+  }, [stage, startRecording, stopRecording]);
+
+  const wrongWordScore =
+    response?.azureEvaluation?.IssueWords?.reduce(
+      (
+        acc: Record<string, { score: number; errorType: string }>,
+        item: any,
+      ) => {
+        if (
+          item.ErrorType === "Mispronunciation" ||
+          item.ErrorType === "Omission" ||
+          item.ErrorType === "None"
+        ) {
+          acc[item.word.toLowerCase()] = {
+            score: item.AccuracyScore,
+            errorType: item.ErrorType,
+          };
+        }
+        return acc;
+      },
+      {} as Record<string, { score: number; errorType: string }>,
+    ) || {};
+
+  // 점수
+  const accuracy = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["AccuracyScore"],
+  );
+  const fluency = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["FluencyScore"],
+  );
+  const prosody = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["ProsodyScore"],
+  );
+
+  const scores = [accuracy, fluency, prosody];
+  const minScore = Math.min(...scores);
+
+  const totalScore = Math.round(
+    scores.reduce(
+      (sum, score) => sum + (score === minScore ? score * 0.4 : score * 0.2),
+      0,
+    ),
+  );
+
+  /* 
+  //api 연동으로 받을 단어 성적 JSON 예시
   const wrongWordScore = {
     disagree: 56,
     transportation: 75,
     presence: 43,
   };
+  */
 
-  // ? 이후 줄바꿈용 코드
+  // question 본문의 '?' 이후 줄바꿈용
   const formattedText = questions
     .split("?")
     .map((part: string, index: number, arr: string[]) => (
@@ -222,17 +330,18 @@ const Part5Page: React.FC = () => {
       )}
       {stage === "scoring" && !isMockExam && (
         <>
-          <TempReplyBody
+          <ReplyBody
             text={replyContent}
             wrongWordScore={wrongWordScore}
             isScoring={stage === "scoring"}
+            gptText={response?.gptEvaluation.suggestions}
           />
           <ScoreBody
-            totalScore={86}
-            accuracy={80}
-            completeness={60}
-            fluency={85}
-            prosody={70}
+            totalScore={totalScore}
+            accuracy={accuracy}
+            completeness={0}
+            fluency={fluency}
+            prosody={prosody}
           />
           {fromPartSelect && (
             <button
