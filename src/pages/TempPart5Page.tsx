@@ -229,7 +229,12 @@ const TempPart5Page: React.FC<Part5pageProps> = ({ part }) => {
   const topic = Math.round(response?.gptEvaluation["topic"]);
   const contentScore = Math.round((voca + grammar + topic) / 3);
 
-  const feedback = JSON.stringify(response?.gptEvaluation.suggestions);
+  const feedback = response?.gptEvaluation.suggestions["grammar"].concat(
+    "  ",
+    response?.gptEvaluation.suggestions["topic"],
+    "  ",
+    response?.gptEvaluation.suggestions["vocabulary"],
+  );
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
