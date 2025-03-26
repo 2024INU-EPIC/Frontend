@@ -34,7 +34,7 @@ const Wrapper = styled.div`
 `;
 
 type QuestionBodyProps = {
-  text: React.ReactNode;
+  text: string;
   questionNum: number;
   totalQuestions: number;
   fromPartSelect?: boolean;

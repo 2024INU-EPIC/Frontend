@@ -2,23 +2,31 @@ import styled from "styled-components";
 export function highlightText(
   text: string,
   isScoring: boolean,
-  wrongWordScore: Record<string, number>,
+  wrongWordScore: Record<string, { score: number; errorType?: string }>, // 점수와 에러 타입 저장
 ) {
   if (!isScoring) return text; // 점수 출력 상태가 아니면 원본 텍스트 그대로 출력
 
   return text.split(/(\b\w+\b)/g).map((word, index) => {
     const lowerWord = word.toLowerCase(); // 소문자로 변환
 
+    // 하이라이트 대상 단어 필터링 (Mispronunciation, Omission만)
     if (wrongWordScore[lowerWord] !== undefined) {
-      const score = wrongWordScore[lowerWord];
-      return (
-        <Highlight key={index} score={score}>
-          {word}
-          <Tip>
-            {word} : <ScoreText score={score}>{score}</ScoreText>
-          </Tip>
-        </Highlight>
-      );
+      const { score, errorType } = wrongWordScore[lowerWord];
+
+      if (
+        errorType === "Mispronunciation" ||
+        errorType === "Omission" ||
+        (errorType === "None" && score < 80)
+      ) {
+        return (
+          <Highlight key={index} score={score}>
+            {word}
+            <Tip>
+              {word} : <ScoreText score={score}>{score}</ScoreText>
+            </Tip>
+          </Highlight>
+        );
+      }
     }
 
     return <span key={index}>{word}</span>; // 원래 단어 그대로 유지
@@ -141,12 +149,14 @@ type ReplyBodyProps = {
   text: string;
   isScoring: boolean;
   wrongWordScore: Record<string, number>;
+  feedback: string;
 };
 
-const ReplyBody: React.FC<ReplyBodyProps> = ({
+const TempReplyBody: React.FC<ReplyBodyProps> = ({
   text,
   isScoring,
   wrongWordScore,
+  feedback,
 }) => {
   return (
     <Wrapper>
@@ -202,22 +212,11 @@ const ReplyBody: React.FC<ReplyBodyProps> = ({
           />
         </svg>
         <div>
-          <p className="feedback">
-            Welcome to the Boston International Airport. Your check-in process
-            will take ten to fifteen minutes. In order to speed up the process,
-            please have your identification and boardingpass ready as you
-            approach the counter. Also, please make sure your luggage is labeled
-            with your name, address and telephone number. Welcome to the Boston
-            International Airport. Your check-in process will take ten to
-            fifteen minutes. In order to speed up the process, please have your
-            identification and boardingpass ready as you approach the counter.
-            Also, please make sure your luggage is labeled with your name,
-            address and telephone number.
-          </p>
+          <p className="feedback">{feedback}</p>
         </div>
       </div>
     </Wrapper>
   );
 };
 
-export default ReplyBody;
+export default TempReplyBody;
