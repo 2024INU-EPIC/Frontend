@@ -22,13 +22,23 @@ const PartSelectPage: React.FC = () => {
         data: { part: number; text: string }[];
       }>(`/api/focused-learning/part${partId}`);
 
-      navigate(`/part${partId}`, {
-        state: {
-          initialQuestions: response.data,
-          partId,
-          fromPartSelect: true,
-        },
-      });
+      if (partId === 5) {
+        navigate(`/temppart5`, {
+          state: {
+            initialQuestions: response.data,
+            partId,
+            fromPartSelect: true,
+          },
+        });
+      } else {
+        navigate(`/part${partId}`, {
+          state: {
+            initialQuestions: response.data,
+            partId,
+            fromPartSelect: true,
+          },
+        });
+      }
     } catch (error) {
       console.error(`Error fetching Part ${partId} data:`, error);
     }
