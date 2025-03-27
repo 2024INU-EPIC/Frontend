@@ -138,6 +138,24 @@ export const handlers = [
     });
   }),
 
+  http.get("/api/focused-learning/part3", async () => {
+    return HttpResponse.json({
+      status: 200,
+      message: "ok",
+      data: [
+        {
+          situation: "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
+          question1:
+            "What is your favorite restaurant in the area, and when did you last go there?",
+          question2:
+            "Would you say this area is a good place for shopping? Why or why not?",
+          question3:
+            "I have some friends from out of town visiting me this weekend, and they would like to see popular attractions in the area. What is the best place to take my friends, and why?",
+        },
+      ],
+    });
+  }),
+
   http.get("/api/focused-learning/part5", async () => {
     return HttpResponse.json({
       status: 200,
