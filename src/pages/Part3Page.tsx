@@ -1,19 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import * as S from "./Main.styled";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import MutipleReplyBody from "../components/MutipleReplyBox";
-import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
-import loadingGif from "../assets/img/loading.gif";
 import DirectionBody from "../components/DirectionBody";
+import axios from "axios";
+import styled from "styled-components";
+import * as S from "./Main.styled";
+import loadingGif from "../assets/img/loading.gif";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
 // false : 배포 모드 (실제 시험 진행 방식)
 
-// const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+// const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 16, // direction 단계
@@ -58,7 +59,6 @@ const Part3Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part3";
 
   const [currentNum, setCurrentNum] = useState(5); // 문제 번호 (5 → 6 → 7)
   const [remainingTime, setRemainingTime] = useState(1); // 처음 45초 동안 SituationBody만 표시
@@ -72,9 +72,19 @@ const Part3Page: React.FC = () => {
   >("loading");
   const [questionCount, setQuestionCount] = useState(1);
 
+  //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
+  //문제 불러오기 용
+    const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+    const [situationText, setSituationText] = useState(initialQuestions?.data[0]?.situation || null);
+    const [questionTextArray, setQuestionTextArray] = useState([
+      initialQuestions?.data[0]?.question1 || "",
+      initialQuestions?.data[0]?.question2 || "",
+      initialQuestions?.data[0]?.question3 || "",
+    ]);
+  
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
@@ -172,29 +182,21 @@ const Part3Page: React.FC = () => {
     }
   };
 
-  const nextQuestion = () => {
-    setStage("preparing");
-    setRemainingTime(TIME_SETTINGS.preparing);
-    setQuestionCount(questionCount + 1);
-    setCurrentNum(5); //파트별 집중학습 다음 문제 초기화용
+  const nextQuestion = async () => {
+    try {
+      // 새로운 문제 요청
+      const response = await axios.get(`/api/focused-learning/part3`);
+      const questionSet = response.data.data[0]; 
+      setSituationText(questionSet.situation);
+      setQuestionTextArray([questionSet.question1, questionSet.question2, questionSet.question3]);
+      setStage("situation");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum(5);
+    } catch (error) {
+      console.error("Error fetching next set of questions:", error);
+    }
   };
-
-  const situationText =
-    "Imagine that an American newspaper company is doing research in your country, and you have agreed to participate in a telephone interview about your friendship.";
-
-  const questionTextArray = [
-    {
-      id: 1,
-      value:
-        "When was the last time you met your childhood friend? And what did you talk about?",
-    },
-    { id: 2, value: "Where did you meet the childhood friend?" },
-    {
-      id: 3,
-      value:
-        "What is the most important factor that you could keep the friendship for many years?",
-    },
-  ];
 
   if (stage === "loading")
     return (
@@ -219,7 +221,7 @@ const Part3Page: React.FC = () => {
           stage={stage}
           partNum={3}
           situationText={situationText}
-          questionText={questionTextArray[currentNum - 5].value}
+          questionText={questionTextArray[currentNum - 5]}
           questionNum={currentNum}
           totalQuestions={11}
           fromPartSelect={fromPartSelect}
@@ -258,7 +260,7 @@ const Part3Page: React.FC = () => {
             <React.Fragment key={index}>
               <MutipleReplyBody
                 questionNum={5 + index}
-                questionText={q.value}
+                questionText={q}
                 contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number."
                 isScoring={stage === "scoring"}
               />

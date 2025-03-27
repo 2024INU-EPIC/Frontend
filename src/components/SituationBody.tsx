@@ -6,14 +6,9 @@ type WrapperProps = { partNum?: number; stage?: string };
 
 const Wrapper = styled.div<WrapperProps>`
   width: 87.5rem; // 1400px
-  height: ${(props) =>
-    props.partNum === 4
-      ? "35.5rem"
-      : props.stage === "situation" || props.stage === "scoring"
-        ? "15rem"
-        : "25rem"};
-
+  display: inline-block;
   margin-top: -2rem;
+  padding-bottom: 3rem;
   background-color: #ffffff;
   border-radius: 1rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
