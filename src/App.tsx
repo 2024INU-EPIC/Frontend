@@ -15,6 +15,7 @@ import Part4Page from "./pages/Part4Page";
 import Part5Page from "./pages/Part5Page";
 import TestResultPage from "./pages/TestResult";
 import TempPart1Page from "./pages/TempPart1Page";
+import TempPart5Page from "./pages/TempPart5Page";
 
 const App: React.FC = () => {
   return (
@@ -33,6 +34,14 @@ const App: React.FC = () => {
           element={
             <MainLayout>
               <TempPart1Page part={1} />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/temppart5"
+          element={
+            <MainLayout>
+              <TempPart5Page part={5} />
             </MainLayout>
           }
         />

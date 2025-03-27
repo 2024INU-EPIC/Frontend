@@ -1,10 +1,11 @@
 // useTempRecording.tsx
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from "react";
 
 const useTempRecording = (
   setResponse: (data: any) => void,
-  referenceText: string,
   part: number,
+  setReplyText?: (data: string) => void,
+  referenceText?: string,
 ) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const inputRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -20,7 +21,7 @@ const useTempRecording = (
   async function startRecording() {
     if (isRecordingRef.current) {
       // 이미 녹음 중일 경우 또 다른 녹음이 시작되지 않게 방지
-      console.warn('Already Recording...');
+      console.warn("Already Recording...");
       return;
     }
 
@@ -55,9 +56,9 @@ const useTempRecording = (
       isRecordingRef.current = true;
       setRecorded(false);
 
-      console.log('Recording started...');
+      console.log("Recording started...");
     } catch (err) {
-      console.error('Error accessing audio stream: ', err);
+      console.error("Error accessing audio stream: ", err);
     }
   }
 
@@ -71,7 +72,7 @@ const useTempRecording = (
     inputRef.current?.disconnect();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
 
-    console.log('Recording stopped. Ensuring data is saved...');
+    console.log("Recording stopped. Ensuring data is saved...");
 
     // 🔥 녹음된 데이터 길이를 강제로 반영
     setTimeout(() => {
@@ -87,7 +88,7 @@ const useTempRecording = (
         setRecorded(true); // ✅ 상태 업데이트 (비동기적)
       } else {
         console.error(
-          'Recording data was not saved. Aborting assessment submission.',
+          "Recording data was not saved. Aborting assessment submission.",
         );
       }
     }, 300);
@@ -96,14 +97,14 @@ const useTempRecording = (
   // 🔥 `recorded` 값이 true로 변경되면 `submitAssessment()` 실행
   useEffect(() => {
     if (recorded) {
-      console.log('Recorded is now true. Submitting assessment...');
+      console.log("Recorded is now true. Submitting assessment...");
       submitAssessment();
     }
   }, [recorded]); // recorded 값이 변경될 때 실행
 
   async function submitAssessment() {
     if (!recorded || recordingLengthRef.current === 0) {
-      alert('No audio recorded yet!');
+      alert("No audio recorded yet!");
       return;
     }
 
@@ -115,24 +116,35 @@ const useTempRecording = (
 
     const formData = new FormData();
 
+    // part1인 경우에만 referenceText를 같이 전송
     if (part === 1) {
-      formData.append('referenceText', referenceText || '');
+      formData.append("referenceText", referenceText || "");
     }
-    formData.append('file', wavBlob, 'recorded.wav');
+    formData.append("file", wavBlob, "recorded.wav");
 
     const url = `http://localhost:8080/api/v1/part${part}`;
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
       const data = await response.json();
+      const reply = data.azureEvaluation.UserResponse;
+      // // azureEvaluation이 문자열이면 파싱
+      // if (typeof data.azureEvaluation === "string") {
+      //   try {
+      //     data.azureEvaluation = JSON.parse(data.azureEvaluation);
+      //   } catch (e) {
+      //     console.error("Failed to parse azureEvaluation JSON", e);
+      //   }
+      // }
       setResponse(data);
-      console.log('Server response:', data);
+      setReplyText(reply);
+      console.log("Server response:", data);
     } catch (error) {
-      console.error('Error posting data:', error);
+      console.error("Error posting data:", error);
     }
   }
 
@@ -151,10 +163,10 @@ const useTempRecording = (
     const buffer = new ArrayBuffer(44 + samples.length * 2);
     const view = new DataView(buffer);
 
-    writeString(view, 0, 'RIFF');
+    writeString(view, 0, "RIFF");
     view.setUint32(4, 36 + samples.length * 2, true);
-    writeString(view, 8, 'WAVE');
-    writeString(view, 12, 'fmt ');
+    writeString(view, 8, "WAVE");
+    writeString(view, 12, "fmt ");
     view.setUint32(16, 16, true);
     view.setUint16(20, 1, true);
     view.setUint16(22, 1, true);
@@ -162,7 +174,7 @@ const useTempRecording = (
     view.setUint32(28, (sampleRate * 1 * 16) / 8, true);
     view.setUint16(32, (1 * 16) / 8, true);
     view.setUint16(34, 16, true);
-    writeString(view, 36, 'data');
+    writeString(view, 36, "data");
     view.setUint32(40, samples.length * 2, true);
 
     let offset = 44;
@@ -173,7 +185,7 @@ const useTempRecording = (
       offset += 2;
     }
 
-    return new Blob([view], { type: 'audio/wav' });
+    return new Blob([view], { type: "audio/wav" });
   }
 
   function writeString(view: DataView, offset: number, string: string) {
