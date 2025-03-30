@@ -82,6 +82,7 @@ const Part1Page: React.FC = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
 
   //scoring 용
+  const [isSubmmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
 
   function increaseNum() {
@@ -107,10 +108,21 @@ const Part1Page: React.FC = () => {
           setRemainingTime(TIME_SETTINGS.responding);
           break;
         case "responding":
+          // responding 시간 종료 시
+          setIsSubmitting(true);
+
+          // partselect에서 고른 파트일 경우 2초가 지난 다음에 IsSubmitting을 false로 바꾸고 "scoring" 단계로 간다.
+          // StopTalkingModal은 responding단계 동안만 유지되는 것이고, 이 switch-case문은 responding에서 scoring단계로 이동하기 위한 것이기 때문
           if (fromPartSelect) {
-            setStage("scoring");
+            setTimeout(() => {
+              setIsSubmitting(false);
+              setStage("scoring");
+            }, 2000);
+
             break;
           }
+
+          // 실전 모의고사
           if (currentNum < 2) {
             increaseNum();
             setStage("preparing");
@@ -351,11 +363,11 @@ const Part1Page: React.FC = () => {
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting === true && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
         <>
-          <StopTalkingModal />
           <ScoreBody
             totalScore={totalScore}
             accuracy={accuracy}

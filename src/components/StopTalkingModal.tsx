@@ -1,6 +1,15 @@
 // StopTalkingModal.tsx
 import styled from "styled-components";
 
+const ShadowBox = styled.div`
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(100, 100, 100, 0.4);
+
+  z-index: 1;
+`;
+
 const Wrapper = styled.div`
   position: fixed;
   left: 50%;
@@ -52,21 +61,25 @@ const MessageWrapper = styled.div`
 
 const StopTalkingModal = () => {
   return (
-    <Wrapper>
-      <span>Stop Talking</span>
-      <MessageWrapper>
-        <p>
-          Your response time has ended. Stop speaking now.
-          <br />
-          <br />
-          You automatically proceed to the next question
-          <br />
-          after your response has been saved. <br />
-          <br />
-          This may take serveral seconds.
-        </p>
-      </MessageWrapper>
-    </Wrapper>
+    <>
+      <ShadowBox>
+        <Wrapper>
+          <span>Stop Talking</span>
+          <MessageWrapper>
+            <p>
+              Your response time has ended. Stop speaking now.
+              <br />
+              <br />
+              You automatically proceed to the next question
+              <br />
+              after your response has been saved. <br />
+              <br />
+              This may take serveral seconds.
+            </p>
+          </MessageWrapper>
+        </Wrapper>
+      </ShadowBox>
+    </>
   );
 };
 
