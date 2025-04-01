@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import MutipleReplyBody from "../components/MutipleReplyBox";
@@ -14,15 +14,15 @@ import loadingGif from "../assets/img/loading.gif";
 // false : 배포 모드 (실제 시험 진행 방식)
 
 const IS_DEV_MODE = true;
-// const IS_DEV_MODE = false;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 16, // direction 단계
   situation: IS_DEV_MODE ? 5 : 45, //situation 단계
-  preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
+  preparing: IS_DEV_MODE ? 3 : 3, // 문제 준비 시간
   responding: (
     questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
-  ) => (IS_DEV_MODE ? 1 : questionNum === 7 ? 30 : 15),
+  ) => (IS_DEV_MODE ? 3 : questionNum === 7 ? 30 : 15),
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -76,15 +76,39 @@ const Part3Page: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
+  //recoding용
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
   //문제 불러오기 용
-    const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
-    const [situationText, setSituationText] = useState(initialQuestions?.data[0]?.situation || null);
-    const [questionTextArray, setQuestionTextArray] = useState([
-      initialQuestions?.data[0]?.question1 || "",
-      initialQuestions?.data[0]?.question2 || "",
-      initialQuestions?.data[0]?.question3 || "",
-    ]);
-  
+  const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+  const [situationText, setSituationText] = useState(
+    initialQuestions?.data[0]?.situation || null,
+  );
+  const [questionTextArray, setQuestionTextArray] = useState([
+    initialQuestions?.data[0]?.question1 || "",
+    initialQuestions?.data[0]?.question2 || "",
+    initialQuestions?.data[0]?.question3 || "",
+  ]);
+
+  //scoring 용
+  const [multipleReplies, setMultipleReplies] = useState<
+  Array<{
+    contentText: string;
+    wrongWordScore: Record<string, { score: number; errorType: string }>;
+    accuracy: number;
+    fluency: number;
+    prosody: number;
+    pronunciationScore: number;
+    voca: number;
+    grammar: number;
+    topic: number;
+    contentScore: number;
+    feedback: string;
+  }>
+>([]);
+
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
@@ -123,7 +147,7 @@ const Part3Page: React.FC = () => {
           if (currentNum < 7) {
             increaseNum();
             setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing); // 다음 문제 준비시간 설정
+            setRemainingTime(TIME_SETTINGS.preparing);
           } else {
             setStage("scoring");
 
@@ -186,17 +210,122 @@ const Part3Page: React.FC = () => {
     try {
       // 새로운 문제 요청
       const response = await axios.get(`/api/focused-learning/part3`);
-      const questionSet = response.data.data[0]; 
+      const questionSet = response.data.data[0];
       setSituationText(questionSet.situation);
-      setQuestionTextArray([questionSet.question1, questionSet.question2, questionSet.question3]);
+      setQuestionTextArray([
+        questionSet.question1,
+        questionSet.question2,
+        questionSet.question3,
+      ]);
       setStage("situation");
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
       setCurrentNum(5);
+      setMultipleReplies([]);
     } catch (error) {
       console.error("Error fetching next set of questions:", error);
     }
   };
+
+  // 녹음 시작
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        uploadAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
+    } catch (error) {
+      console.error("마이크 접근 오류:", error);
+    }
+  }, []);
+
+  // 녹음 중지
+  const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  // 오디오 업로드
+  const uploadAudio = async (blob: Blob) => {
+    const formData = new FormData();
+    formData.append("audio", blob, "recording.wav");
+    try {
+      const response = await axios.post("/api/upload-audio", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("응답 데이터:", response.data);
+      const processedResponse = {
+        contentText: response.data.azureEvaluation.UserResponse,
+        wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
+          (acc: Record<string, { score: number; errorType: string }>,
+            item: any,) => {
+              if (
+                item.ErrorType === "Mispronunciation" ||
+                item.ErrorType === "Omission" ||
+                item.ErrorType === "None"
+              ){
+            acc[item.word.toLowerCase()] = {
+              score: item.AccuracyScore,
+              errorType: item.ErrorType,
+            };}
+            return acc;
+          },
+          {}as Record<string, { score: number; errorType: string }>,
+        ),
+        accuracy: Math.round(response.data.azureEvaluation.PronunciationAssessment.AccuracyScore),
+        fluency: Math.round(response.data.azureEvaluation.PronunciationAssessment.FluencyScore),
+        prosody: Math.round(response.data.azureEvaluation.PronunciationAssessment.ProsodyScore),
+        pronunciationScore: Math.round(
+          [response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+           response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+           response.data.azureEvaluation.PronunciationAssessment.ProsodyScore]
+            .reduce((sum, score, _, arr) => sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2), 0)
+        ),
+        voca: Math.round(response.data.gptEvaluation.vocabulary),
+        grammar: Math.round(response.data.gptEvaluation.grammar),
+        topic: Math.round(response.data.gptEvaluation.topic),
+        contentScore: Math.round((response.data.gptEvaluation.vocabulary +
+                                  response.data.gptEvaluation.grammar +
+                                  response.data.gptEvaluation.topic) / 3),
+        feedback: response.data.gptEvaluation.suggestions,
+      };
+
+      setMultipleReplies((prev) => {
+        return [...prev, processedResponse];
+      });
+      
+
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+    }
+  };
+
+  // stage가 responding일 때 녹음 시작 & 종료
+  useEffect(() => {
+    if (stage === "responding") {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  }, [stage, startRecording, stopRecording]);
 
   if (stage === "loading")
     return (
@@ -204,7 +333,7 @@ const Part3Page: React.FC = () => {
         <img src={loadingGif} />
       </div>
     );
-
+    
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
@@ -258,21 +387,23 @@ const Part3Page: React.FC = () => {
         <>
           {questionTextArray.map((q, index) => (
             <React.Fragment key={index}>
-              <MutipleReplyBody
-                questionNum={5 + index}
-                questionText={q}
-                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number."
-                isScoring={stage === "scoring"}
-              />
+                <MutipleReplyBody
+                  questionNum={5 + index}
+                  questionText={q}
+                  contentText={multipleReplies[index]?.contentText || ""}
+                  isScoring={stage === "scoring"}
+                  wrongWordScore={multipleReplies[index]?.wrongWordScore || {}}
+                  feedback={multipleReplies[index]?.feedback || ""}
+                />
               <ScoreBodyGeneral
-                pronunciationScore={86}
-                accuracy={80}
-                fluency={85}
-                prosody={70}
-                contentScore={90}
-                voca={81}
-                grammar={80}
-                topic={79}
+                pronunciationScore={multipleReplies[index]?.pronunciationScore || 0}
+                accuracy={multipleReplies[index]?.accuracy || 0}
+                fluency={multipleReplies[index]?.fluency || 0}
+                prosody={multipleReplies[index]?.prosody || 0}
+                contentScore={multipleReplies[index]?.contentScore || 0}
+                voca={multipleReplies[index]?.voca || 0}
+                grammar={multipleReplies[index]?.grammar || 0}
+                topic={multipleReplies[index]?.topic || 0}
               />
             </React.Fragment>
           ))}
