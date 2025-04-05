@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
@@ -69,11 +69,25 @@ const Part2Page: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
+  //recoding용
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
   const [extraQuestions, setExtraQuestions] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
+
+  //scoring 용
+  const [response, setResponse] = useState<any>(null); // API 응답 저장
+  const [replyContent, setReplyContent] = useState<string>("");
+  //useRef로 동기적 관리
+  const questionPart2IdRef = useRef<number>(
+    initialQuestions?.data[0].questionPart2Id,
+  );
+  const currentNumRef = useRef(3);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -176,7 +190,8 @@ const Part2Page: React.FC = () => {
       setStage("preparing");
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
-      setCurrentNum((prev) => prev + 1);
+      setCurrentNum(4);
+      currentNumRef.current = 4;
     } else if (extraQuestions) {
       // 기존 문제 세트가 끝나면 extraQuestions 사용
       setQuestions(extraQuestions);
@@ -185,7 +200,8 @@ const Part2Page: React.FC = () => {
       setStage("preparing");
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
-      setCurrentNum((prev) => prev + 1);
+      setCurrentNum(3);
+      currentNumRef.current = 3;
     } else {
       try {
         // 새로운 문제 요청
@@ -196,12 +212,137 @@ const Part2Page: React.FC = () => {
         setStage("preparing");
         setRemainingTime(TIME_SETTINGS.preparing);
         setQuestionCount((prev) => prev + 1);
-        setCurrentNum((prev) => prev + 1);
+        setCurrentNum(3);
+        currentNumRef.current = 3;
+        questionPart2IdRef.current = response.data.data[0].questionPart2Id;
       } catch (error) {
         console.error("Error fetching next set of questions:", error);
       }
     }
   };
+
+  // 녹음 시작
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        uploadAudio(
+          audioBlob,
+          questionPart2IdRef.current,
+          currentNumRef.current,
+        );
+      };
+
+      mediaRecorder.start();
+    } catch (error) {
+      console.error("마이크 접근 오류:", error);
+    }
+  }, []);
+
+  // 녹음 중지
+  const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  const uploadAudio = async (
+    blob: Blob,
+    questionId: number,
+    questionNo: number,
+  ) => {
+    const formData = new FormData();
+    formData.append("questionId", String(questionId));
+    formData.append("questionNo", String(questionNo));
+    formData.append("audio", blob, "recording.wav");
+    try {
+      const response = await axios.post("/api/upload-audio", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("응답 데이터:", response.data);
+      setResponse(response.data);
+      setReplyContent(response.data.azureEvaluation.UserResponse);
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+    }
+  };
+
+  // stage가 responding일 때 녹음 시작 & 종료
+  useEffect(() => {
+    if (stage === "responding") {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  }, [stage, startRecording, stopRecording]);
+
+  const wrongWordScore =
+    response?.azureEvaluation?.IssueWords?.reduce(
+      (
+        acc: Record<string, { score: number; errorType: string }>,
+        item: any,
+      ) => {
+        if (
+          item.ErrorType === "Mispronunciation" ||
+          item.ErrorType === "Omission" ||
+          item.ErrorType === "None"
+        ) {
+          acc[item.word.toLowerCase()] = {
+            score: item.AccuracyScore,
+            errorType: item.ErrorType,
+          };
+        }
+        return acc;
+      },
+      {} as Record<string, { score: number; errorType: string }>,
+    ) || {};
+
+  // 점수
+  const accuracy = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["AccuracyScore"],
+  );
+  const fluency = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["FluencyScore"],
+  );
+  const prosody = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["ProsodyScore"],
+  );
+  const pronunciationScore = Math.round(
+    [
+      response?.azureEvaluation.PronunciationAssessment.AccuracyScore,
+      response?.azureEvaluation.PronunciationAssessment.FluencyScore,
+      response?.azureEvaluation.PronunciationAssessment.ProsodyScore,
+    ].reduce(
+      (sum, score, _, arr) =>
+        sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
+      0,
+    ),
+  );
+
+  const voca = Math.round(response?.gptEvaluation.vocabulary);
+  const grammar = Math.round(response?.gptEvaluation.grammar);
+  const topic = Math.round(response?.gptEvaluation.topic);
+  const contentScore = Math.round(
+    (response?.gptEvaluation.vocabulary +
+      response?.gptEvaluation.grammar +
+      response?.gptEvaluation.topic) /
+      3,
+  );
 
   return (
     <S.mainContainer onClick={handleUserInteraction}>
@@ -254,22 +395,21 @@ const Part2Page: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              {/*  
               <ReplyBody
                 text={replyContent}
                 wrongWordScore={wrongWordScore}
                 isScoring={stage === "scoring"}
                 gptText={response?.gptEvaluation.suggestions}
-              />*/}
+              />
               <ScoreBodyGeneral
-                pronunciationScore={86}
-                accuracy={80}
-                fluency={85}
-                prosody={70}
-                contentScore={50}
-                voca={81}
-                grammar={40}
-                topic={79}
+                pronunciationScore={pronunciationScore}
+                accuracy={accuracy}
+                fluency={fluency}
+                prosody={prosody}
+                contentScore={contentScore}
+                voca={voca}
+                grammar={grammar}
+                topic={topic}
               />
               {fromPartSelect && (
                 <button

@@ -4,8 +4,13 @@ export const handlers = [
   http.post("/api/upload-audio", async ({ request }) => {
     const formData = await request.formData();
     const audioFile = formData.get("audio");
+    const questionId = formData.get("questionId");
+    const questionNo = formData.get("questionNo");
     const url = new URL(request.url);
     const part = url.searchParams.get("part");
+
+    console.log("questionId:", questionId);
+    console.log("questionNo:", questionNo);
 
     if (!(audioFile instanceof File)) {
       return HttpResponse.json(
@@ -54,12 +59,7 @@ export const handlers = [
             word: "sunny",
             AccuracyScore: 63,
             ErrorType: "Omission",
-            LowScorePhonemes: [
-              { phoneme: "s", AccuracyScore: 70 },
-              { phoneme: "ʌ", AccuracyScore: 40 },
-              { phoneme: "n", AccuracyScore: 62 },
-              { phoneme: "i", AccuracyScore: 70 },
-            ],
+            LowScorePhonemes: [],
           },
         ],
       });
@@ -104,12 +104,7 @@ export const handlers = [
             word: "sunny",
             AccuracyScore: 63,
             ErrorType: "Omission",
-            LowScorePhonemes: [
-              { phoneme: "s", AccuracyScore: 70 },
-              { phoneme: "ʌ", AccuracyScore: 40 },
-              { phoneme: "n", AccuracyScore: 62 },
-              { phoneme: "i", AccuracyScore: 70 },
-            ],
+            LowScorePhonemes: [],
           },
         ],
       }, // 문자열로 변환
@@ -144,8 +139,9 @@ export const handlers = [
       message: "ok",
       data: [
         {
+          questionPart2Id: 1,
           imageUrl1:
-            "https://stepic077447526717.blob.core.windows.net/question/1-3.png?sp=r&st=2025-04-05T13:35:24Z&se=2025-06-29T21:35:24Z&spr=https&sv=2024-11-04&sr=b&sig=WLpUDJbIPQZC6XNI53z%2BI0XxWNY8jGWjDQWbCM0xwrY%3D",
+            "https://stepic077447526717.blob.core.windows.net/question/1-3.png",
           imageUrl2:
             "https://stepic077447526717.blob.core.windows.net/question/1-4.png?sp=r&st=2025-04-05T13:36:27Z&se=2025-06-29T21:36:27Z&spr=https&sv=2024-11-04&sr=b&sig=EO3g9LqR5D5gt7PGNzW4wl%2FSceqazNZPFQlGAhvBQvQ%3D",
         },
