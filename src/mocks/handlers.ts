@@ -138,13 +138,29 @@ export const handlers = [
     });
   }),
 
+  http.get("/api/focused-learning/part2", async () => {
+    return HttpResponse.json({
+      status: 200,
+      message: "ok",
+      data: [
+        {
+          imageUrl1:
+            "https://stepic077447526717.blob.core.windows.net/question/1-3.png?sp=r&st=2025-04-05T13:35:24Z&se=2025-06-29T21:35:24Z&spr=https&sv=2024-11-04&sr=b&sig=WLpUDJbIPQZC6XNI53z%2BI0XxWNY8jGWjDQWbCM0xwrY%3D",
+          imageUrl2:
+            "https://stepic077447526717.blob.core.windows.net/question/1-4.png?sp=r&st=2025-04-05T13:36:27Z&se=2025-06-29T21:36:27Z&spr=https&sv=2024-11-04&sr=b&sig=EO3g9LqR5D5gt7PGNzW4wl%2FSceqazNZPFQlGAhvBQvQ%3D",
+        },
+      ],
+    });
+  }),
+
   http.get("/api/focused-learning/part3", async () => {
     return HttpResponse.json({
       status: 200,
       message: "ok",
       data: [
         {
-          situation: "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
+          situation:
+            "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
           question1:
             "What is your favorite restaurant in the area, and when did you last go there?",
           question2:

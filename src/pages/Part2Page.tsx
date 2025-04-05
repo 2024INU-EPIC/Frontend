@@ -6,9 +6,10 @@ import ImageBody from "../components/ImageBody";
 import ReplyBody from "../components/ReplyBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
+import axios from "axios";
 
-//const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 14, // direction 단계
@@ -55,29 +56,28 @@ const Part2Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part2";
 
   const [currentNum, setCurrentNum] = useState(3);
   const [remainingTime, setRemainingTime] = useState(14); // 음성 시간 12초
   const [stage, setStage] = useState<
     "direction" | "preparing" | "responding" | "scoring"
   >("direction");
+
   const [questionCount, setQuestionCount] = useState(1);
 
+  //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
+
+  //문제 불러오기 용
+  const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+  const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
+  const [extraQuestions, setExtraQuestions] = useState(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
-
-  const imageList = [
-    "/src/assets/img/part2_1.png",
-    "/src/assets/img/part2_2.png",
-    "/src/assets/img/part2_3.png",
-    "/src/assets/img/part2_4.png",
-  ];
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -158,21 +158,51 @@ const Part2Page: React.FC = () => {
     };
   }, [stage]);
 
+  // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
   const handleUserInteraction = () => {
     if (!hasPlayedRef.current) {
       console.log("Audio is not allowed to play after direction stage.");
     }
   };
 
-  const nextQuestion = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % imageList.length);
-    setStage("preparing");
-    setRemainingTime(TIME_SETTINGS.preparing);
-    setQuestionCount(questionCount + 1);
+  const getCurrentQuestion = () => {
+    return questionIndex === 0 ? questions?.imageUrl1 : questions?.imageUrl2;
   };
 
-  const textContent =
-    "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+  const nextQuestion = async () => {
+    if (questionIndex === 0) {
+      // 기존 문제 세트에서 다음 문제로 이동
+      setQuestionIndex(1);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum((prev) => prev + 1);
+    } else if (extraQuestions) {
+      // 기존 문제 세트가 끝나면 extraQuestions 사용
+      setQuestions(extraQuestions);
+      setExtraQuestions(null);
+      setQuestionIndex(0);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum((prev) => prev + 1);
+    } else {
+      try {
+        // 새로운 문제 요청
+        const response = await axios.get(`/api/focused-learning/part2`);
+        setExtraQuestions(response.data.data[0]);
+        setQuestions(response.data.data[0]);
+        setQuestionIndex(0);
+        setStage("preparing");
+        setRemainingTime(TIME_SETTINGS.preparing);
+        setQuestionCount((prev) => prev + 1);
+        setCurrentNum((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error fetching next set of questions:", error);
+      }
+    }
+  };
+
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
@@ -186,7 +216,7 @@ const Part2Page: React.FC = () => {
       )}
       {stage !== "direction" && (
         <ImageBody
-          imageSrc={imageList[currentImageIndex]}
+          imageSrc={getCurrentQuestion()}
           questionNum={currentNum}
           totalQuestions={11}
           fromPartSelect={fromPartSelect}
@@ -224,7 +254,13 @@ const Part2Page: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              <ReplyBody text={textContent} isScoring={stage === "scoring"} />
+              {/*  
+              <ReplyBody
+                text={replyContent}
+                wrongWordScore={wrongWordScore}
+                isScoring={stage === "scoring"}
+                gptText={response?.gptEvaluation.suggestions}
+              />*/}
               <ScoreBodyGeneral
                 pronunciationScore={86}
                 accuracy={80}
