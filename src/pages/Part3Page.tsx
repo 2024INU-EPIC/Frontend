@@ -94,20 +94,20 @@ const Part3Page: React.FC = () => {
 
   //scoring 용
   const [multipleReplies, setMultipleReplies] = useState<
-  Array<{
-    contentText: string;
-    wrongWordScore: Record<string, { score: number; errorType: string }>;
-    accuracy: number;
-    fluency: number;
-    prosody: number;
-    pronunciationScore: number;
-    voca: number;
-    grammar: number;
-    topic: number;
-    contentScore: number;
-    feedback: string;
-  }>
->([]);
+    Array<{
+      contentText: string;
+      wrongWordScore: Record<string, { score: number; errorType: string }>;
+      accuracy: number;
+      fluency: number;
+      prosody: number;
+      pronunciationScore: number;
+      voca: number;
+      grammar: number;
+      topic: number;
+      contentScore: number;
+      feedback: string;
+    }>
+  >([]);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -275,44 +275,59 @@ const Part3Page: React.FC = () => {
       const processedResponse = {
         contentText: response.data.azureEvaluation.UserResponse,
         wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
-          (acc: Record<string, { score: number; errorType: string }>,
-            item: any,) => {
-              if (
-                item.ErrorType === "Mispronunciation" ||
-                item.ErrorType === "Omission" ||
-                item.ErrorType === "None"
-              ){
-            acc[item.word.toLowerCase()] = {
-              score: item.AccuracyScore,
-              errorType: item.ErrorType,
-            };}
+          (
+            acc: Record<string, { score: number; errorType: string }>,
+            item: any,
+          ) => {
+            if (
+              item.ErrorType === "Mispronunciation" ||
+              item.ErrorType === "Omission" ||
+              item.ErrorType === "None"
+            ) {
+              acc[item.word.toLowerCase()] = {
+                score: item.AccuracyScore,
+                errorType: item.ErrorType,
+              };
+            }
             return acc;
           },
-          {}as Record<string, { score: number; errorType: string }>,
+          {} as Record<string, { score: number; errorType: string }>,
         ),
-        accuracy: Math.round(response.data.azureEvaluation.PronunciationAssessment.AccuracyScore),
-        fluency: Math.round(response.data.azureEvaluation.PronunciationAssessment.FluencyScore),
-        prosody: Math.round(response.data.azureEvaluation.PronunciationAssessment.ProsodyScore),
+        accuracy: Math.round(
+          response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+        ),
+        fluency: Math.round(
+          response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+        ),
+        prosody: Math.round(
+          response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+        ),
         pronunciationScore: Math.round(
-          [response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
-           response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
-           response.data.azureEvaluation.PronunciationAssessment.ProsodyScore]
-            .reduce((sum, score, _, arr) => sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2), 0)
+          [
+            response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+            response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+            response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+          ].reduce(
+            (sum, score, _, arr) =>
+              sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
+            0,
+          ),
         ),
         voca: Math.round(response.data.gptEvaluation.vocabulary),
         grammar: Math.round(response.data.gptEvaluation.grammar),
         topic: Math.round(response.data.gptEvaluation.topic),
-        contentScore: Math.round((response.data.gptEvaluation.vocabulary +
-                                  response.data.gptEvaluation.grammar +
-                                  response.data.gptEvaluation.topic) / 3),
+        contentScore: Math.round(
+          (response.data.gptEvaluation.vocabulary +
+            response.data.gptEvaluation.grammar +
+            response.data.gptEvaluation.topic) /
+            3,
+        ),
         feedback: response.data.gptEvaluation.suggestions,
       };
 
       setMultipleReplies((prev) => {
         return [...prev, processedResponse];
       });
-      
-
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
     }
@@ -333,7 +348,7 @@ const Part3Page: React.FC = () => {
         <img src={loadingGif} />
       </div>
     );
-    
+
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
@@ -387,16 +402,18 @@ const Part3Page: React.FC = () => {
         <>
           {questionTextArray.map((q, index) => (
             <React.Fragment key={index}>
-                <MutipleReplyBody
-                  questionNum={5 + index}
-                  questionText={q}
-                  contentText={multipleReplies[index]?.contentText || ""}
-                  isScoring={stage === "scoring"}
-                  wrongWordScore={multipleReplies[index]?.wrongWordScore || {}}
-                  feedback={multipleReplies[index]?.feedback || ""}
-                />
+              <MutipleReplyBody
+                questionNum={5 + index}
+                questionText={q}
+                contentText={multipleReplies[index]?.contentText || ""}
+                isScoring={stage === "scoring"}
+                wrongWordScore={multipleReplies[index]?.wrongWordScore || {}}
+                feedback={multipleReplies[index]?.feedback || ""}
+              />
               <ScoreBodyGeneral
-                pronunciationScore={multipleReplies[index]?.pronunciationScore || 0}
+                pronunciationScore={
+                  multipleReplies[index]?.pronunciationScore || 0
+                }
                 accuracy={multipleReplies[index]?.accuracy || 0}
                 fluency={multipleReplies[index]?.fluency || 0}
                 prosody={multipleReplies[index]?.prosody || 0}
