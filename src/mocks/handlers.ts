@@ -4,8 +4,13 @@ export const handlers = [
   http.post("/api/upload-audio", async ({ request }) => {
     const formData = await request.formData();
     const audioFile = formData.get("audio");
+    const questionId = formData.get("questionId");
+    const questionNo = formData.get("questionNo");
     const url = new URL(request.url);
     const part = url.searchParams.get("part");
+
+    console.log("questionId:", questionId);
+    console.log("questionNo:", questionNo);
 
     if (!(audioFile instanceof File)) {
       return HttpResponse.json(
@@ -54,12 +59,7 @@ export const handlers = [
             word: "sunny",
             AccuracyScore: 63,
             ErrorType: "Omission",
-            LowScorePhonemes: [
-              { phoneme: "s", AccuracyScore: 70 },
-              { phoneme: "ʌ", AccuracyScore: 40 },
-              { phoneme: "n", AccuracyScore: 62 },
-              { phoneme: "i", AccuracyScore: 70 },
-            ],
+            LowScorePhonemes: [],
           },
         ],
       });
@@ -104,12 +104,7 @@ export const handlers = [
             word: "sunny",
             AccuracyScore: 63,
             ErrorType: "Omission",
-            LowScorePhonemes: [
-              { phoneme: "s", AccuracyScore: 70 },
-              { phoneme: "ʌ", AccuracyScore: 40 },
-              { phoneme: "n", AccuracyScore: 62 },
-              { phoneme: "i", AccuracyScore: 70 },
-            ],
+            LowScorePhonemes: [],
           },
         ],
       }, // 문자열로 변환
@@ -133,6 +128,41 @@ export const handlers = [
             "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
           question2:
             "Thank you for calling Scientific Pages, home of the finest in technical and medical books. The bookstore is currently closed. For hours, directions, or information on current promotions, please press one. For all other inquiries, please leave us a message. One of our book specialists will return your call as soon as possible.",
+        },
+      ],
+    });
+  }),
+
+  http.get("/api/focused-learning/part2", async () => {
+    return HttpResponse.json({
+      status: 200,
+      message: "ok",
+      data: [
+        {
+          questionPart2Id: 1,
+          imageUrl1:
+            "https://stepic077447526717.blob.core.windows.net/question/1-3.png",
+          imageUrl2:
+            "https://stepic077447526717.blob.core.windows.net/question/1-4.png?sp=r&st=2025-04-05T13:36:27Z&se=2025-06-29T21:36:27Z&spr=https&sv=2024-11-04&sr=b&sig=EO3g9LqR5D5gt7PGNzW4wl%2FSceqazNZPFQlGAhvBQvQ%3D",
+        },
+      ],
+    });
+  }),
+
+  http.get("/api/focused-learning/part3", async () => {
+    return HttpResponse.json({
+      status: 200,
+      message: "ok",
+      data: [
+        {
+          situation:
+            "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
+          question1:
+            "What is your favorite restaurant in the area, and when did you last go there?",
+          question2:
+            "Would you say this area is a good place for shopping? Why or why not?",
+          question3:
+            "I have some friends from out of town visiting me this weekend, and they would like to see popular attractions in the area. What is the best place to take my friends, and why?",
         },
       ],
     });

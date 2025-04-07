@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
@@ -6,9 +6,10 @@ import ImageBody from "../components/ImageBody";
 import ReplyBody from "../components/ReplyBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
+import axios from "axios";
 
-//const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 14, // direction 단계
@@ -55,29 +56,42 @@ const Part2Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part2";
 
   const [currentNum, setCurrentNum] = useState(3);
   const [remainingTime, setRemainingTime] = useState(14); // 음성 시간 12초
   const [stage, setStage] = useState<
     "direction" | "preparing" | "responding" | "scoring"
   >("direction");
+
   const [questionCount, setQuestionCount] = useState(1);
 
+  //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
+
+  //recoding용
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  //문제 불러오기 용
+  const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+  const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
+  const [extraQuestions, setExtraQuestions] = useState(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
+
+  //scoring 용
+  const [response, setResponse] = useState<any>(null); // API 응답 저장
+  const [replyContent, setReplyContent] = useState<string>("");
+  //useRef로 동기적 관리
+  const questionPart2IdRef = useRef<number>(
+    initialQuestions?.data[0].questionPart2Id,
+  );
+  const currentNumRef = useRef(3);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
-
-  const imageList = [
-    "/src/assets/img/part2_1.png",
-    "/src/assets/img/part2_2.png",
-    "/src/assets/img/part2_3.png",
-    "/src/assets/img/part2_4.png",
-  ];
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (remainingTime > 0) {
@@ -158,21 +172,178 @@ const Part2Page: React.FC = () => {
     };
   }, [stage]);
 
+  // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
   const handleUserInteraction = () => {
     if (!hasPlayedRef.current) {
       console.log("Audio is not allowed to play after direction stage.");
     }
   };
 
-  const nextQuestion = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % imageList.length);
-    setStage("preparing");
-    setRemainingTime(TIME_SETTINGS.preparing);
-    setQuestionCount(questionCount + 1);
+  const getCurrentQuestion = () => {
+    return questionIndex === 0 ? questions?.imageUrl1 : questions?.imageUrl2;
   };
 
-  const textContent =
-    "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+  const nextQuestion = async () => {
+    if (questionIndex === 0) {
+      // 기존 문제 세트에서 다음 문제로 이동
+      setQuestionIndex(1);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum(4);
+      currentNumRef.current = 4;
+    } else if (extraQuestions) {
+      // 기존 문제 세트가 끝나면 extraQuestions 사용
+      setQuestions(extraQuestions);
+      setExtraQuestions(null);
+      setQuestionIndex(0);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum(3);
+      currentNumRef.current = 3;
+    } else {
+      try {
+        // 새로운 문제 요청
+        const response = await axios.get(`/api/focused-learning/part2`);
+        setExtraQuestions(response.data.data[0]);
+        setQuestions(response.data.data[0]);
+        setQuestionIndex(0);
+        setStage("preparing");
+        setRemainingTime(TIME_SETTINGS.preparing);
+        setQuestionCount((prev) => prev + 1);
+        setCurrentNum(3);
+        currentNumRef.current = 3;
+        questionPart2IdRef.current = response.data.data[0].questionPart2Id;
+      } catch (error) {
+        console.error("Error fetching next set of questions:", error);
+      }
+    }
+  };
+
+  // 녹음 시작
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        uploadAudio(
+          audioBlob,
+          questionPart2IdRef.current,
+          currentNumRef.current,
+        );
+      };
+
+      mediaRecorder.start();
+    } catch (error) {
+      console.error("마이크 접근 오류:", error);
+    }
+  }, []);
+
+  // 녹음 중지
+  const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  const uploadAudio = async (
+    blob: Blob,
+    questionId: number,
+    questionNo: number,
+  ) => {
+    const formData = new FormData();
+    formData.append("questionId", String(questionId));
+    formData.append("questionNo", String(questionNo));
+    formData.append("audio", blob, "recording.wav");
+    try {
+      const response = await axios.post("/api/upload-audio", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("응답 데이터:", response.data);
+      setResponse(response.data);
+      setReplyContent(response.data.azureEvaluation.UserResponse);
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+    }
+  };
+
+  // stage가 responding일 때 녹음 시작 & 종료
+  useEffect(() => {
+    if (stage === "responding") {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  }, [stage, startRecording, stopRecording]);
+
+  const wrongWordScore =
+    response?.azureEvaluation?.IssueWords?.reduce(
+      (
+        acc: Record<string, { score: number; errorType: string }>,
+        item: any,
+      ) => {
+        if (
+          item.ErrorType === "Mispronunciation" ||
+          item.ErrorType === "Omission" ||
+          item.ErrorType === "None"
+        ) {
+          acc[item.word.toLowerCase()] = {
+            score: item.AccuracyScore,
+            errorType: item.ErrorType,
+          };
+        }
+        return acc;
+      },
+      {} as Record<string, { score: number; errorType: string }>,
+    ) || {};
+
+  // 점수
+  const accuracy = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["AccuracyScore"],
+  );
+  const fluency = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["FluencyScore"],
+  );
+  const prosody = Math.round(
+    response?.azureEvaluation.PronunciationAssessment["ProsodyScore"],
+  );
+  const pronunciationScore = Math.round(
+    [
+      response?.azureEvaluation.PronunciationAssessment.AccuracyScore,
+      response?.azureEvaluation.PronunciationAssessment.FluencyScore,
+      response?.azureEvaluation.PronunciationAssessment.ProsodyScore,
+    ].reduce(
+      (sum, score, _, arr) =>
+        sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
+      0,
+    ),
+  );
+
+  const voca = Math.round(response?.gptEvaluation.vocabulary);
+  const grammar = Math.round(response?.gptEvaluation.grammar);
+  const topic = Math.round(response?.gptEvaluation.topic);
+  const contentScore = Math.round(
+    (response?.gptEvaluation.vocabulary +
+      response?.gptEvaluation.grammar +
+      response?.gptEvaluation.topic) /
+      3,
+  );
+
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
@@ -186,7 +357,7 @@ const Part2Page: React.FC = () => {
       )}
       {stage !== "direction" && (
         <ImageBody
-          imageSrc={imageList[currentImageIndex]}
+          imageSrc={getCurrentQuestion()}
           questionNum={currentNum}
           totalQuestions={11}
           fromPartSelect={fromPartSelect}
@@ -224,16 +395,21 @@ const Part2Page: React.FC = () => {
                 alignItems: "center",
               }}
             >
-              <ReplyBody text={textContent} isScoring={stage === "scoring"} />
+              <ReplyBody
+                text={replyContent}
+                wrongWordScore={wrongWordScore}
+                isScoring={stage === "scoring"}
+                gptText={response?.gptEvaluation.suggestions}
+              />
               <ScoreBodyGeneral
-                pronunciationScore={86}
-                accuracy={80}
-                fluency={85}
-                prosody={70}
-                contentScore={50}
-                voca={81}
-                grammar={40}
-                topic={79}
+                pronunciationScore={pronunciationScore}
+                accuracy={accuracy}
+                fluency={fluency}
+                prosody={prosody}
+                contentScore={contentScore}
+                voca={voca}
+                grammar={grammar}
+                topic={topic}
               />
               {fromPartSelect && (
                 <button
