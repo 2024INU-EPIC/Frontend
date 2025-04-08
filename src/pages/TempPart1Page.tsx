@@ -72,8 +72,8 @@ const TempPart1Page: React.FC<Part1PageProps> = ({ part }) => {
   // 🎤 녹음 및 API 요청 관련 상태 및 함수
   const { startRecording, stopRecording } = useTempRecording(
     setResponse,
-    referenceText[currentNum - 1],
     part,
+    referenceText[currentNum - 1],
   );
 
   function increaseNum() {
