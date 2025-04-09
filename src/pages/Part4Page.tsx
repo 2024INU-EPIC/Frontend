@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
 import ScoreBody from "../components/ScoreBody";
-import MutipleReplyBody from "../components/MutipleReplyBox";
+import MutipleReplyBody from "../components/MultipleReplyBox";
 import styled from "styled-components";
 import SituationBody from "../components/SituationBody";
 import loadingGif from "../assets/img/loading.gif";

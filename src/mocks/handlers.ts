@@ -216,7 +216,7 @@ export const handlers = [
   http.get("/api/focused-learning/part3", async () => {
     return HttpResponse.json({
       questionPart3Id: 1,
-      situation:
+      situationText:
         "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
       question5:
         "What is your favorite restaurant in the area, and when did you last go there?",
@@ -290,8 +290,15 @@ export const handlers = [
         grammar: 80,
         topic: 70,
         vocabulary: 85,
-        suggestions:
-          "문법은 전반적으로 좋았으나 몇 가지 시제 오류가 있었습니다. 주제를 좀 더 구체적으로 표현해보세요.",
+        suggestions: {
+          grammar:
+            "문법은 전반적으로 좋았으나 몇 가지 시제 오류가 있었습니다. 주제를 좀 더 구체적으로 표현해보세요.",
+          topic:
+            "질문에 대한 적절한 대답이 전혀 제공되지 않았습니다. 친구가 반려동물 입양에 대해 고려하고 있는 상황임에도 불구하고, 반려동물과 관련된 경험이나 의견이 아닌 전혀 다른 주제의 답변이 제공되었습니다. 질문의 맥락을 이해하고 답변을 구성하는 것이 필요합니다.",
+          vocabulary:
+            "사용된 어휘가 너무 일반적이고 주제에 적합하지 않습니다. 'Computer', 'rested', 'law' 와 같은 단어들은 해당 질문에 불필요하며, 반려동물과 관련된 어휘가 사용되어야 할 것입니다. 풍부하면서도 주제에 맞는 어휘 사용이 필요합니다.",
+          총평: "현재 제공된 답변은 질문과 관련성이 거의 없으며, 문장 구조 또한 크게 부정확합니다. 반려동물에 대한 경험을 묻는 질문에 답변하기 위해서는 보다 명확하고 관련성 있는 응답을 구성해야 하며, 문법적으로 정확한 문장을 구성해야 합니다. 주제와 관련 있는 어휘 사용 또한 필요합니다.",
+        },
       },
     });
   }),
