@@ -182,14 +182,10 @@ const Part2Page: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("questionPart2Id", questions?.questionPart2Id)
+    console.log("questionPart2Id", questions?.questionPart2Id);
     console.log("question3:", questions?.question3);
     console.log("question4:", questions?.question4);
   }, [questions]);
-
-  useEffect(() => {
-    console.log("location.state:", location.state);
-  }, []);
 
   const nextQuestion = async () => {
     if (questionIndex === 0) {
@@ -275,12 +271,12 @@ const Part2Page: React.FC = () => {
     questionNo: number,
   ) => {
     const formData = new FormData();
-    formData.append("file", blob, "recording.wav"); 
+    formData.append("file", blob, "recording.wav");
 
     try {
       const response = await axios.post(
         `/api/upload-audio/part2?questionId=${questionId}&questionNo=${questionNo}`,
-        formData, 
+        formData,
       );
       console.log("업로드 성공:", response.data);
       setResponse(response.data);
