@@ -135,20 +135,80 @@ export const handlers = [
 
   http.get("/api/focused-learning/part2", async () => {
     return HttpResponse.json({
-      status: 200,
-      message: "ok",
-      data: [
-        {
-          questionPart2Id: 1,
-          imageUrl1:
-            "https://stepic077447526717.blob.core.windows.net/question/1-3.png",
-          imageUrl2:
-            "https://stepic077447526717.blob.core.windows.net/question/1-4.png?sp=r&st=2025-04-05T13:36:27Z&se=2025-06-29T21:36:27Z&spr=https&sv=2024-11-04&sr=b&sig=EO3g9LqR5D5gt7PGNzW4wl%2FSceqazNZPFQlGAhvBQvQ%3D",
-        },
-      ],
+      questionPart2Id: 1,
+      question3: 'https://stepic077447526717.blob.core.windows.net/question/1-3.png',
+      question4: 'https://stepic077447526717.blob.core.windows.net/question/1-4.png',
     });
   }),
 
+  http.post('/api/upload-audio/part2', async ({ request }) => {
+    const url = new URL(request.url);
+    const questionId = url.searchParams.get('questionId');
+    const questionNo = url.searchParams.get('questionNo');
+
+    const formData = await request.formData();
+    const file = formData.get('file');
+
+    if (!file || !(file instanceof Blob) || file.size === 0) {
+      return HttpResponse.json(
+        { message: '파일이 없거나 비어 있음' },
+        { status: 400 }
+      );
+    }
+
+    return HttpResponse.json({
+      azureEvaluation: {
+        PronunciationAssessment: {
+          AccuracyScore: 76,
+          FluencyScore: 80,
+          ProsodyScore: 90,
+        },
+        UserResponse:
+          "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+        IssueWords: [
+          {
+            word: "forecast",
+            AccuracyScore: 30,
+            ErrorType: "Mispronunciation",
+            LowScorePhonemes: [
+              { phoneme: "f", AccuracyScore: 11 },
+              { phoneme: "ɔːr", AccuracyScore: 0 },
+              { phoneme: "k", AccuracyScore: 19 },
+              { phoneme: "æ", AccuracyScore: 29 },
+              { phoneme: "s", AccuracyScore: 40 },
+              { phoneme: "t", AccuracyScore: 30 },
+            ],
+          },
+          {
+            word: "breezy",
+            AccuracyScore: 72,
+            ErrorType: "None",
+            LowScorePhonemes: [
+              { phoneme: "b", AccuracyScore: 77 },
+              { phoneme: "r", AccuracyScore: 20 },
+              { phoneme: "iː", AccuracyScore: 18 },
+              { phoneme: "z", AccuracyScore: 65 },
+              { phoneme: "i", AccuracyScore: 60 },
+            ],
+          },
+          {
+            word: "sunny",
+            AccuracyScore: 63,
+            ErrorType: "Omission",
+            LowScorePhonemes: [],
+          },
+        ],
+      }, // 문자열로 변환
+      gptEvaluation: {
+        grammar: 80,
+        topic: 70,
+        vocabulary: 85,
+        suggestions:
+          "문법은 전반적으로 좋았으나 몇 가지 시제 오류가 있었습니다. 주제를 좀 더 구체적으로 표현해보세요.",
+      },
+    });
+  }),
+  
   http.get("/api/focused-learning/part3", async () => {
     return HttpResponse.json({
       status: 200,

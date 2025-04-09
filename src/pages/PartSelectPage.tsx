@@ -15,12 +15,14 @@ const PartSelectPage: React.FC = () => {
   const navigate = useNavigate();
   const [partId, setPartId] = useState<number>(0);
   const handleLearnClick = async (partId: number) => {
+    console.log("handleLearnClick 호출됨", partId);
     try {
       const response = await axios.get<{
         status: number;
         message: string;
         data: { part: number; text: string }[];
       }>(`/api/focused-learning/part${partId}`);
+      console.log("response!", response);
 
       navigate(`/part${partId}`, {
         state: {
