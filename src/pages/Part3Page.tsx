@@ -8,6 +8,7 @@ import axios from "axios";
 import styled from "styled-components";
 import * as S from "./Main.styled";
 import loadingGif from "../assets/img/loading.gif";
+import { encodeWAV } from "./encodeWAV";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
@@ -84,12 +85,12 @@ const Part3Page: React.FC = () => {
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [situationText, setSituationText] = useState(
-    initialQuestions?.data[0]?.situation || null,
+    initialQuestions?.situation || null,
   );
   const [questionTextArray, setQuestionTextArray] = useState([
-    initialQuestions?.data[0]?.question1 || "",
-    initialQuestions?.data[0]?.question2 || "",
-    initialQuestions?.data[0]?.question3 || "",
+    initialQuestions?.question5 || "",
+    initialQuestions?.question6 || "",
+    initialQuestions?.question7 || "",
   ]);
 
   //scoring 용
@@ -108,6 +109,10 @@ const Part3Page: React.FC = () => {
       feedback: string;
     }>
   >([]);
+
+  //useRef로 동기적 관리
+  const questionPart3IdRef = useRef<number>(initialQuestions?.questionPart3Id);
+  const currentNumRef = useRef(3);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -210,12 +215,12 @@ const Part3Page: React.FC = () => {
     try {
       // 새로운 문제 요청
       const response = await axios.get(`/api/focused-learning/part3`);
-      const questionSet = response.data.data[0];
+      const questionSet = response.data;
       setSituationText(questionSet.situation);
       setQuestionTextArray([
-        questionSet.question1,
-        questionSet.question2,
-        questionSet.question3,
+        questionSet.question5,
+        questionSet.question6,
+        questionSet.question7,
       ]);
       setStage("situation");
       setRemainingTime(TIME_SETTINGS.preparing);
@@ -243,11 +248,15 @@ const Part3Page: React.FC = () => {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
-        });
-        uploadAudio(audioBlob);
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioCtx = new AudioContext();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        const wavBlob = encodeWAV(audioBuffer);
+        uploadAudio(wavBlob, questionPart3IdRef.current, currentNumRef.current);
       };
 
       mediaRecorder.start();
@@ -264,13 +273,19 @@ const Part3Page: React.FC = () => {
   }, []);
 
   // 오디오 업로드
-  const uploadAudio = async (blob: Blob) => {
+  const uploadAudio = async (
+    blob: Blob,
+    questionId: number,
+    questionNo: number,
+  ) => {
     const formData = new FormData();
-    formData.append("audio", blob, "recording.wav");
+    formData.append("file", blob, "recording.wav");
+
     try {
-      const response = await axios.post("/api/upload-audio", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axios.post(
+        `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
+        formData,
+      );
       console.log("응답 데이터:", response.data);
       const processedResponse = {
         contentText: response.data.azureEvaluation.UserResponse,

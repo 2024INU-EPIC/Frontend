@@ -7,14 +7,15 @@ import ReplyBody from "../components/ReplyBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
 import axios from "axios";
+import { encodeWAV } from "./encodeWAV";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
-  direction: IS_DEV_MODE ? 5 : 14, // direction 단계
-  preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
-  responding: IS_DEV_MODE ? 2 : 30, // 답변 시간
+  direction: IS_DEV_MODE ? 8 : 14, // direction 단계
+  preparing: IS_DEV_MODE ? 5 : 45, // 문제 준비 시간
+  responding: IS_DEV_MODE ? 5 : 30, // 답변 시간
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -76,7 +77,7 @@ const Part2Page: React.FC = () => {
 
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
-  const [questions, setQuestions] = useState(initialQuestions?.data[0] || null);
+  const [questions, setQuestions] = useState(initialQuestions || null);
   const [extraQuestions, setExtraQuestions] = useState(null);
   const [questionIndex, setQuestionIndex] = useState(0);
 
@@ -84,9 +85,7 @@ const Part2Page: React.FC = () => {
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const [replyContent, setReplyContent] = useState<string>("");
   //useRef로 동기적 관리
-  const questionPart2IdRef = useRef<number>(
-    initialQuestions?.data[0].questionPart2Id,
-  );
+  const questionPart2IdRef = useRef<number>(initialQuestions?.questionPart2Id);
   const currentNumRef = useRef(3);
 
   function increaseNum() {
@@ -178,10 +177,15 @@ const Part2Page: React.FC = () => {
       console.log("Audio is not allowed to play after direction stage.");
     }
   };
-
   const getCurrentQuestion = () => {
-    return questionIndex === 0 ? questions?.imageUrl1 : questions?.imageUrl2;
+    return questionIndex === 0 ? questions?.question3 : questions?.question4;
   };
+
+  useEffect(() => {
+    console.log("questionPart2Id", questions?.questionPart2Id);
+    console.log("question3:", questions?.question3);
+    console.log("question4:", questions?.question4);
+  }, [questions]);
 
   const nextQuestion = async () => {
     if (questionIndex === 0) {
@@ -206,15 +210,15 @@ const Part2Page: React.FC = () => {
       try {
         // 새로운 문제 요청
         const response = await axios.get(`/api/focused-learning/part2`);
-        setExtraQuestions(response.data.data[0]);
-        setQuestions(response.data.data[0]);
+        setExtraQuestions(response.data);
+        setQuestions(response.data);
         setQuestionIndex(0);
         setStage("preparing");
         setRemainingTime(TIME_SETTINGS.preparing);
         setQuestionCount((prev) => prev + 1);
         setCurrentNum(3);
         currentNumRef.current = 3;
-        questionPart2IdRef.current = response.data.data[0].questionPart2Id;
+        questionPart2IdRef.current = response.data.questionPart2Id;
       } catch (error) {
         console.error("Error fetching next set of questions:", error);
       }
@@ -237,15 +241,15 @@ const Part2Page: React.FC = () => {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
-        });
-        uploadAudio(
-          audioBlob,
-          questionPart2IdRef.current,
-          currentNumRef.current,
-        );
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioCtx = new AudioContext();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        const wavBlob = encodeWAV(audioBuffer);
+        uploadAudio(wavBlob, questionPart2IdRef.current, currentNumRef.current);
       };
 
       mediaRecorder.start();
@@ -267,14 +271,14 @@ const Part2Page: React.FC = () => {
     questionNo: number,
   ) => {
     const formData = new FormData();
-    formData.append("questionId", String(questionId));
-    formData.append("questionNo", String(questionNo));
-    formData.append("audio", blob, "recording.wav");
+    formData.append("file", blob, "recording.wav");
+
     try {
-      const response = await axios.post("/api/upload-audio", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      console.log("응답 데이터:", response.data);
+      const response = await axios.post(
+        `/api/upload-audio/part2?questionId=${questionId}&questionNo=${questionNo}`,
+        formData,
+      );
+      console.log("업로드 성공:", response.data);
       setResponse(response.data);
       setReplyContent(response.data.azureEvaluation.UserResponse);
     } catch (error) {
