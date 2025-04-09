@@ -136,25 +136,29 @@ export const handlers = [
   http.get("/api/focused-learning/part2", async () => {
     return HttpResponse.json({
       questionPart2Id: 1,
-      question3: 'https://stepic077447526717.blob.core.windows.net/question/1-3.png',
-      question4: 'https://stepic077447526717.blob.core.windows.net/question/1-4.png',
+      question3:
+        "https://stepic077447526717.blob.core.windows.net/question/1-3.png",
+      question4:
+        "https://stepic077447526717.blob.core.windows.net/question/1-4.png",
     });
   }),
 
-  http.post('/api/upload-audio/part2', async ({ request }) => {
+  http.post("/api/upload-audio/part2", async ({ request }) => {
     const url = new URL(request.url);
-    const questionId = url.searchParams.get('questionId');
-    const questionNo = url.searchParams.get('questionNo');
+    const questionId = url.searchParams.get("questionId");
+    const questionNo = url.searchParams.get("questionNo");
 
     const formData = await request.formData();
-    const file = formData.get('file');
+    const file = formData.get("file");
 
     if (!file || !(file instanceof Blob) || file.size === 0) {
       return HttpResponse.json(
-        { message: '파일이 없거나 비어 있음' },
-        { status: 400 }
+        { message: "파일이 없거나 비어 있음" },
+        { status: 400 },
       );
     }
+
+    console.log("📦 MOCK 업로드 성공:", { questionId, questionNo, file });
 
     return HttpResponse.json({
       azureEvaluation: {
@@ -198,7 +202,7 @@ export const handlers = [
             LowScorePhonemes: [],
           },
         ],
-      }, // 문자열로 변환
+      },
       gptEvaluation: {
         grammar: 80,
         topic: 70,
@@ -208,23 +212,87 @@ export const handlers = [
       },
     });
   }),
-  
+
   http.get("/api/focused-learning/part3", async () => {
     return HttpResponse.json({
-      status: 200,
-      message: "ok",
-      data: [
-        {
-          situation:
-            "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
-          question1:
-            "What is your favorite restaurant in the area, and when did you last go there?",
-          question2:
-            "Would you say this area is a good place for shopping? Why or why not?",
-          question3:
-            "I have some friends from out of town visiting me this weekend, and they would like to see popular attractions in the area. What is the best place to take my friends, and why?",
+      questionPart3Id: 1,
+      situation:
+        "Imagine that a new work colleague has recently moved to your area and would like some information about things to do. You are having a telephone conversation about your town.",
+      question5:
+        "What is your favorite restaurant in the area, and when did you last go there?",
+      question6:
+        "Would you say this area is a good place for shopping? Why or why not?",
+      question7:
+        "I have some friends from out of town visiting me this weekend, and they would like to see popular attractions in the area. What is the best place to take my friends, and why?",
+    });
+  }),
+
+  http.post("/api/upload-audio/part3", async ({ request }) => {
+    const url = new URL(request.url);
+    const questionId = url.searchParams.get("questionId");
+    const questionNo = url.searchParams.get("questionNo");
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!file || !(file instanceof Blob) || file.size === 0) {
+      return HttpResponse.json(
+        { message: "파일이 없거나 비어 있음" },
+        { status: 400 },
+      );
+    }
+    console.log("📦 MOCK 업로드 성공:", { questionId, questionNo, file });
+
+    return HttpResponse.json({
+      azureEvaluation: {
+        PronunciationAssessment: {
+          AccuracyScore: 76,
+          FluencyScore: 80,
+          ProsodyScore: 90,
         },
-      ],
+        UserResponse:
+          "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+        IssueWords: [
+          {
+            word: "forecast",
+            AccuracyScore: 30,
+            ErrorType: "Mispronunciation",
+            LowScorePhonemes: [
+              { phoneme: "f", AccuracyScore: 11 },
+              { phoneme: "ɔːr", AccuracyScore: 0 },
+              { phoneme: "k", AccuracyScore: 19 },
+              { phoneme: "æ", AccuracyScore: 29 },
+              { phoneme: "s", AccuracyScore: 40 },
+              { phoneme: "t", AccuracyScore: 30 },
+            ],
+          },
+          {
+            word: "breezy",
+            AccuracyScore: 72,
+            ErrorType: "None",
+            LowScorePhonemes: [
+              { phoneme: "b", AccuracyScore: 77 },
+              { phoneme: "r", AccuracyScore: 20 },
+              { phoneme: "iː", AccuracyScore: 18 },
+              { phoneme: "z", AccuracyScore: 65 },
+              { phoneme: "i", AccuracyScore: 60 },
+            ],
+          },
+          {
+            word: "sunny",
+            AccuracyScore: 63,
+            ErrorType: "Omission",
+            LowScorePhonemes: [],
+          },
+        ],
+      },
+      gptEvaluation: {
+        grammar: 80,
+        topic: 70,
+        vocabulary: 85,
+        suggestions:
+          "문법은 전반적으로 좋았으나 몇 가지 시제 오류가 있었습니다. 주제를 좀 더 구체적으로 표현해보세요.",
+      },
     });
   }),
 
