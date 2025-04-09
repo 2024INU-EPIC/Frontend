@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
-import MutipleReplyBody from "../components/MutipleReplyBox";
+import MultipleReplyBody from "../components/MultipleReplyBox";
 import SituationBody from "../components/SituationBody";
 import DirectionBody from "../components/DirectionBody";
 import axios from "axios";
@@ -18,12 +18,12 @@ const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
-  direction: IS_DEV_MODE ? 5 : 16, // direction 단계
-  situation: IS_DEV_MODE ? 5 : 45, //situation 단계
-  preparing: IS_DEV_MODE ? 3 : 3, // 문제 준비 시간
+  direction: IS_DEV_MODE ? 2 : 16, // direction 단계
+  situation: IS_DEV_MODE ? 1 : 45, //situation 단계
+  preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
   responding: (
     questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
-  ) => (IS_DEV_MODE ? 3 : questionNum === 7 ? 30 : 15),
+  ) => (IS_DEV_MODE ? 10 : questionNum === 7 ? 30 : 15),
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -85,7 +85,7 @@ const Part3Page: React.FC = () => {
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [situationText, setSituationText] = useState(
-    initialQuestions?.situation || null,
+    initialQuestions?.situationText || null,
   );
   const [questionTextArray, setQuestionTextArray] = useState([
     initialQuestions?.question5 || "",
@@ -112,7 +112,7 @@ const Part3Page: React.FC = () => {
 
   //useRef로 동기적 관리
   const questionPart3IdRef = useRef<number>(initialQuestions?.questionPart3Id);
-  const currentNumRef = useRef(3);
+  const currentNumRef = useRef(5);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
@@ -154,7 +154,12 @@ const Part3Page: React.FC = () => {
             setStage("preparing");
             setRemainingTime(TIME_SETTINGS.preparing);
           } else {
-            setStage("scoring");
+            setStage("loading");
+            setTimeout(() => {
+              setStage("scoring");
+            }, 10000);
+
+            // setStage("scoring");
 
             // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
             if (isMockExam) {
@@ -216,7 +221,7 @@ const Part3Page: React.FC = () => {
       // 새로운 문제 요청
       const response = await axios.get(`/api/focused-learning/part3`);
       const questionSet = response.data;
-      setSituationText(questionSet.situation);
+      setSituationText(questionSet.situationText);
       setQuestionTextArray([
         questionSet.question5,
         questionSet.question6,
@@ -337,7 +342,13 @@ const Part3Page: React.FC = () => {
             response.data.gptEvaluation.topic) /
             3,
         ),
-        feedback: response.data.gptEvaluation.suggestions,
+        // feedback: response.data.gptEvaluation.suggestions,
+        feedback: [
+          response.data.gptEvaluation.suggestions.grammar,
+          response.data.gptEvaluation.suggestions.vocabulary,
+          response.data.gptEvaluation.suggestions.topic,
+          response.data.gptEvaluation.suggestions["총평"],
+        ].join("\n\n"),
       };
 
       setMultipleReplies((prev) => {
@@ -417,7 +428,7 @@ const Part3Page: React.FC = () => {
         <>
           {questionTextArray.map((q, index) => (
             <React.Fragment key={index}>
-              <MutipleReplyBody
+              <MultipleReplyBody
                 questionNum={5 + index}
                 questionText={q}
                 contentText={multipleReplies[index]?.contentText || ""}
