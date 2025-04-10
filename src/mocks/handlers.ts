@@ -120,17 +120,74 @@ export const handlers = [
 
   http.get("/api/focused-learning/part1", async () => {
     return HttpResponse.json({
-      status: 200,
-      message: "ok",
-      data: [
+      questionPart2Id: 1,
+      question1:
+        "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+      question2:
+        "Thank you for calling Scientific Pages, home of the finest in technical and medical books. The bookstore is currently closed. For hours, directions, or information on current promotions, please press one. For all other inquiries, please leave us a message. One of our book specialists will return your call as soon as possible.",
+    });
+  }),
+
+  http.post("/api/upload-audio/part1", async ({ request }) => {
+    const url = new URL(request.url);
+    const questionId = url.searchParams.get("questionId");
+    const questionNo = url.searchParams.get("questionNo");
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!file || !(file instanceof Blob) || file.size === 0) {
+      return HttpResponse.json(
+        { message: "파일이 없거나 비어 있음" },
+        { status: 400 },
+      );
+    }
+
+    console.log("📦 MOCK 업로드 성공:", { questionId, questionNo, file });
+
+    return HttpResponse.json({
+      PronunciationAssessment: {
+        AccuracyScore: 76,
+        CompletenessScore: 83,
+        FluencyScore: 80,
+        ProsodyScore: 90,
+      },
+      UserResponse:
+        "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+      IssueWords: [
         {
-          question1:
-            "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
-          question2:
-            "Thank you for calling Scientific Pages, home of the finest in technical and medical books. The bookstore is currently closed. For hours, directions, or information on current promotions, please press one. For all other inquiries, please leave us a message. One of our book specialists will return your call as soon as possible.",
+          word: "forecast",
+          AccuracyScore: 30,
+          ErrorType: "Mispronunciation",
+          LowScorePhonemes: [
+            { phoneme: "f", AccuracyScore: 11 },
+            { phoneme: "ɔːr", AccuracyScore: 0 },
+            { phoneme: "k", AccuracyScore: 19 },
+            { phoneme: "æ", AccuracyScore: 29 },
+            { phoneme: "s", AccuracyScore: 40 },
+            { phoneme: "t", AccuracyScore: 30 },
+          ],
+        },
+        {
+          word: "breezy",
+          AccuracyScore: 72,
+          ErrorType: "None",
+          LowScorePhonemes: [
+            { phoneme: "b", AccuracyScore: 77 },
+            { phoneme: "r", AccuracyScore: 20 },
+            { phoneme: "iː", AccuracyScore: 18 },
+            { phoneme: "z", AccuracyScore: 65 },
+            { phoneme: "i", AccuracyScore: 60 },
+          ],
+        },
+        {
+          word: "sunny",
+          AccuracyScore: 63,
+          ErrorType: "Omission",
+          LowScorePhonemes: [],
         },
       ],
-    });
+    })
   }),
 
   http.get("/api/focused-learning/part2", async () => {
