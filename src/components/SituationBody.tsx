@@ -7,7 +7,7 @@ type WrapperProps = { partNum?: number; stage?: string };
 const Wrapper = styled.div<WrapperProps>`
   width: 87.5rem; // 1400px
   display: inline-block;
-  margin-top: -2rem;
+  margin-top: -4rem;
   padding-bottom: 3rem;
   background-color: #ffffff;
   border-radius: 1rem;
@@ -52,10 +52,23 @@ const Wrapper = styled.div<WrapperProps>`
   }
 
   img {
-    max-width: 53.75rem; // 860px
-    /* max-height: 27.5rem; */
+    max-height: 20rem;
   }
 `;
+
+const Part4Question = styled.div<WrapperProps>`
+  p.content {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  p.question {
+    font-size: 1.5rem;
+    margin-top: 0.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+`
 
 type SituationBodyProps = {
   stage: string;
@@ -105,7 +118,14 @@ const SituationBody: React.FC<SituationBodyProps> = ({
           )}
         </div>
       ) : (
+        <>
         <img src={imageSrc} alt="Question Image" />
+        <Part4Question>
+          <p className="content">{situationText}</p>
+          <p className="question">Question {questionNum}.</p>
+          <p className="content">{questionText}</p>
+        </Part4Question>
+        </>
       )}
     </Wrapper>
   );
