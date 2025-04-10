@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
-import ScoreBody from "../components/ScoreBody";
+import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import ReplyBody from "../components/ReplyBody";
 import styled from "styled-components";
 import QuestionBody from "../components/QuestionBody";
 import DirectionBody from "../components/DirectionBody";
 import axios from "axios";
+import { encodeWAV } from "./encodeWAV";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
@@ -76,12 +77,17 @@ const Part5Page: React.FC = () => {
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [questions, setQuestions] = useState(
-    initialQuestions?.data[0]?.question || null,
+    initialQuestions.question11 || null,
   );
 
   //scoring 용
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const [replyContent, setReplyContent] = useState<string>("");
+
+  //useRef로 동기적 관리
+  const questionPart5IdRef = useRef<number>(initialQuestions?.questionPart5Id);
+  const currentNum = 11;
+  
   useEffect(() => {
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
@@ -159,11 +165,12 @@ const Part5Page: React.FC = () => {
     try {
       // 새로운 문제 요청
       const response = await axios.get(`/api/focused-learning/part5`);
-      setQuestions(response.data.question);
+      setQuestions(response.data.question11);
       console.log(questions);
       setStage("preparing");
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
+      questionPart5IdRef.current = response.data.questionPart5Id;
     } catch (error) {
       console.error("Error fetching next set of questions:", error);
     }
@@ -185,11 +192,15 @@ const Part5Page: React.FC = () => {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
-        });
-        uploadAudio(audioBlob);
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioCtx = new AudioContext();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        const wavBlob = encodeWAV(audioBuffer);
+        uploadAudio(wavBlob, questionPart5IdRef.current, currentNum);
       };
 
       mediaRecorder.start();
@@ -205,14 +216,20 @@ const Part5Page: React.FC = () => {
   }, []);
 
   // 오디오 업로드
-  const uploadAudio = async (blob: Blob) => {
+  const uploadAudio = async (
+    blob: Blob,
+    questionId: number,
+    questionNo: number,
+  ) => {
     const formData = new FormData();
-    formData.append("audio", blob, "recording.wav");
+    formData.append("file", blob, "recording.wav");
+
     try {
-      const response = await axios.post("/api/upload-audio", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      console.log("응답 데이터:", response.data);
+      const response = await axios.post(
+        `/api/upload-audio/part5?questionId=${questionId}&questionNo=${questionNo}`,
+        formData,
+      );
+      console.log("업로드 성공:", response.data);
       setResponse(response.data);
       setReplyContent(response.data.azureEvaluation.UserResponse);
     } catch (error) {
@@ -260,25 +277,34 @@ const Part5Page: React.FC = () => {
   const prosody = Math.round(
     response?.azureEvaluation.PronunciationAssessment["ProsodyScore"],
   );
-
-  const scores = [accuracy, fluency, prosody];
-  const minScore = Math.min(...scores);
-
-  const totalScore = Math.round(
-    scores.reduce(
-      (sum, score) => sum + (score === minScore ? score * 0.4 : score * 0.2),
+  const pronunciationScore = Math.round(
+    [
+      response?.azureEvaluation.PronunciationAssessment.AccuracyScore,
+      response?.azureEvaluation.PronunciationAssessment.FluencyScore,
+      response?.azureEvaluation.PronunciationAssessment.ProsodyScore,
+    ].reduce(
+      (sum, score, _, arr) =>
+        sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
       0,
     ),
   );
 
-  /* 
-  //api 연동으로 받을 단어 성적 JSON 예시
-  const wrongWordScore = {
-    disagree: 56,
-    transportation: 75,
-    presence: 43,
-  };
-  */
+  const voca = Math.round(response?.gptEvaluation.vocabulary);
+  const grammar = Math.round(response?.gptEvaluation.grammar);
+  const topic = Math.round(response?.gptEvaluation.topic);
+  const contentScore = Math.round(
+    (response?.gptEvaluation.vocabulary +
+      response?.gptEvaluation.grammar +
+      response?.gptEvaluation.topic) /
+      3,
+  );
+
+  const feedback = [
+    response?.gptEvaluation.suggestions.grammar,
+    response?.gptEvaluation.suggestions.vocabulary,
+    response?.gptEvaluation.suggestions.topic,
+    response?.gptEvaluation.suggestions["총평"],
+  ].join("\n\n");
 
   // question 본문의 '?' 이후 줄바꿈용
   const formattedText = questions
@@ -334,14 +360,17 @@ const Part5Page: React.FC = () => {
             text={replyContent}
             wrongWordScore={wrongWordScore}
             isScoring={stage === "scoring"}
-            gptText={response?.gptEvaluation.suggestions}
+            gptText={feedback}
           />
-          <ScoreBody
-            totalScore={totalScore}
+          <ScoreBodyGeneral
+            pronunciationScore={pronunciationScore}
             accuracy={accuracy}
-            completeness={0}
             fluency={fluency}
             prosody={prosody}
+            contentScore={contentScore}
+            voca={voca}
+            grammar={grammar}
+            topic={topic}
           />
           {fromPartSelect && (
             <button
