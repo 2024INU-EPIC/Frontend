@@ -367,6 +367,22 @@ export const handlers = [
     });
   }),
 
+  http.get("/api/focused-learning/part4", async () => {
+    return HttpResponse.json({
+      questionPart4Id: 1,
+      situationImage: 
+        "src/assets/img/part4.png",
+      situationText:
+        "Hi, I'm Alex Kim. I left my schedule at home and I'm on my way to the office now. Can you help answer a few questions about today's schedule?",
+      question8:
+        "When is my first meeting scheduled today, and who will it be with? ",
+      question9:
+        "Can you tell me if I have any breaks or free time today? If so, when are they and how long is each?",
+      question10:
+        "My friend is worried about taking care of a pet due to his busy schedule. Could you suggest how to manage pet care effectively with a busy lifestyle?",
+    });
+  }),
+
   http.get("/api/focused-learning/part5", async () => {
     return HttpResponse.json({
       questionPart5Id: 1,
