@@ -348,6 +348,13 @@ const Part2Page: React.FC = () => {
       3,
   );
 
+  const feedback = [
+    response?.gptEvaluation.suggestions.grammar,
+    response?.gptEvaluation.suggestions.vocabulary,
+    response?.gptEvaluation.suggestions.topic,
+    response?.gptEvaluation.suggestions["총평"],
+  ].join("\n\n");
+
   return (
     <S.mainContainer onClick={handleUserInteraction}>
       <TopBlank />
@@ -403,7 +410,7 @@ const Part2Page: React.FC = () => {
                 text={replyContent}
                 wrongWordScore={wrongWordScore}
                 isScoring={stage === "scoring"}
-                gptText={response?.gptEvaluation.suggestions}
+                gptText={feedback}
               />
               <ScoreBodyGeneral
                 pronunciationScore={pronunciationScore}
