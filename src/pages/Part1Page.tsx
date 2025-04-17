@@ -8,6 +8,7 @@ import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
 
 import axios from "axios";
+import StopTalkingModal from "../components/StopTalkingModal";
 
 import { encodeWAV } from "./encodeWAV";
 
@@ -17,7 +18,7 @@ const IS_DEV_MODE = true;
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 13, // direction 단계
   preparing: IS_DEV_MODE ? 3 : 45, // 문제 준비 시간
-  responding: IS_DEV_MODE ? 2 : 45, // 답변 시간. Part 1은 문제별로 답변 시간이 같음
+  responding: IS_DEV_MODE ? 15 : 45, // 답변 시간. Part 1은 문제별로 답변 시간이 같음
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -83,7 +84,7 @@ const Part1Page: React.FC = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
 
   //scoring 용
-  const [isSubmmitting, setIsSubmitting] = useState(false);
+  const [isSubmmitting, setIsSubmitting] = useState(true);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
 
   //useRef로 동기적 관리
@@ -111,18 +112,24 @@ const Part1Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
+          setIsSubmitting(false);
           break;
         case "responding":
-          // responding 시간 종료 시
-          setIsSubmitting(true);
-
-          // partselect에서 고른 파트일 경우 2초가 지난 다음에 IsSubmitting을 false로 바꾸고 "scoring" 단계로 간다.
-          // StopTalkingModal은 responding단계 동안만 유지되는 것이고, 이 switch-case문은 responding에서 scoring단계로 이동하기 위한 것이기 때문
+          // setIsSubmitting(false);
           if (fromPartSelect) {
-            setTimeout(() => {
-              setIsSubmitting(false);
-              setStage("scoring");
-            }, 2000);
+            // responding 시간 종료 시
+            setIsSubmitting(true);
+            setStage("scoring");
+
+            // setTimeout(() => {
+            //   setIsSubmitting(false);
+            //   setStage("scoring");
+            // }, 2000);
+
+            // if (response !== undefined) {
+            //   setIsSubmitting(true);
+            //   setStage("scoring");
+            // }
 
             break;
           }
@@ -270,6 +277,7 @@ const Part1Page: React.FC = () => {
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true);
   }, []);
 
   // 오디오 업로드
@@ -286,7 +294,9 @@ const Part1Page: React.FC = () => {
         `/api/upload-audio/part1?questionId=${questionId}&questionNo=${questionNo}`,
         formData,
       );
+
       console.log("업로드 성공:", response.data);
+      setIsSubmitting(false);
       setResponse(response.data);
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
@@ -294,6 +304,7 @@ const Part1Page: React.FC = () => {
   };
 
   // stage가 responding일 때 녹음 시작 & 종료
+  // responding도 아니면서 preparing도 아니면 stopRecording. 즉, scoring으로 넘어가면 stopRecording
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
@@ -385,6 +396,7 @@ const Part1Page: React.FC = () => {
       )}
       {stage === "scoring" && !isMockExam && (
         <>
+          {isSubmmitting === true && <StopTalkingModal />}
           <ScoreBody
             totalScore={totalScore}
             accuracy={accuracy}
