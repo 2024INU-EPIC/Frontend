@@ -8,9 +8,9 @@ import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
 
 import axios from "axios";
-import StopTalkingModal from "../components/StopTalkingModal";
-
 import { encodeWAV } from "./encodeWAV";
+
+import StopTalkingModal from "../components/StopTalkingModal";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;

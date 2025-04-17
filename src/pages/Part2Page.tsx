@@ -6,8 +6,11 @@ import ImageBody from "../components/ImageBody";
 import ReplyBody from "../components/ReplyBody";
 import DirectionBody from "../components/DirectionBody";
 import styled from "styled-components";
+
 import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
+
+import StopTalkingModal from "../components/StopTalkingModal";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
@@ -82,6 +85,7 @@ const Part2Page: React.FC = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
 
   //scoring 용
+  const [isSubmmitting, setIsSubmitting] = useState(true);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const [replyContent, setReplyContent] = useState<string>("");
   //useRef로 동기적 관리
@@ -109,9 +113,11 @@ const Part2Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
+          setIsSubmitting(false);
           break;
         case "responding":
           if (fromPartSelect) {
+            setIsSubmitting(true);
             setStage("scoring");
             break;
           }
@@ -263,6 +269,7 @@ const Part2Page: React.FC = () => {
     console.log("Stopping recording...");
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true);
   }, []);
 
   const uploadAudio = async (
@@ -279,6 +286,7 @@ const Part2Page: React.FC = () => {
         formData,
       );
       console.log("업로드 성공:", response.data);
+      setIsSubmitting(false);
       setResponse(response.data);
       setReplyContent(response.data.azureEvaluation.UserResponse);
     } catch (error) {
@@ -390,10 +398,12 @@ const Part2Page: React.FC = () => {
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting === true && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
         <>
+          {isSubmmitting === true && <StopTalkingModal />}
           <div
             className="midContainer"
             style={{ display: "flex", justifyContent: "space-between" }}
