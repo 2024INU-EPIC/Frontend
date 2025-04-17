@@ -4,11 +4,15 @@ import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import MultipleReplyBody from "../components/MultipleReplyBox";
 import SituationBody from "../components/SituationBody";
 import DirectionBody from "../components/DirectionBody";
-import axios from "axios";
-import styled from "styled-components";
-import * as S from "./Main.styled";
+
 import loadingGif from "../assets/img/loading.gif";
+import * as S from "./Main.styled";
+import styled from "styled-components";
+
+import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
+
+import StopTalkingModal from "../components/StopTalkingModal";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
@@ -109,6 +113,7 @@ const Part3Page: React.FC = () => {
       feedback: string;
     }>
   >([]);
+  const [isSubmmitting, setIsSubmitting] = useState(true);
 
   //useRef로 동기적 관리
   const questionPart3IdRef = useRef<number>(initialQuestions?.questionPart3Id);
@@ -147,6 +152,7 @@ const Part3Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 문항별 응답 시간 설정
+          setIsSubmitting(false);
           break;
         case "responding":
           if (currentNum < 7) {
@@ -154,10 +160,13 @@ const Part3Page: React.FC = () => {
             setStage("preparing");
             setRemainingTime(TIME_SETTINGS.preparing);
           } else {
-            setStage("loading");
-            setTimeout(() => {
-              setStage("scoring");
-            }, 10000);
+            setIsSubmitting(true);
+            setStage("scoring");
+            // setStage("loading");
+            // setTimeout(() => {
+            //   setIsSubmitting(true);
+            //   setStage("scoring");
+            // }, 10000);
 
             // setStage("scoring");
 
@@ -275,6 +284,7 @@ const Part3Page: React.FC = () => {
     console.log("Stopping recording...");
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true);
   }, []);
 
   // 오디오 업로드
@@ -351,6 +361,8 @@ const Part3Page: React.FC = () => {
         ].join("\n\n"),
       };
 
+      setIsSubmitting(true);
+
       setMultipleReplies((prev) => {
         return [...prev, processedResponse];
       });
@@ -421,11 +433,13 @@ const Part3Page: React.FC = () => {
           <TopBlank />
           <TimeRemainingIndicator bgColor="#59BED4">{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting === true && <StopTalkingModal />}
         </>
       )}
 
       {stage === "scoring" && !isMockExam && (
         <>
+          {isSubmmitting === true && <StopTalkingModal />}
           {questionTextArray.map((q, index) => (
             <React.Fragment key={index}>
               <MultipleReplyBody

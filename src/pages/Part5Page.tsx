@@ -9,6 +9,8 @@ import DirectionBody from "../components/DirectionBody";
 import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
 
+import StopTalkingModal from "../components/StopTalkingModal";
+
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
 
@@ -81,13 +83,14 @@ const Part5Page: React.FC = () => {
   );
 
   //scoring 용
+  const [isSubmmitting, setIsSubmitting] = useState(true);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const [replyContent, setReplyContent] = useState<string>("");
 
   //useRef로 동기적 관리
   const questionPart5IdRef = useRef<number>(initialQuestions?.questionPart5Id);
   const currentNum = 11;
-  
+
   useEffect(() => {
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
@@ -103,9 +106,11 @@ const Part5Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
+          setIsSubmitting(false);
           break;
         case "responding":
           setStage("scoring");
+          setIsSubmitting(true);
 
           // 실전 모의고사 모드에서는 자동으로 결과 페이지로 이동
           if (isMockExam) {
@@ -213,6 +218,7 @@ const Part5Page: React.FC = () => {
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true);
   }, []);
 
   // 오디오 업로드
@@ -230,6 +236,7 @@ const Part5Page: React.FC = () => {
         formData,
       );
       console.log("업로드 성공:", response.data);
+      setIsSubmitting(false);
       setResponse(response.data);
       setReplyContent(response.data.azureEvaluation.UserResponse);
     } catch (error) {
@@ -352,10 +359,12 @@ const Part5Page: React.FC = () => {
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting === true && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
         <>
+          {isSubmmitting === true && <StopTalkingModal />}
           <ReplyBody
             text={replyContent}
             wrongWordScore={wrongWordScore}
