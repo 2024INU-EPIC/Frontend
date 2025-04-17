@@ -370,6 +370,98 @@ export const handlers = [
     });
   }),
 
+  http.get("/api/focused-learning/part4", async () => {
+    return HttpResponse.json({
+      questionPart4Id: 1,
+      situationImage: 
+        "src/assets/img/part4.png",
+      situationText:
+        "Hi, I'm Alex Kim. I left my schedule at home and I'm on my way to the office now. Can you help answer a few questions about today's schedule?",
+      question8:
+        "When is my first meeting scheduled today, and who will it be with? ",
+      question9:
+        "Can you tell me if I have any breaks or free time today? If so, when are they and how long is each?",
+      question10:
+        "My friend is worried about taking care of a pet due to his busy schedule. Could you suggest how to manage pet care effectively with a busy lifestyle?",
+    });
+  }),
+
+  http.post("/api/upload-audio/part4", async ({ request }) => {
+    const url = new URL(request.url);
+    const questionId = url.searchParams.get("questionId");
+    const questionNo = url.searchParams.get("questionNo");
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!file || !(file instanceof Blob) || file.size === 0) {
+      return HttpResponse.json(
+        { message: "파일이 없거나 비어 있음" },
+        { status: 400 },
+      );
+    }
+    console.log("📦 MOCK 업로드 성공:", { questionId, questionNo, file });
+
+    return HttpResponse.json({
+      azureEvaluation: {
+        PronunciationAssessment: {
+          AccuracyScore: 76,
+          FluencyScore: 80,
+          ProsodyScore: 90,
+        },
+        UserResponse:
+          "Now it’s time for your local weather forecast. Tomorrow will be very sunny, warm, and breezy. However, after the weekend is over, the weather will become cloudy and much colder. While it’s still warm, make sure to enjoy the beautiful weather and plan all your outdoor activities.",
+        IssueWords: [
+          {
+            word: "forecast",
+            AccuracyScore: 30,
+            ErrorType: "Mispronunciation",
+            LowScorePhonemes: [
+              { phoneme: "f", AccuracyScore: 11 },
+              { phoneme: "ɔːr", AccuracyScore: 0 },
+              { phoneme: "k", AccuracyScore: 19 },
+              { phoneme: "æ", AccuracyScore: 29 },
+              { phoneme: "s", AccuracyScore: 40 },
+              { phoneme: "t", AccuracyScore: 30 },
+            ],
+          },
+          {
+            word: "breezy",
+            AccuracyScore: 72,
+            ErrorType: "None",
+            LowScorePhonemes: [
+              { phoneme: "b", AccuracyScore: 77 },
+              { phoneme: "r", AccuracyScore: 20 },
+              { phoneme: "iː", AccuracyScore: 18 },
+              { phoneme: "z", AccuracyScore: 65 },
+              { phoneme: "i", AccuracyScore: 60 },
+            ],
+          },
+          {
+            word: "sunny",
+            AccuracyScore: 63,
+            ErrorType: "Omission",
+            LowScorePhonemes: [],
+          },
+        ],
+      },
+      gptEvaluation: {
+        grammar: 80,
+        topic: 70,
+        vocabulary: 85,
+        suggestions: {
+          grammar:
+            "문법은 전반적으로 좋았으나 몇 가지 시제 오류가 있었습니다. 주제를 좀 더 구체적으로 표현해보세요.",
+          topic:
+            "질문에 대한 적절한 대답이 전혀 제공되지 않았습니다. 친구가 반려동물 입양에 대해 고려하고 있는 상황임에도 불구하고, 반려동물과 관련된 경험이나 의견이 아닌 전혀 다른 주제의 답변이 제공되었습니다. 질문의 맥락을 이해하고 답변을 구성하는 것이 필요합니다.",
+          vocabulary:
+            "사용된 어휘가 너무 일반적이고 주제에 적합하지 않습니다. 'Computer', 'rested', 'law' 와 같은 단어들은 해당 질문에 불필요하며, 반려동물과 관련된 어휘가 사용되어야 할 것입니다. 풍부하면서도 주제에 맞는 어휘 사용이 필요합니다.",
+          총평: "현재 제공된 답변은 질문과 관련성이 거의 없으며, 문장 구조 또한 크게 부정확합니다. 반려동물에 대한 경험을 묻는 질문에 답변하기 위해서는 보다 명확하고 관련성 있는 응답을 구성해야 하며, 문법적으로 정확한 문장을 구성해야 합니다. 주제와 관련 있는 어휘 사용 또한 필요합니다.",
+        },
+      },
+    });
+  }),
+
   http.get("/api/focused-learning/part5", async () => {
     return HttpResponse.json({
       questionPart5Id: 1,

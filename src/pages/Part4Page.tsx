@@ -1,19 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import * as S from "./Main.styled";
-import ScoreBody from "../components/ScoreBody";
-import MutipleReplyBody from "../components/MultipleReplyBox";
-import styled from "styled-components";
+import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
+import MultipleReplyBody from "../components/MultipleReplyBox";
 import SituationBody from "../components/SituationBody";
-import loadingGif from "../assets/img/loading.gif";
 import DirectionBody from "../components/DirectionBody";
+import axios from "axios";
+import styled from "styled-components";
+import * as S from "./Main.styled";
+import loadingGif from "../assets/img/loading.gif";
+import { encodeWAV } from "./encodeWAV";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
 // false : 배포 모드 (실제 시험 진행 방식)
 
-// const IS_DEV_MODE = true;
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
+//const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 21, // direction 단계
@@ -58,22 +60,59 @@ const Part4Page: React.FC = () => {
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
-  const partId = location.state?.partId || "Part4";
 
   const [currentNum, setCurrentNum] = useState(8); // 문제 번호 (8 → 9 → 10)
   const [remainingTime, setRemainingTime] = useState(21);
   const [stage, setStage] = useState<
-    "loading" | "direction" | "image" | "preparing" | "responding" | "scoring"
+    "loading" | "direction" | "situation" | "preparing" | "responding" | "scoring"
   >("loading"); // 현재 단계
 
   const [questionCount, setQuestionCount] = useState(1);
 
+  //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
   function increaseNum() {
     setCurrentNum((prevNum) => prevNum + 1);
   }
+
+  //recoding용
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  //문제 불러오기 용
+  const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
+  const [situationImage, setSituationImage] = useState(
+    initialQuestions?. situationImage|| null,
+  );
+  const [questionTextArray, setQuestionTextArray] = useState([
+    initialQuestions?.question8 || "",
+    initialQuestions?.question9 || "",
+    initialQuestions?.question10 || "",
+  ]);
+
+    //scoring 용
+    const [multipleReplies, setMultipleReplies] = useState<
+      Array<{
+        contentText: string;
+        wrongWordScore: Record<string, { score: number; errorType: string }>;
+        accuracy: number;
+        fluency: number;
+        prosody: number;
+        pronunciationScore: number;
+        voca: number;
+        grammar: number;
+        topic: number;
+        contentScore: number;
+        feedback: string;
+      }>
+    >([]);
+  
+    //useRef로 동기적 관리
+    const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
+    const currentNumRef = useRef(5);
 
   useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
@@ -97,7 +136,7 @@ const Part4Page: React.FC = () => {
             setRemainingTime(TIME_SETTINGS.image);
           }
           break;
-        case "image":
+        case "situation":
           setStage("preparing");
           setRemainingTime(TIME_SETTINGS.preparing); // 8번 문제 준비 시간
           break;
@@ -111,7 +150,10 @@ const Part4Page: React.FC = () => {
             setStage("preparing");
             setRemainingTime(TIME_SETTINGS.preparing); // 다음 문제 준비시간
           } else {
-            setStage("scoring"); // 마지막 문제(10번) 이후 채점 화면
+            setStage("loading");
+            setTimeout(() => {
+              setStage("scoring");
+            }, 10000);
 
             // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
             if (isMockExam) {
@@ -168,30 +210,158 @@ const Part4Page: React.FC = () => {
     }
   };
 
-  const nextQuestion = () => {
-    setStage("preparing");
-    setRemainingTime(TIME_SETTINGS.preparing);
-    setQuestionCount(questionCount + 1);
-    setCurrentNum(8); //파트별 집중학습 다음 문제 초기화용
+  const nextQuestion = async () => {
+    try {
+      // 새로운 문제 요청
+      const response = await axios.get(`/api/focused-learning/part4`);
+      const questionSet = response.data;
+      setSituationImage(questionSet.situationImage);
+      setQuestionTextArray([
+        questionSet.question8,
+        questionSet.question9,
+        questionSet.question10,
+      ]);
+      setStage("situation");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum(8);
+      setMultipleReplies([]);
+    } catch (error) {
+      console.error("Error fetching next set of questions:", error);
+    }
   };
 
-  const questionTextArray = [
-    {
-      id: 1,
-      value:
-        "When does the summer semester begin? What is the deadline for registration?",
-    },
-    {
-      id: 2,
-      value: "The prices are $80 for each course. Can you confirm that for me?",
-    },
-    {
-      id: 3,
-      value:
-        "I am specifically interested in learning about fusion cuisine. Can you give me all the details for the fusion courses?",
-    },
-  ];
-
+    // 녹음 시작
+    const startRecording = useCallback(async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaStreamRef.current = stream;
+  
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+  
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+  
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+  
+          const arrayBuffer = await blob.arrayBuffer();
+          const audioCtx = new AudioContext();
+          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+  
+          const wavBlob = encodeWAV(audioBuffer);
+          uploadAudio(wavBlob, questionPart4IdRef.current, currentNumRef.current);
+        };
+  
+        mediaRecorder.start();
+      } catch (error) {
+        console.error("마이크 접근 오류:", error);
+      }
+    }, []);
+  
+    // 녹음 중지
+    const stopRecording = useCallback(() => {
+      console.log("Stopping recording...");
+      mediaRecorderRef.current?.stop();
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    }, []);
+  
+    // 오디오 업로드
+    const uploadAudio = async (
+      blob: Blob,
+      questionId: number,
+      questionNo: number,
+    ) => {
+      const formData = new FormData();
+      formData.append("file", blob, "recording.wav");
+  
+      try {
+        const response = await axios.post(
+          `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
+          formData,
+        );
+        console.log("응답 데이터:", response.data);
+        const processedResponse = {
+          contentText: response.data.azureEvaluation.UserResponse,
+          wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
+            (
+              acc: Record<string, { score: number; errorType: string }>,
+              item: any,
+            ) => {
+              if (
+                item.ErrorType === "Mispronunciation" ||
+                item.ErrorType === "Omission" ||
+                item.ErrorType === "None"
+              ) {
+                acc[item.word.toLowerCase()] = {
+                  score: item.AccuracyScore,
+                  errorType: item.ErrorType,
+                };
+              }
+              return acc;
+            },
+            {} as Record<string, { score: number; errorType: string }>,
+          ),
+          accuracy: Math.round(
+            response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+          ),
+          fluency: Math.round(
+            response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+          ),
+          prosody: Math.round(
+            response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+          ),
+          pronunciationScore: Math.round(
+            [
+              response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+              response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+              response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+            ].reduce(
+              (sum, score, _, arr) =>
+                sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
+              0,
+            ),
+          ),
+          voca: Math.round(response.data.gptEvaluation.vocabulary),
+          grammar: Math.round(response.data.gptEvaluation.grammar),
+          topic: Math.round(response.data.gptEvaluation.topic),
+          contentScore: Math.round(
+            (response.data.gptEvaluation.vocabulary +
+              response.data.gptEvaluation.grammar +
+              response.data.gptEvaluation.topic) /
+              3,
+          ),
+          // feedback: response.data.gptEvaluation.suggestions,
+          feedback: [
+            response.data.gptEvaluation.suggestions.grammar,
+            response.data.gptEvaluation.suggestions.vocabulary,
+            response.data.gptEvaluation.suggestions.topic,
+            response.data.gptEvaluation.suggestions["총평"],
+          ].join("\n\n"),
+        };
+  
+        setMultipleReplies((prev) => {
+          return [...prev, processedResponse];
+        });
+      } catch (error) {
+        console.error("오디오 업로드 실패:", error);
+      }
+    };
+  
+    // stage가 responding일 때 녹음 시작 & 종료
+    useEffect(() => {
+      if (stage === "responding") {
+        startRecording();
+      } else {
+        stopRecording();
+      }
+    }, [stage, startRecording, stopRecording]);
+    
   if (stage === "loading")
     return (
       <div style={{ margin: "400px" }}>
@@ -216,8 +386,8 @@ const Part4Page: React.FC = () => {
         <SituationBody
           stage={stage}
           partNum={4}
-          imageSrc={"/src/assets/img/part4image.png"}
-          questionText={questionTextArray[currentNum - 8].value}
+          imageSrc={situationImage}
+          questionText={questionTextArray[currentNum - 8]}
           questionNum={currentNum}
           totalQuestions={11}
           fromPartSelect={fromPartSelect}
@@ -225,7 +395,7 @@ const Part4Page: React.FC = () => {
           partId={partId}
         />
       )}
-      {stage === "image" && (
+      {stage === "situation" && (
         <>
           <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
           <TimeInfoText>Preparation Time</TimeInfoText>
@@ -250,18 +420,25 @@ const Part4Page: React.FC = () => {
         <>
           {questionTextArray.map((q, index) => (
             <React.Fragment key={index}>
-              <MutipleReplyBody
+              <MultipleReplyBody
                 questionNum={8 + index}
-                questionText={q.value}
-                contentText="Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number."
+                questionText={q}
+                contentText={multipleReplies[index]?.contentText || ""}
                 isScoring={stage === "scoring"}
+                wrongWordScore={multipleReplies[index]?.wrongWordScore || {}}
+                feedback={multipleReplies[index]?.feedback || ""}
               />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
+              <ScoreBodyGeneral
+                pronunciationScore={
+                  multipleReplies[index]?.pronunciationScore || 0
+                }
+                accuracy={multipleReplies[index]?.accuracy || 0}
+                fluency={multipleReplies[index]?.fluency || 0}
+                prosody={multipleReplies[index]?.prosody || 0}
+                contentScore={multipleReplies[index]?.contentScore || 0}
+                voca={multipleReplies[index]?.voca || 0}
+                grammar={multipleReplies[index]?.grammar || 0}
+                topic={multipleReplies[index]?.topic || 0}
               />
             </React.Fragment>
           ))}
