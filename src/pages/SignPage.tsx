@@ -16,6 +16,7 @@ import {
   SecondaryArea,
 } from "./Sign.styled"; // 스타일 가져오기
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const SignIn: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -23,6 +24,7 @@ const SignIn: React.FC = () => {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [name, setName] = useState("");
+  const navigate = useNavigate();
 
   const handleSignUp = async () => {
     if (!email || !password || !passwordConfirm || !name) {
@@ -56,7 +58,38 @@ const SignIn: React.FC = () => {
     }
   };
 
-  const handleSignIn = async () => {};
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      alert("이메일과 비밀번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/auth/login", {
+        email,
+        password,
+      });
+
+      const { accessToken, refreshToken } = response.data;
+
+      // 토큰 저장
+      sessionStorage.setItem("accessToken", accessToken);
+      sessionStorage.setItem("refreshToken", refreshToken);
+      console.log(refreshToken);
+      console.log(accessToken);
+
+      alert("로그인 성공");
+
+      navigate("/");
+    } catch (error: any) {
+      console.error("로그인 실패:", error);
+      const msg =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message || error.message;
+      alert("로그인 실패: " + msg);
+    }
+  };
 
   const toggleSignUp = () => {
     setIsSignUp(!isSignUp);
