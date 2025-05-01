@@ -433,9 +433,9 @@ const Part1Page: React.FC = () => {
                   d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
                   fill="white"
                   stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>

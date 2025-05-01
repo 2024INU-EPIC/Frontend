@@ -64,7 +64,12 @@ const Part4Page: React.FC = () => {
   const [currentNum, setCurrentNum] = useState(8); // 문제 번호 (8 → 9 → 10)
   const [remainingTime, setRemainingTime] = useState(21);
   const [stage, setStage] = useState<
-    "loading" | "direction" | "situation" | "preparing" | "responding" | "scoring"
+    | "loading"
+    | "direction"
+    | "situation"
+    | "preparing"
+    | "responding"
+    | "scoring"
   >("loading"); // 현재 단계
 
   const [questionCount, setQuestionCount] = useState(1);
@@ -85,7 +90,7 @@ const Part4Page: React.FC = () => {
   //문제 불러오기 용
   const { initialQuestions, partId } = location.state || {}; // 전달된 데이터
   const [situationImage, setSituationImage] = useState(
-    initialQuestions?. situationImage|| null,
+    initialQuestions?.situationImage || null,
   );
   const [questionTextArray, setQuestionTextArray] = useState([
     initialQuestions?.question8 || "",
@@ -93,26 +98,26 @@ const Part4Page: React.FC = () => {
     initialQuestions?.question10 || "",
   ]);
 
-    //scoring 용
-    const [multipleReplies, setMultipleReplies] = useState<
-      Array<{
-        contentText: string;
-        wrongWordScore: Record<string, { score: number; errorType: string }>;
-        accuracy: number;
-        fluency: number;
-        prosody: number;
-        pronunciationScore: number;
-        voca: number;
-        grammar: number;
-        topic: number;
-        contentScore: number;
-        feedback: string;
-      }>
-    >([]);
-  
-    //useRef로 동기적 관리
-    const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
-    const currentNumRef = useRef(5);
+  //scoring 용
+  const [multipleReplies, setMultipleReplies] = useState<
+    Array<{
+      contentText: string;
+      wrongWordScore: Record<string, { score: number; errorType: string }>;
+      accuracy: number;
+      fluency: number;
+      prosody: number;
+      pronunciationScore: number;
+      voca: number;
+      grammar: number;
+      topic: number;
+      contentScore: number;
+      feedback: string;
+    }>
+  >([]);
+
+  //useRef로 동기적 관리
+  const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
+  const currentNumRef = useRef(5);
 
   useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
@@ -231,137 +236,137 @@ const Part4Page: React.FC = () => {
     }
   };
 
-    // 녹음 시작
-    const startRecording = useCallback(async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaStreamRef.current = stream;
-  
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
-  
-        mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            audioChunksRef.current.push(event.data);
-          }
-        };
-  
-        mediaRecorder.onstop = async () => {
-          const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-  
-          const arrayBuffer = await blob.arrayBuffer();
-          const audioCtx = new AudioContext();
-          const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-  
-          const wavBlob = encodeWAV(audioBuffer);
-          uploadAudio(wavBlob, questionPart4IdRef.current, currentNumRef.current);
-        };
-  
-        mediaRecorder.start();
-      } catch (error) {
-        console.error("마이크 접근 오류:", error);
-      }
-    }, []);
-  
-    // 녹음 중지
-    const stopRecording = useCallback(() => {
-      console.log("Stopping recording...");
-      mediaRecorderRef.current?.stop();
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    }, []);
-  
-    // 오디오 업로드
-    const uploadAudio = async (
-      blob: Blob,
-      questionId: number,
-      questionNo: number,
-    ) => {
-      const formData = new FormData();
-      formData.append("file", blob, "recording.wav");
-  
-      try {
-        const response = await axios.post(
-          `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
-          formData,
-        );
-        console.log("응답 데이터:", response.data);
-        const processedResponse = {
-          contentText: response.data.azureEvaluation.UserResponse,
-          wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
-            (
-              acc: Record<string, { score: number; errorType: string }>,
-              item: any,
-            ) => {
-              if (
-                item.ErrorType === "Mispronunciation" ||
-                item.ErrorType === "Omission" ||
-                item.ErrorType === "None"
-              ) {
-                acc[item.word.toLowerCase()] = {
-                  score: item.AccuracyScore,
-                  errorType: item.ErrorType,
-                };
-              }
-              return acc;
-            },
-            {} as Record<string, { score: number; errorType: string }>,
-          ),
-          accuracy: Math.round(
+  // 녹음 시작
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioCtx = new AudioContext();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        const wavBlob = encodeWAV(audioBuffer);
+        uploadAudio(wavBlob, questionPart4IdRef.current, currentNumRef.current);
+      };
+
+      mediaRecorder.start();
+    } catch (error) {
+      console.error("마이크 접근 오류:", error);
+    }
+  }, []);
+
+  // 녹음 중지
+  const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  // 오디오 업로드
+  const uploadAudio = async (
+    blob: Blob,
+    questionId: number,
+    questionNo: number,
+  ) => {
+    const formData = new FormData();
+    formData.append("file", blob, "recording.wav");
+
+    try {
+      const response = await axios.post(
+        `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
+        formData,
+      );
+      console.log("응답 데이터:", response.data);
+      const processedResponse = {
+        contentText: response.data.azureEvaluation.UserResponse,
+        wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
+          (
+            acc: Record<string, { score: number; errorType: string }>,
+            item: any,
+          ) => {
+            if (
+              item.ErrorType === "Mispronunciation" ||
+              item.ErrorType === "Omission" ||
+              item.ErrorType === "None"
+            ) {
+              acc[item.word.toLowerCase()] = {
+                score: item.AccuracyScore,
+                errorType: item.ErrorType,
+              };
+            }
+            return acc;
+          },
+          {} as Record<string, { score: number; errorType: string }>,
+        ),
+        accuracy: Math.round(
+          response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+        ),
+        fluency: Math.round(
+          response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+        ),
+        prosody: Math.round(
+          response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+        ),
+        pronunciationScore: Math.round(
+          [
             response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
-          ),
-          fluency: Math.round(
             response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
-          ),
-          prosody: Math.round(
             response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+          ].reduce(
+            (sum, score, _, arr) =>
+              sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
+            0,
           ),
-          pronunciationScore: Math.round(
-            [
-              response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
-              response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
-              response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
-            ].reduce(
-              (sum, score, _, arr) =>
-                sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
-              0,
-            ),
-          ),
-          voca: Math.round(response.data.gptEvaluation.vocabulary),
-          grammar: Math.round(response.data.gptEvaluation.grammar),
-          topic: Math.round(response.data.gptEvaluation.topic),
-          contentScore: Math.round(
-            (response.data.gptEvaluation.vocabulary +
-              response.data.gptEvaluation.grammar +
-              response.data.gptEvaluation.topic) /
-              3,
-          ),
-          // feedback: response.data.gptEvaluation.suggestions,
-          feedback: [
-            response.data.gptEvaluation.suggestions.grammar,
-            response.data.gptEvaluation.suggestions.vocabulary,
-            response.data.gptEvaluation.suggestions.topic,
-            response.data.gptEvaluation.suggestions["총평"],
-          ].join("\n\n"),
-        };
-  
-        setMultipleReplies((prev) => {
-          return [...prev, processedResponse];
-        });
-      } catch (error) {
-        console.error("오디오 업로드 실패:", error);
-      }
-    };
-  
-    // stage가 responding일 때 녹음 시작 & 종료
-    useEffect(() => {
-      if (stage === "responding") {
-        startRecording();
-      } else {
-        stopRecording();
-      }
-    }, [stage, startRecording, stopRecording]);
-    
+        ),
+        voca: Math.round(response.data.gptEvaluation.vocabulary),
+        grammar: Math.round(response.data.gptEvaluation.grammar),
+        topic: Math.round(response.data.gptEvaluation.topic),
+        contentScore: Math.round(
+          (response.data.gptEvaluation.vocabulary +
+            response.data.gptEvaluation.grammar +
+            response.data.gptEvaluation.topic) /
+            3,
+        ),
+        // feedback: response.data.gptEvaluation.suggestions,
+        feedback: [
+          response.data.gptEvaluation.suggestions.grammar,
+          response.data.gptEvaluation.suggestions.vocabulary,
+          response.data.gptEvaluation.suggestions.topic,
+          response.data.gptEvaluation.suggestions["총평"],
+        ].join("\n\n"),
+      };
+
+      setMultipleReplies((prev) => {
+        return [...prev, processedResponse];
+      });
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+    }
+  };
+
+  // stage가 responding일 때 녹음 시작 & 종료
+  useEffect(() => {
+    if (stage === "responding") {
+      startRecording();
+    } else {
+      stopRecording();
+    }
+  }, [stage, startRecording, stopRecording]);
+
   if (stage === "loading")
     return (
       <div style={{ margin: "400px" }}>
@@ -482,9 +487,9 @@ const Part4Page: React.FC = () => {
                   d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
                   fill="white"
                   stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>
