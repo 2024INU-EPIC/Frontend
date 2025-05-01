@@ -21,7 +21,7 @@ const TIME_SETTINGS = {
   responding: IS_DEV_MODE ? 5 : 30, // 답변 시간
 };
 
-type TimeIndicatorProps = { bgColor?: string };
+type TimeIndicatorProps = { $bgColor?: string };
 // type TipProps = { text: string };
 
 export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
@@ -38,7 +38,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   // props에 따라 배경색 변경. true이면
-  background-color: ${(props) => props.bgColor || "#ff7b7b"};
+  background-color: ${(props) => props.$bgColor || "#ff7b7b"};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -85,7 +85,7 @@ const Part2Page: React.FC = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
 
   //scoring 용
-  const [isSubmmitting, setIsSubmitting] = useState(true);
+  const [isSubmmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const [replyContent, setReplyContent] = useState<string>("");
   //useRef로 동기적 관리
@@ -117,8 +117,8 @@ const Part2Page: React.FC = () => {
           break;
         case "responding":
           if (fromPartSelect) {
-            setIsSubmitting(true);
-            setStage("scoring");
+            stopRecording();
+
             break;
           }
           if (currentNum < 4) {
@@ -286,11 +286,14 @@ const Part2Page: React.FC = () => {
         formData,
       );
       console.log("업로드 성공:", response.data);
-      setIsSubmitting(false);
+
       setResponse(response.data);
+      setIsSubmitting(false);
       setReplyContent(response.data.azureEvaluation.UserResponse);
+      setStage("scoring");
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -298,10 +301,8 @@ const Part2Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   const wrongWordScore =
     response?.azureEvaluation?.IssueWords?.reduce(
@@ -394,16 +395,15 @@ const Part2Page: React.FC = () => {
       )}
       {stage === "responding" && (
         <>
-          <TimeRemainingIndicator bgColor="#59BED4">
+          <TimeRemainingIndicator $bgColor="#59BED4">
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
-          {isSubmmitting === true && <StopTalkingModal />}
+          {isSubmmitting && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
         <>
-          {isSubmmitting === true && <StopTalkingModal />}
           <div
             className="midContainer"
             style={{ display: "flex", justifyContent: "space-between" }}
@@ -472,9 +472,9 @@ const Part2Page: React.FC = () => {
                       d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
                       fill="white"
                       stroke="white"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </button>

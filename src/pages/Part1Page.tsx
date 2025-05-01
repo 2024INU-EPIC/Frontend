@@ -1,4 +1,3 @@
-// TestPage.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
@@ -84,7 +83,7 @@ const Part1Page: React.FC = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
 
   //scoring 용
-  const [isSubmmitting, setIsSubmitting] = useState(true);
+  const [isSubmmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
 
   //useRef로 동기적 관리
@@ -112,24 +111,14 @@ const Part1Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
-          setIsSubmitting(false);
+          // setIsSubmitting(false);
           break;
         case "responding":
-          // setIsSubmitting(false);
           if (fromPartSelect) {
             // responding 시간 종료 시
-            setIsSubmitting(true);
-            setStage("scoring");
-
-            // setTimeout(() => {
-            //   setIsSubmitting(false);
-            //   setStage("scoring");
-            // }, 2000);
-
-            // if (response !== undefined) {
-            //   setIsSubmitting(true);
-            //   setStage("scoring");
-            // }
+            stopRecording();
+            // setIsSubmitting(true);
+            // setStage("scoring");
 
             break;
           }
@@ -275,6 +264,7 @@ const Part1Page: React.FC = () => {
 
   // 녹음 중지
   const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
     setIsSubmitting(true);
@@ -296,22 +286,22 @@ const Part1Page: React.FC = () => {
       );
 
       console.log("업로드 성공:", response.data);
-      setIsSubmitting(false);
+
       setResponse(response.data);
+      setIsSubmitting(false); // 모달 끄기
+      setStage("scoring");
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false); // 모달 끄기
     }
   };
 
   // stage가 responding일 때 녹음 시작 & 종료
-  // responding도 아니면서 preparing도 아니면 stopRecording. 즉, scoring으로 넘어가면 stopRecording
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else if (stage !== "preparing") {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   const wrongWordScore =
     response?.IssueWords?.reduce(
@@ -391,12 +381,11 @@ const Part1Page: React.FC = () => {
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
-          {isSubmmitting === true && <StopTalkingModal />}
+          {isSubmmitting && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
         <>
-          {isSubmmitting === true && <StopTalkingModal />}
           <ScoreBody
             totalScore={totalScore}
             accuracy={accuracy}

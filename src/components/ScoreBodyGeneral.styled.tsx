@@ -122,12 +122,12 @@ export const ScoreLabel = styled.div`
   }
 `;
 
-export const InfoTip = styled.div<{ syllable: number; line?: number }>`
+export const InfoTip = styled.div<{ $syllable: number; $line?: number }>`
   position: absolute;
 
   bottom: 200%;
   // 2음절짜리 점수면 길이가 더 짧으므로 left를 더 짧게 설정
-  left: ${(props) => (props.syllable == 2 ? "75%" : "87.5%")};
+  left: ${(props) => (props.$syllable == 2 ? "75%" : "87.5%")};
   transform: translateX(-52.5%); // 기존 -50%
   background-color: white;
 
@@ -143,7 +143,7 @@ export const InfoTip = styled.div<{ syllable: number; line?: number }>`
 
   width: 27.5rem; // 440px
   /* height: 6.25rem; // 100px */
-  height: ${(props) => (props.line === 3 ? "6.25rem" : "5rem")};
+  height: ${(props) => (props.$line === 3 ? "6.25rem" : "5rem")};
   border-radius: 1.25rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 

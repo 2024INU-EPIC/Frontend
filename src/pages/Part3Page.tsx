@@ -361,13 +361,13 @@ const Part3Page: React.FC = () => {
         ].join("\n\n"),
       };
 
-      setIsSubmitting(true);
-
       setMultipleReplies((prev) => {
         return [...prev, processedResponse];
       });
+      setIsSubmitting(true);
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(true);
     }
   };
 

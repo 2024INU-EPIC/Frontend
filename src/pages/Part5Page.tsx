@@ -20,7 +20,7 @@ const TIME_SETTINGS = {
   responding: IS_DEV_MODE ? 2 : 60, // 답변 시간.
 };
 
-type TimeIndicatorProps = { bgColor?: string };
+type TimeIndicatorProps = { $bgColor?: string };
 // type TipProps = { text: string };
 
 export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
@@ -37,7 +37,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   // props에 따라 배경색 변경. true이면
-  background-color: ${(props) => props.bgColor || "#ff7b7b"};
+  background-color: ${(props) => props.$bgColor || "#ff7b7b"};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -109,8 +109,7 @@ const Part5Page: React.FC = () => {
           setIsSubmitting(false);
           break;
         case "responding":
-          setStage("scoring");
-          setIsSubmitting(true);
+          stopRecording();
 
           // 실전 모의고사 모드에서는 자동으로 결과 페이지로 이동
           if (isMockExam) {
@@ -236,11 +235,15 @@ const Part5Page: React.FC = () => {
         formData,
       );
       console.log("업로드 성공:", response.data);
-      setIsSubmitting(false);
+
       setResponse(response.data);
+      setIsSubmitting(false);
+
       setReplyContent(response.data.azureEvaluation.UserResponse);
+      setStage("scoring");
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -248,10 +251,8 @@ const Part5Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else if (stage !== "preparing") {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   const wrongWordScore =
     response?.azureEvaluation?.IssueWords?.reduce(
@@ -355,16 +356,15 @@ const Part5Page: React.FC = () => {
       )}
       {stage === "responding" && (
         <>
-          <TimeRemainingIndicator bgColor="#59BED4">
+          <TimeRemainingIndicator $bgColor="#59BED4">
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
-          {isSubmmitting === true && <StopTalkingModal />}
+          {isSubmmitting && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
         <>
-          {isSubmmitting === true && <StopTalkingModal />}
           <ReplyBody
             text={replyContent}
             wrongWordScore={wrongWordScore}

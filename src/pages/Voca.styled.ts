@@ -247,12 +247,12 @@ export const ScoreArea = styled.div`
   font-weight: 700;
 `;
 
-export const ScoreText = styled.div<{ score?: number }>`
+export const ScoreText = styled.div<{ $score?: number }>`
   margin-bottom: 2rem;
   color: ${(props) => {
-    if (props.score !== undefined) {
-      if (props.score >= 80) return "#59BED4"; // 80~100
-      if (props.score >= 60) return "#FF9D00"; // 60~79
+    if (props.$score !== undefined) {
+      if (props.$score >= 80) return "#59BED4"; // 80~100
+      if (props.$score >= 60) return "#FF9D00"; // 60~79
       return "#FF5151"; // 0~59
     }
     return "black";

@@ -320,7 +320,7 @@ const VocaPage: React.FC = () => {
               <PracticeAfter>
                 <ScoreArea>
                   score
-                  <ScoreText score={82}>82</ScoreText>
+                  <ScoreText $score={82}>82</ScoreText>
                 </ScoreArea>
                 {cardClicked ? (
                   <SentenceDetail>Do you know where she lives?</SentenceDetail>
