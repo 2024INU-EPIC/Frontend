@@ -1,14 +1,28 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as S from "./Main.styled";
 import tLogo from "../assets/img/toeicLogo.svg";
 import tClip from "../assets/img/testClip.png";
 import pClip from "../assets/img/partClip.png";
 import wClip from "../assets/img/wordClip.png";
+import axios from "axios";
+import { useUserStore } from "../stores/userStore";
+import { useAuthStore } from "../stores/authStore";
 
 const Main: React.FC = () => {
   const targetRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { setUserInfo, name, level } = useUserStore();
+  const { userId, accessToken } = useAuthStore();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await axios.get(`/api/${userId}`, { headers: { Authorization: `Bearer ${accessToken}` }});
+      const { name, level } = response.data;
+      setUserInfo(name, level);
+    };
+    fetchUser();
+  }, [accessToken, setUserInfo, userId]);
 
   const scrollToSection = () => {
     if (targetRef.current) {
@@ -32,7 +46,7 @@ const Main: React.FC = () => {
     <S.mainContainer>
       <S.userRank>
         <img src={tLogo} alt="toeic speaking and writing tests" />
-        <S.userRankText>Audrey님의 등급 IM1</S.userRankText>
+        <S.userRankText>{name}님의 등급 {level}</S.userRankText>
       </S.userRank>
       <S.midContent>
         <S.learnStat>

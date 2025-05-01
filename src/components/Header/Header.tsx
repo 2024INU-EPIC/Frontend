@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import * as S from "./Header.styled";
 import Logo from "../../assets/img/logo.svg";
+import { useUserStore } from "../../stores/userStore";
 
 const Header: React.FC = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-
+  const { name } = useUserStore();
   const toggleDropdown = (isOpen: boolean) => {
     setDropdownOpen(isOpen);
   };
@@ -21,7 +22,7 @@ const Header: React.FC = () => {
 
       {/* 유저 정보 */}
       <S.UserContainer>
-        <S.UserName>Hi, Audrey! 😊</S.UserName>
+        <S.UserName>Hi, {name}! 😊</S.UserName>
         <S.UserIconContainer
           onMouseEnter={() => toggleDropdown(true)}
           onMouseLeave={() => toggleDropdown(false)}
