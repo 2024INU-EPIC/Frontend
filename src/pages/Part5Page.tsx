@@ -9,16 +9,18 @@ import DirectionBody from "../components/DirectionBody";
 import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
 
+import StopTalkingModal from "../components/StopTalkingModal";
+
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 2 : 13, // direction 단계
   preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
-  responding: IS_DEV_MODE ? 2 : 60, // 답변 시간.
+  responding: IS_DEV_MODE ? 5 : 60, // 답변 시간.
 };
 
-type TimeIndicatorProps = { bgColor?: string };
+type TimeIndicatorProps = { $bgColor?: string };
 // type TipProps = { text: string };
 
 export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
@@ -35,7 +37,7 @@ export const TimeRemainingIndicator = styled.div<TimeIndicatorProps>`
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
 
   // props에 따라 배경색 변경. true이면
-  background-color: ${(props) => props.bgColor || "#ff7b7b"};
+  background-color: ${(props) => props.$bgColor || "#ff7b7b"};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -81,13 +83,14 @@ const Part5Page: React.FC = () => {
   );
 
   //scoring 용
+  const [isSubmmitting, setIsSubmitting] = useState(true);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
   const [replyContent, setReplyContent] = useState<string>("");
 
   //useRef로 동기적 관리
   const questionPart5IdRef = useRef<number>(initialQuestions?.questionPart5Id);
   const currentNum = 11;
-  
+
   useEffect(() => {
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
@@ -103,9 +106,10 @@ const Part5Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
+          setIsSubmitting(false);
           break;
         case "responding":
-          setStage("scoring");
+          stopRecording();
 
           // 실전 모의고사 모드에서는 자동으로 결과 페이지로 이동
           if (isMockExam) {
@@ -213,6 +217,7 @@ const Part5Page: React.FC = () => {
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true);
   }, []);
 
   // 오디오 업로드
@@ -230,10 +235,15 @@ const Part5Page: React.FC = () => {
         formData,
       );
       console.log("업로드 성공:", response.data);
+
       setResponse(response.data);
+      setIsSubmitting(false);
+
       setReplyContent(response.data.azureEvaluation.UserResponse);
+      setStage("scoring");
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -241,10 +251,8 @@ const Part5Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else if (stage !== "preparing") {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   const wrongWordScore =
     response?.azureEvaluation?.IssueWords?.reduce(
@@ -348,10 +356,11 @@ const Part5Page: React.FC = () => {
       )}
       {stage === "responding" && (
         <>
-          <TimeRemainingIndicator bgColor="#59BED4">
+          <TimeRemainingIndicator $bgColor="#59BED4">
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
@@ -412,9 +421,9 @@ const Part5Page: React.FC = () => {
                   d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
                   fill="white"
                   stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>

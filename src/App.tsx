@@ -38,6 +38,14 @@ const App: React.FC = () => {
           }
         />
         <Route
+          path="/temppart3"
+          element={
+            <MainLayout>
+              <TempPart1Page part={3} />
+            </MainLayout>
+          }
+        />
+        <Route
           path="/temppart5"
           element={
             <MainLayout>

@@ -12,6 +12,9 @@ export const handlers = [
     console.log("questionId:", questionId);
     console.log("questionNo:", questionNo);
 
+    // 🕒 3초 지연
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     if (!(audioFile instanceof File)) {
       return HttpResponse.json(
         { error: "Invalid audio file" },
