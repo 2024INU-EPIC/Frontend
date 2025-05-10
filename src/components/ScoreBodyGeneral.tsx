@@ -85,7 +85,7 @@ const ScoreBodyGeneral: React.FC<ScoreProps> = ({
             <ScoreLabel>
               <p>정확도 점수</p>
               <InfoImg src={infoIcon} />
-              <InfoTip syllable={3} line={3}>
+              <InfoTip $syllable={3} $line={3}>
                 발음정확도. 음소가 원어민의 발음과 얼마나 일치하는지 나타냅니다.
                 단어 및 전체 텍스트 정확도 점수는 음소 수준 정확도 점수에서
                 집계됩니다.
@@ -111,7 +111,7 @@ const ScoreBodyGeneral: React.FC<ScoreProps> = ({
             <ScoreLabel>
               <p>유창성 점수</p>
               <InfoImg src={infoIcon} />
-              <InfoTip syllable={3}>
+              <InfoTip $syllable={3}>
                 주어진 음성의 유창성. 유창성은 원어민이 단어 사이에 묵음
                 나누기를 사용하는 것과 그 말이 얼마나 일치하는지 나타냅니다.
               </InfoTip>
@@ -136,7 +136,7 @@ const ScoreBodyGeneral: React.FC<ScoreProps> = ({
             <ScoreLabel>
               <p>운율 점수</p>
               <InfoImg src={infoIcon} />
-              <InfoTip syllable={2}>
+              <InfoTip $syllable={2}>
                 지정된 음성의 운율 체계입니다. 운율 체계는 스트레스, 음조,
                 말하기 속도 및 발음을 포함하여 지정된 음성의 특성을 나타냅니다.
               </InfoTip>
@@ -176,7 +176,7 @@ const ScoreBodyGeneral: React.FC<ScoreProps> = ({
             <ScoreLabel>
               <p>어휘 점수</p>
               <InfoImg src={infoIcon} />
-              <InfoTip syllable={2}>
+              <InfoTip $syllable={2}>
                 어휘 사용의 숙련도는 화자의 효과적인 단어 사용으로 평가되며,
                 단어가 문맥에 따라 생각을 표현하는 데 얼마나 적합한지
                 평가합니다.
@@ -202,7 +202,7 @@ const ScoreBodyGeneral: React.FC<ScoreProps> = ({
             <ScoreLabel>
               <p>문법 점수</p>
               <InfoImg src={infoIcon} />
-              <InfoTip syllable={2}>
+              <InfoTip $syllable={2}>
                 문법 사용의 정확성에 대한 숙련도. 문법 오류는 적절한 문법 사용
                 수준과 어휘를 통합하여 공동으로 평가합니다.
               </InfoTip>
@@ -227,7 +227,7 @@ const ScoreBodyGeneral: React.FC<ScoreProps> = ({
             <ScoreLabel>
               <p>주제 점수</p>
               <InfoImg src={infoIcon} />
-              <InfoTip syllable={2}>
+              <InfoTip $syllable={2}>
                 {/* 화자의 생각과 아이디어를 효과적으로 표현하는 능력과 <br />
                 주제에 참여하는 능력에 대한 인사이트를 제공하는 주제에 대한 이해
                 및 참여 수준으로 평가합니다. */}

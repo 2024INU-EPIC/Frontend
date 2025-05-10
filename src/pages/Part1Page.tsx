@@ -1,4 +1,3 @@
-// TestPage.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
@@ -10,13 +9,15 @@ import styled from "styled-components";
 import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
 
+import StopTalkingModal from "../components/StopTalkingModal";
+
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 13, // direction 단계
   preparing: IS_DEV_MODE ? 3 : 45, // 문제 준비 시간
-  responding: IS_DEV_MODE ? 2 : 45, // 답변 시간. Part 1은 문제별로 답변 시간이 같음
+  responding: IS_DEV_MODE ? 15 : 45, // 답변 시간. Part 1은 문제별로 답변 시간이 같음
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -82,6 +83,7 @@ const Part1Page: React.FC = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
 
   //scoring 용
+  const [isSubmmitting, setIsSubmitting] = useState(false);
   const [response, setResponse] = useState<any>(null); // API 응답 저장
 
   //useRef로 동기적 관리
@@ -109,12 +111,19 @@ const Part1Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
+          // setIsSubmitting(false);
           break;
         case "responding":
           if (fromPartSelect) {
-            setStage("scoring");
+            // responding 시간 종료 시
+            stopRecording();
+            // setIsSubmitting(true);
+            // setStage("scoring");
+
             break;
           }
+
+          // 실전 모의고사
           if (currentNum < 2) {
             increaseNum();
             setStage("preparing");
@@ -255,8 +264,10 @@ const Part1Page: React.FC = () => {
 
   // 녹음 중지
   const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true);
   }, []);
 
   // 오디오 업로드
@@ -273,10 +284,15 @@ const Part1Page: React.FC = () => {
         `/api/upload-audio/part1?questionId=${questionId}&questionNo=${questionNo}`,
         formData,
       );
+
       console.log("업로드 성공:", response.data);
+
       setResponse(response.data);
+      setIsSubmitting(false); // 모달 끄기
+      setStage("scoring");
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false); // 모달 끄기
     }
   };
 
@@ -284,10 +300,8 @@ const Part1Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else if (stage !== "preparing") {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   const wrongWordScore =
     response?.IssueWords?.reduce(
@@ -367,6 +381,7 @@ const Part1Page: React.FC = () => {
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
           </TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting && <StopTalkingModal />}
         </>
       )}
       {stage === "scoring" && !isMockExam && (
@@ -418,9 +433,9 @@ const Part1Page: React.FC = () => {
                   d="M12 21.5L21 12L12 2.5V8.5H3V15.5H12V21.5Z"
                   fill="white"
                   stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </button>
