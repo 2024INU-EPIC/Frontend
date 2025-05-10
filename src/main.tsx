@@ -5,7 +5,8 @@ import App from "./App";
 import isPropValid from "@emotion/is-prop-valid";
 import { StyleSheetManager } from "styled-components";
 
-// const useMsw = true;
+
+//const useMsw = true;
 const useMsw = false;
 async function enableMocking() {
   if (process.env.NODE_ENV === "development" && useMsw) {
