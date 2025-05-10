@@ -79,7 +79,11 @@ const Part4Page: React.FC = () => {
   const hasPlayedRef = useRef(false);
 
   function increaseNum() {
-    setCurrentNum((prevNum) => prevNum + 1);
+    setCurrentNum((prev) => {
+      const next = prev + 1;
+      currentNumRef.current = next;
+      return next;
+    });
   }
 
   //recoding용
@@ -117,7 +121,7 @@ const Part4Page: React.FC = () => {
 
   //useRef로 동기적 관리
   const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
-  const currentNumRef = useRef(5);
+  const currentNumRef = useRef<number>(currentNum); // ← currentNum(8)과 동기화
 
   useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
@@ -217,20 +221,30 @@ const Part4Page: React.FC = () => {
 
   const nextQuestion = async () => {
     try {
-      // 새로운 문제 요청
       const response = await axios.get(`/api/focused-learning/part4`);
       const questionSet = response.data;
+
+      // 3-1) 새로 받아온 문제 ID도 ref에 저장
+      questionPart4IdRef.current = questionSet.questionPart4Id;
+
+      // 3-2) 텍스트/이미지 state 갱신
       setSituationImage(questionSet.situationImage);
       setQuestionTextArray([
         questionSet.question8,
         questionSet.question9,
         questionSet.question10,
       ]);
-      setStage("situation");
-      setRemainingTime(TIME_SETTINGS.preparing);
+
+      // 3-3) state 초기화
       setQuestionCount((prev) => prev + 1);
-      setCurrentNum(8);
       setMultipleReplies([]);
+
+      // 3-4) state와 ref 모두 8로 리셋
+      setCurrentNum(8);
+      currentNumRef.current = 8;
+
+      setStage("situation");
+      setRemainingTime(TIME_SETTINGS.image);
     } catch (error) {
       console.error("Error fetching next set of questions:", error);
     }
