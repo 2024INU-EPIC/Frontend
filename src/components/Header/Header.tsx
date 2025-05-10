@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as S from "./Header.styled";
 import Logo from "../../assets/img/logo.svg";
+import axios from "axios";
 import { useUserStore } from "../../stores/userStore";
+import { useAuthStore } from "../../stores/authStore";
 
 const Header: React.FC = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -10,7 +12,21 @@ const Header: React.FC = () => {
   const toggleDropdown = (isOpen: boolean) => {
     setDropdownOpen(isOpen);
   };
+  const navigate = useNavigate();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const clearUser = useUserStore((state) => state.clearUser);
 
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/auth/logout");
+      sessionStorage.clear();
+      clearAuth();
+      clearUser();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
     <S.HeaderContainer>
       {/* 로고 */}
@@ -33,7 +49,7 @@ const Header: React.FC = () => {
           {isDropdownOpen && (
             <S.DropdownMenu>
               <S.DropdownItem href="/mypage">My Page</S.DropdownItem>
-              <S.DropdownItem href="/signout">Sign Out</S.DropdownItem>
+              <S.DropdownItem onClick={handleLogout}>Sign Out</S.DropdownItem>
               <S.DropdownItem href="/aboutus">About Us</S.DropdownItem>
             </S.DropdownMenu>
           )}

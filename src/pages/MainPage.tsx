@@ -17,12 +17,18 @@ const Main: React.FC = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await axios.get(`/api/${userId}`, { headers: { Authorization: `Bearer ${accessToken}` }});
+      if (!userId) {
+        navigate("/login");
+        return;
+      }
+      const response = await axios.get(`/api/${userId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const { name, level } = response.data;
       setUserInfo(name, level);
     };
     fetchUser();
-  }, [accessToken, setUserInfo, userId]);
+  }, [accessToken, navigate, setUserInfo, userId]);
 
   const scrollToSection = () => {
     if (targetRef.current) {
@@ -46,7 +52,9 @@ const Main: React.FC = () => {
     <S.mainContainer>
       <S.userRank>
         <img src={tLogo} alt="toeic speaking and writing tests" />
-        <S.userRankText>{name}님의 등급 {level}</S.userRankText>
+        <S.userRankText>
+          {name}님의 등급 {level}
+        </S.userRankText>
       </S.userRank>
       <S.midContent>
         <S.learnStat>

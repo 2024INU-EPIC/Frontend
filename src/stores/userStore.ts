@@ -4,6 +4,7 @@ interface UserState {
   name: string;
   level: string | null;
   setUserInfo: (name: string, level: string | null) => void;
+  clearUser: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -14,4 +15,5 @@ export const useUserStore = create<UserState>((set) => ({
       name,
       level: level ?? "미정",
     }),
+  clearUser: () => set({ name: "", level: "미정" }),
 }));
