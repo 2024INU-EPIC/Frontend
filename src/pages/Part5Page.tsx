@@ -17,7 +17,7 @@ const IS_DEV_MODE = true;
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 2 : 13, // direction 단계
   preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
-  responding: IS_DEV_MODE ? 2 : 60, // 답변 시간.
+  responding: IS_DEV_MODE ? 5 : 60, // 답변 시간.
 };
 
 type TimeIndicatorProps = { $bgColor?: string };

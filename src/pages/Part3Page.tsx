@@ -120,7 +120,12 @@ const Part3Page: React.FC = () => {
   const currentNumRef = useRef(5);
 
   function increaseNum() {
-    setCurrentNum((prevNum) => prevNum + 1);
+    // setCurrentNum((prevNum) => prevNum + 1);
+    setCurrentNum((prev) => {
+      const next = prev + 1;
+      currentNumRef.current = next;
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -155,28 +160,7 @@ const Part3Page: React.FC = () => {
           setIsSubmitting(false);
           break;
         case "responding":
-          if (currentNum < 7) {
-            increaseNum();
-            setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing);
-          } else {
-            setIsSubmitting(true);
-            setStage("scoring");
-            // setStage("loading");
-            // setTimeout(() => {
-            //   setIsSubmitting(true);
-            //   setStage("scoring");
-            // }, 10000);
-
-            // setStage("scoring");
-
-            // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
-            if (isMockExam) {
-              setTimeout(() => {
-                navigate("/part4?mockExam=true"); // 7번 문제 완료 후 Part4로 이동
-              }, 0); //  딜레이없이 바로 이동
-            }
-          }
+          stopRecording(); // 녹음 중지 및 업로드 시작
           break;
         default:
           break;
@@ -224,27 +208,49 @@ const Part3Page: React.FC = () => {
       console.log("Audio is not allowed to play after direction stage.");
     }
   };
-
   const nextQuestion = async () => {
-    try {
-      // 새로운 문제 요청
-      const response = await axios.get(`/api/focused-learning/part3`);
-      const questionSet = response.data;
-      setSituationText(questionSet.situationText);
-      setQuestionTextArray([
-        questionSet.question5,
-        questionSet.question6,
-        questionSet.question7,
-      ]);
-      setStage("situation");
-      setRemainingTime(TIME_SETTINGS.preparing);
-      setQuestionCount((prev) => prev + 1);
-      setCurrentNum(5);
-      setMultipleReplies([]);
-    } catch (error) {
-      console.error("Error fetching next set of questions:", error);
-    }
+    const { questionPart3Id, situationText, question5, question6, question7 } =
+      (await axios.get(`/api/focused-learning/part3`)).data;
+
+    // ① 문제 ID 갱신
+    questionPart3IdRef.current = questionPart3Id;
+
+    // ② 문항 텍스트 갱신
+    setSituationText(situationText);
+    setQuestionTextArray([question5, question6, question7]);
+
+    // ③ state reset
+    setQuestionCount((c) => c + 1);
+    setMultipleReplies([]);
+
+    // ④ 번호도 반드시 ref와 함께 초기화
+    setCurrentNum(5);
+    currentNumRef.current = 5;
+
+    // ⑤ 다음 단계 진입
+    setStage("situation");
+    setRemainingTime(TIME_SETTINGS.situation);
   };
+  // const nextQuestion = async () => {
+  //   try {
+  //     // 새로운 문제 요청
+  //     const response = await axios.get(`/api/focused-learning/part3`);
+  //     const questionSet = response.data;
+  //     setSituationText(questionSet.situationText);
+  //     setQuestionTextArray([
+  //       questionSet.question5,
+  //       questionSet.question6,
+  //       questionSet.question7,
+  //     ]);
+  //     setStage("situation");
+  //     setRemainingTime(TIME_SETTINGS.preparing);
+  //     setQuestionCount((prev) => prev + 1);
+  //     setCurrentNum(5);
+  //     setMultipleReplies([]);
+  //   } catch (error) {
+  //     console.error("Error fetching next set of questions:", error);
+  //   }
+  // };
 
   // 녹음 시작
   const startRecording = useCallback(async () => {
@@ -262,6 +268,16 @@ const Part3Page: React.FC = () => {
         }
       };
 
+      // mediaRecorder.onstop = async () => {
+      //   const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+      //   const arrayBuffer = await blob.arrayBuffer();
+      //   const audioCtx = new AudioContext();
+      //   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+      //   const wavBlob = encodeWAV(audioBuffer);
+      //   uploadAudio(wavBlob, questionPart3IdRef.current, currentNumRef.current);
+      // };
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
 
@@ -270,7 +286,11 @@ const Part3Page: React.FC = () => {
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
         const wavBlob = encodeWAV(audioBuffer);
-        uploadAudio(wavBlob, questionPart3IdRef.current, currentNumRef.current);
+        await uploadAudio(
+          wavBlob,
+          questionPart3IdRef.current,
+          currentNumRef.current,
+        );
       };
 
       mediaRecorder.start();
@@ -284,10 +304,9 @@ const Part3Page: React.FC = () => {
     console.log("Stopping recording...");
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    setIsSubmitting(true);
+    setIsSubmitting(true); // StopTalkingModal 표시
   }, []);
 
-  // 오디오 업로드
   const uploadAudio = async (
     blob: Blob,
     questionId: number,
@@ -301,14 +320,13 @@ const Part3Page: React.FC = () => {
         `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
         formData,
       );
-      console.log("응답 데이터:", response.data);
+
+      console.log("오디오 업로드 성공:", response.data);
+
       const processedResponse = {
         contentText: response.data.azureEvaluation.UserResponse,
         wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
-          (
-            acc: Record<string, { score: number; errorType: string }>,
-            item: any,
-          ) => {
+          (acc, item) => {
             if (
               item.ErrorType === "Mispronunciation" ||
               item.ErrorType === "Omission" ||
@@ -321,7 +339,7 @@ const Part3Page: React.FC = () => {
             }
             return acc;
           },
-          {} as Record<string, { score: number; errorType: string }>,
+          {},
         ),
         accuracy: Math.round(
           response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
@@ -352,7 +370,6 @@ const Part3Page: React.FC = () => {
             response.data.gptEvaluation.topic) /
             3,
         ),
-        // feedback: response.data.gptEvaluation.suggestions,
         feedback: [
           response.data.gptEvaluation.suggestions.grammar,
           response.data.gptEvaluation.suggestions.vocabulary,
@@ -361,13 +378,25 @@ const Part3Page: React.FC = () => {
         ].join("\n\n"),
       };
 
-      setMultipleReplies((prev) => {
-        return [...prev, processedResponse];
-      });
-      setIsSubmitting(true);
+      setMultipleReplies((prevReplies) => [
+        ...prevReplies,
+        processedResponse, // 새 응답 데이터를 이전 응답 배열에 추가
+      ]);
+
+      setIsSubmitting(false); // StopTalkingModal 닫기
+
+      // 다음 단계로 진행
+      if (currentNumRef.current < 7) {
+        increaseNum();
+        setStage("preparing");
+        setRemainingTime(TIME_SETTINGS.preparing);
+      } else {
+        console.log("모든 문항 완료, 결과 화면으로 이동");
+        setStage("scoring"); // 모든 문항 완료 후 결과 화면으로 이동
+      }
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
-      setIsSubmitting(true);
+      setIsSubmitting(false);
     }
   };
 
@@ -375,10 +404,8 @@ const Part3Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   if (stage === "loading")
     return (
