@@ -1,13 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
+
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import MultipleReplyBody from "../components/MultipleReplyBox";
 import SituationBody from "../components/SituationBody";
 import DirectionBody from "../components/DirectionBody";
-import axios from "axios";
+import StopTalkingModal from "../components/StopTalkingModal";
+
 import styled from "styled-components";
 import * as S from "./Main.styled";
 import loadingGif from "../assets/img/loading.gif";
+
 import { encodeWAV } from "./encodeWAV";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
@@ -23,7 +27,7 @@ const TIME_SETTINGS = {
   preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
   responding: (
     questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
-  ) => (IS_DEV_MODE ? 1 : questionNum === 10 ? 30 : 15),
+  ) => (IS_DEV_MODE ? 10 : questionNum === 10 ? 30 : 15),
 };
 
 type TimeIndicatorProps = { bgColor?: string };
@@ -71,20 +75,11 @@ const Part4Page: React.FC = () => {
     | "responding"
     | "scoring"
   >("loading"); // 현재 단계
-
   const [questionCount, setQuestionCount] = useState(1);
 
   //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
-
-  function increaseNum() {
-    setCurrentNum((prev) => {
-      const next = prev + 1;
-      currentNumRef.current = next;
-      return next;
-    });
-  }
 
   //recoding용
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -118,10 +113,19 @@ const Part4Page: React.FC = () => {
       feedback: string;
     }>
   >([]);
+  const [isSubmmitting, setIsSubmitting] = useState(true);
 
   //useRef로 동기적 관리
   const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
   const currentNumRef = useRef<number>(currentNum); // ← currentNum(8)과 동기화
+
+  function increaseNum() {
+    setCurrentNum((prev) => {
+      const next = prev + 1;
+      currentNumRef.current = next;
+      return next;
+    });
+  }
 
   useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
@@ -152,25 +156,18 @@ const Part4Page: React.FC = () => {
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 10번 문제만 30초, 나머지는 15초
+          setIsSubmitting(false);
           break;
         case "responding":
-          if (currentNum < 10) {
-            increaseNum();
-            setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing); // 다음 문제 준비시간
-          } else {
-            setStage("loading");
-            setTimeout(() => {
-              setStage("scoring");
-            }, 10000);
+          stopRecording(); // 녹음 중지 및 업로드 시작
 
-            // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
-            if (isMockExam) {
-              setTimeout(() => {
-                navigate("/part5?mockExam=true"); // 7번 문제 완료 후 Part4로 이동
-              }, 0); //  딜레이없이 바로 이동
-            }
-          }
+          // // 실전 모의고사 모드에서는 자동으로 Part4 페이지로 이동
+          // if (isMockExam) {
+          //   setTimeout(() => {
+          //     navigate("/part5?mockExam=true"); // 7번 문제 완료 후 Part4로 이동
+          //   }, 0); //  딜레이없이 바로 이동
+          // }
+
           break;
         default:
           break;
@@ -220,34 +217,37 @@ const Part4Page: React.FC = () => {
   };
 
   const nextQuestion = async () => {
-    try {
-      const response = await axios.get(`/api/focused-learning/part4`);
-      const questionSet = response.data;
+    const {
+      questionPart4Id,
+      situationImage,
+      question8,
+      quesiton9,
+      question10,
+    } = (await axios.get(`/api/focused-learning/part4`)).data;
 
-      // 3-1) 새로 받아온 문제 ID도 ref에 저장
-      questionPart4IdRef.current = questionSet.questionPart4Id;
+    // 문제 id 갱신
+    questionPart4IdRef.current = questionPart4Id;
 
-      // 3-2) 텍스트/이미지 state 갱신
-      setSituationImage(questionSet.situationImage);
-      setQuestionTextArray([
-        questionSet.question8,
-        questionSet.question9,
-        questionSet.question10,
-      ]);
+    // 문항 이미지 갱신
+    setSituationImage(situationImage);
+    setQuestionTextArray([question8, quesiton9, question10]);
 
-      // 3-3) state 초기화
-      setQuestionCount((prev) => prev + 1);
-      setMultipleReplies([]);
+    // state 초기화
+    setQuestionCount((prev) => prev + 1);
+    setMultipleReplies([]);
 
-      // 3-4) state와 ref 모두 8로 리셋
-      setCurrentNum(8);
-      currentNumRef.current = 8;
+    // 번호도 ref와 함께 초기화
+    setCurrentNum(8);
+    currentNumRef.current = 8;
 
-      setStage("situation");
-      setRemainingTime(TIME_SETTINGS.image);
-    } catch (error) {
-      console.error("Error fetching next set of questions:", error);
-    }
+    // 다음 단계 진입
+    setStage("situation");
+    setRemainingTime(TIME_SETTINGS.image);
+
+    // try {
+    // } catch (error) {
+    //   console.error("Error fetching next set of questions:", error);
+    // }
   };
 
   // 녹음 시작
@@ -274,7 +274,11 @@ const Part4Page: React.FC = () => {
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
         const wavBlob = encodeWAV(audioBuffer);
-        uploadAudio(wavBlob, questionPart4IdRef.current, currentNumRef.current);
+        await uploadAudio(
+          wavBlob,
+          questionPart4IdRef.current,
+          currentNumRef.current,
+        );
       };
 
       mediaRecorder.start();
@@ -288,9 +292,9 @@ const Part4Page: React.FC = () => {
     console.log("Stopping recording...");
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true); // StopTalkingModal 표시
   }, []);
 
-  // 오디오 업로드
   const uploadAudio = async (
     blob: Blob,
     questionId: number,
@@ -301,17 +305,16 @@ const Part4Page: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
+        `/api/upload-audio/part4?questionId=${questionId}&questionNo=${questionNo}`,
         formData,
       );
-      console.log("응답 데이터:", response.data);
+
+      console.log("오디오 업로드 성공:", response.data);
+
       const processedResponse = {
         contentText: response.data.azureEvaluation.UserResponse,
         wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
-          (
-            acc: Record<string, { score: number; errorType: string }>,
-            item: any,
-          ) => {
+          (acc, item) => {
             if (
               item.ErrorType === "Mispronunciation" ||
               item.ErrorType === "Omission" ||
@@ -324,7 +327,7 @@ const Part4Page: React.FC = () => {
             }
             return acc;
           },
-          {} as Record<string, { score: number; errorType: string }>,
+          {},
         ),
         accuracy: Math.round(
           response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
@@ -355,7 +358,6 @@ const Part4Page: React.FC = () => {
             response.data.gptEvaluation.topic) /
             3,
         ),
-        // feedback: response.data.gptEvaluation.suggestions,
         feedback: [
           response.data.gptEvaluation.suggestions.grammar,
           response.data.gptEvaluation.suggestions.vocabulary,
@@ -364,11 +366,25 @@ const Part4Page: React.FC = () => {
         ].join("\n\n"),
       };
 
-      setMultipleReplies((prev) => {
-        return [...prev, processedResponse];
-      });
+      setMultipleReplies((prevReplies) => [
+        ...prevReplies,
+        processedResponse, // 새 응답 데이터를 이전 응답 배열에 추가
+      ]);
+
+      setIsSubmitting(false); // StopTalkingModal 닫기
+
+      // 다음 단계로 진행
+      if (currentNumRef.current < 10) {
+        increaseNum();
+        setStage("preparing");
+        setRemainingTime(TIME_SETTINGS.preparing);
+      } else {
+        console.log("모든 문항 완료, 결과 화면으로 이동");
+        setStage("scoring"); // 모든 문항 완료 후 결과 화면으로 이동
+      }
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false);
     }
   };
 
@@ -376,10 +392,8 @@ const Part4Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       startRecording();
-    } else {
-      stopRecording();
     }
-  }, [stage, startRecording, stopRecording]);
+  }, [stage, startRecording]);
 
   if (stage === "loading")
     return (
@@ -432,11 +446,13 @@ const Part4Page: React.FC = () => {
         <>
           <TimeRemainingIndicator bgColor="#59BED4">{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
           <TimeInfoText>Response Time</TimeInfoText>
+          {isSubmmitting === true && <StopTalkingModal />}
         </>
       )}
 
       {stage === "scoring" && !isMockExam && (
         <>
+          {isSubmmitting === true && <StopTalkingModal />}
           {questionTextArray.map((q, index) => (
             <React.Fragment key={index}>
               <MultipleReplyBody
