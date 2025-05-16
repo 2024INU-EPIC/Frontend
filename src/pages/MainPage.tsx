@@ -37,7 +37,8 @@ const Main: React.FC = () => {
   };
 
   const handleMockClick = () => {
-    navigate("/part1?mockExam=true");
+    //navigate("/part1?mockExam=true");
+    navigate("/mock");
   };
 
   const handlePartClick = () => {
