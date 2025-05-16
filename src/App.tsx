@@ -16,6 +16,7 @@ import Part5Page from "./pages/Part5Page";
 import TestResultPage from "./pages/TestResult";
 import TempPart1Page from "./pages/TempPart1Page";
 import TempPart5Page from "./pages/TempPart5Page";
+import MockDirectionPage from "./pages/MockDirectionPage";
 
 const App: React.FC = () => {
   return (
@@ -138,6 +139,14 @@ const App: React.FC = () => {
           element={
             <MainLayout>
               <OnboardingPage />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/mock"
+          element={
+            <MainLayout>
+              <MockDirectionPage />
             </MainLayout>
           }
         />
