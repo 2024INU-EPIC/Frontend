@@ -5,8 +5,10 @@ import {
   MainContainer,
   LearnButton,
 } from "./MockDirection.styled";
+import { useNavigate } from "react-router-dom";
 
 const MockDirectionPage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <MainContainer>
       <h1>TOEIC Speaking Test Directions</h1>
@@ -80,7 +82,7 @@ const MockDirectionPage: React.FC = () => {
           according to the directions.
         </p>
       </DirectionContainer>
-      <LearnButton>
+      <LearnButton onClick={() => navigate("/part1?mockExam=true")}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="40"

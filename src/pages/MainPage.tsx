@@ -8,6 +8,7 @@ import wClip from "../assets/img/wordClip.png";
 import axios from "axios";
 import { useUserStore } from "../stores/userStore";
 import { useAuthStore } from "../stores/authStore";
+import { useMockTestStore } from "../stores/MockTestStore";
 
 const Main: React.FC = () => {
   const targetRef = useRef<HTMLDivElement>(null);
@@ -36,9 +37,25 @@ const Main: React.FC = () => {
     }
   };
 
-  const handleMockClick = () => {
-    //navigate("/part1?mockExam=true");
-    navigate("/mock");
+  const handleMockClick = async () => {
+    try {
+      const res = await axios.post(`/api/mocktest/start?userId=${userId}`);
+      const { sessionId, mocktestId, part1, part2, part3, part4, part5 } =
+        res.data;
+
+      const { setSessionInfo, setPartQuestions } = useMockTestStore.getState();
+
+      setSessionInfo(sessionId, mocktestId);
+      setPartQuestions(1, part1);
+      setPartQuestions(2, part2);
+      setPartQuestions(3, part3);
+      setPartQuestions(4, part4);
+      setPartQuestions(5, part5);
+
+      navigate("/mock");
+    } catch (err) {
+      console.error("모의고사 시작 실패:", err);
+    }
   };
 
   const handlePartClick = () => {
