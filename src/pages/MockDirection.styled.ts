@@ -99,6 +99,7 @@ export const LearnButton = styled.button`
   border-radius: 6.25rem;
   background: #ff7b7b;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
+  cursor: pointer;
 
   svg {
     width: 2rem;
@@ -113,10 +114,5 @@ export const LearnButton = styled.button`
     font-size: 1.75rem;
     font-weight: 700;
     margin-left: 2.5rem;
-  }
-
-  &.active {
-    background: #ff5151;
-    cursor: pointer;
   }
 `;
