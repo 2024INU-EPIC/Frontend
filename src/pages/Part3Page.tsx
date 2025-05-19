@@ -13,6 +13,7 @@ import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
 
 import StopTalkingModal from "../components/StopTalkingModal";
+import { useMockTestStore } from "../stores/MockTestStore";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
@@ -61,6 +62,8 @@ const Part3Page: React.FC = () => {
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
+  const { partQuestions, sessionId } = useMockTestStore();
+  const [isUploadComplete, setIsUploadComplete] = useState(false);
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -129,6 +132,191 @@ const Part3Page: React.FC = () => {
   }
 
   useEffect(() => {
+    if (isMockExam) {
+      const { situationText, questions } = partQuestions.part3;
+      setSituationText(situationText);
+      setQuestionTextArray([questions[0], questions[1], questions[2]]);
+    } else {
+      setSituationText(initialQuestions?.situationText || "");
+      setQuestionTextArray([
+        initialQuestions?.question5 || "",
+        initialQuestions?.question6 || "",
+        initialQuestions?.question7 || "",
+      ]);
+    }
+  }, [
+    initialQuestions?.question5,
+    initialQuestions?.question6,
+    initialQuestions?.question7,
+    initialQuestions?.situationText,
+    isMockExam,
+    partQuestions.part3,
+  ]);
+
+  // 녹음 시작
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        const arrayBuffer = await blob.arrayBuffer();
+        const audioCtx = new AudioContext();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        const wavBlob = encodeWAV(audioBuffer);
+        await uploadAudio(
+          wavBlob,
+          questionPart3IdRef.current,
+          currentNumRef.current,
+        );
+      };
+
+      mediaRecorder.start();
+    } catch (error) {
+      console.error("마이크 접근 오류:", error);
+    }
+  }, []);
+
+  // 녹음 중지
+  const stopRecording = useCallback(() => {
+    console.log("Stopping recording...");
+    mediaRecorderRef.current?.stop();
+    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+    setIsSubmitting(true); // StopTalkingModal 표시
+  }, []);
+
+  const uploadAudio = async (
+    blob: Blob,
+    questionId: number,
+    questionNo: number,
+  ) => {
+    const formData = new FormData();
+    formData.append("file", blob, "recording.wav");
+
+    try {
+      if (isMockExam) {
+        console.log("모의고사 업로드 실행");
+        const res = await axios.post(
+          `/api/mocktest/${sessionId}/save/3/${questionNo}`,
+          formData,
+        );
+
+        console.log("모의고사 업로드 응답:", res.data);
+        setIsUploadComplete(true);
+        setIsSubmitting(false); // 모달 끄기
+      } else {
+        const response = await axios.post(
+          `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
+          formData,
+        );
+
+        console.log("오디오 업로드 성공:", response.data);
+
+        const processedResponse = {
+          contentText: response.data.azureEvaluation.UserResponse,
+          wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
+            (
+              acc: Record<string, { score: number; errorType: string }>,
+              item: { word: string; AccuracyScore: number; ErrorType: string },
+            ) => {
+              if (
+                item.ErrorType === "Mispronunciation" ||
+                item.ErrorType === "Omission" ||
+                item.ErrorType === "None"
+              ) {
+                acc[item.word.toLowerCase()] = {
+                  score: item.AccuracyScore,
+                  errorType: item.ErrorType,
+                };
+              }
+              return acc;
+            },
+            {} as Record<string, { score: number; errorType: string }>,
+          ),
+          accuracy: Math.round(
+            response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
+          ),
+          fluency: Math.round(
+            response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
+          ),
+          prosody: Math.round(
+            response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
+          ),
+          pronunciationScore: Math.round(
+            [
+              response.data.azureEvaluation.PronunciationAssessment
+                .AccuracyScore,
+              response.data.azureEvaluation.PronunciationAssessment
+                .FluencyScore,
+              response.data.azureEvaluation.PronunciationAssessment
+                .ProsodyScore,
+            ].reduce(
+              (sum, score, _, arr) =>
+                sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
+              0,
+            ),
+          ),
+          voca: Math.round(response.data.gptEvaluation.vocabulary),
+          grammar: Math.round(response.data.gptEvaluation.grammar),
+          topic: Math.round(response.data.gptEvaluation.topic),
+          contentScore: Math.round(
+            (response.data.gptEvaluation.vocabulary +
+              response.data.gptEvaluation.grammar +
+              response.data.gptEvaluation.topic) /
+              3,
+          ),
+          feedback: [
+            response.data.gptEvaluation.suggestions.grammar,
+            response.data.gptEvaluation.suggestions.vocabulary,
+            response.data.gptEvaluation.suggestions.topic,
+            response.data.gptEvaluation.suggestions["총평"],
+          ].join("\n\n"),
+        };
+
+        setMultipleReplies((prevReplies) => [
+          ...prevReplies,
+          processedResponse, // 새 응답 데이터를 이전 응답 배열에 추가
+        ]);
+
+        setIsSubmitting(false); // StopTalkingModal 닫기
+
+        // 다음 단계로 진행
+        if (currentNumRef.current < 7) {
+          increaseNum();
+          setStage("preparing");
+          setRemainingTime(TIME_SETTINGS.preparing);
+        } else {
+          console.log("모든 문항 완료, 결과 화면으로 이동");
+          setStage("scoring"); // 모든 문항 완료 후 결과 화면으로 이동
+        }
+      }
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false);
+    }
+  };
+
+  // stage가 responding일 때 녹음 시작 & 종료
+  useEffect(() => {
+    if (stage === "responding") {
+      startRecording();
+    }
+  }, [stage, startRecording]);
+
+  useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
     const loadingTimer = setTimeout(() => {
       setStage("direction");
@@ -166,7 +354,20 @@ const Part3Page: React.FC = () => {
           break;
       }
     }
-  }, [remainingTime, stage, currentNum, isMockExam, navigate]);
+  }, [remainingTime, stage, currentNum, isMockExam, navigate, stopRecording]);
+
+  useEffect(() => {
+    if (!isMockExam || !isUploadComplete) return;
+
+    if (currentNum < 7) {
+      increaseNum();
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+    } else if (currentNum === 7) {
+      navigate("/part4?mockExam=true");
+    }
+    setIsUploadComplete(false);
+  }, [isUploadComplete, isMockExam, currentNum, navigate]);
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -231,181 +432,6 @@ const Part3Page: React.FC = () => {
     setStage("situation");
     setRemainingTime(TIME_SETTINGS.situation);
   };
-  // const nextQuestion = async () => {
-  //   try {
-  //     // 새로운 문제 요청
-  //     const response = await axios.get(`/api/focused-learning/part3`);
-  //     const questionSet = response.data;
-  //     setSituationText(questionSet.situationText);
-  //     setQuestionTextArray([
-  //       questionSet.question5,
-  //       questionSet.question6,
-  //       questionSet.question7,
-  //     ]);
-  //     setStage("situation");
-  //     setRemainingTime(TIME_SETTINGS.preparing);
-  //     setQuestionCount((prev) => prev + 1);
-  //     setCurrentNum(5);
-  //     setMultipleReplies([]);
-  //   } catch (error) {
-  //     console.error("Error fetching next set of questions:", error);
-  //   }
-  // };
-
-  // 녹음 시작
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaStreamRef.current = stream;
-
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      // mediaRecorder.onstop = async () => {
-      //   const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-      //   const arrayBuffer = await blob.arrayBuffer();
-      //   const audioCtx = new AudioContext();
-      //   const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-      //   const wavBlob = encodeWAV(audioBuffer);
-      //   uploadAudio(wavBlob, questionPart3IdRef.current, currentNumRef.current);
-      // };
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-        const arrayBuffer = await blob.arrayBuffer();
-        const audioCtx = new AudioContext();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-        const wavBlob = encodeWAV(audioBuffer);
-        await uploadAudio(
-          wavBlob,
-          questionPart3IdRef.current,
-          currentNumRef.current,
-        );
-      };
-
-      mediaRecorder.start();
-    } catch (error) {
-      console.error("마이크 접근 오류:", error);
-    }
-  }, []);
-
-  // 녹음 중지
-  const stopRecording = useCallback(() => {
-    console.log("Stopping recording...");
-    mediaRecorderRef.current?.stop();
-    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    setIsSubmitting(true); // StopTalkingModal 표시
-  }, []);
-
-  const uploadAudio = async (
-    blob: Blob,
-    questionId: number,
-    questionNo: number,
-  ) => {
-    const formData = new FormData();
-    formData.append("file", blob, "recording.wav");
-
-    try {
-      const response = await axios.post(
-        `/api/upload-audio/part3?questionId=${questionId}&questionNo=${questionNo}`,
-        formData,
-      );
-
-      console.log("오디오 업로드 성공:", response.data);
-
-      const processedResponse = {
-        contentText: response.data.azureEvaluation.UserResponse,
-        wrongWordScore: response.data.azureEvaluation.IssueWords.reduce(
-          (acc, item) => {
-            if (
-              item.ErrorType === "Mispronunciation" ||
-              item.ErrorType === "Omission" ||
-              item.ErrorType === "None"
-            ) {
-              acc[item.word.toLowerCase()] = {
-                score: item.AccuracyScore,
-                errorType: item.ErrorType,
-              };
-            }
-            return acc;
-          },
-          {},
-        ),
-        accuracy: Math.round(
-          response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
-        ),
-        fluency: Math.round(
-          response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
-        ),
-        prosody: Math.round(
-          response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
-        ),
-        pronunciationScore: Math.round(
-          [
-            response.data.azureEvaluation.PronunciationAssessment.AccuracyScore,
-            response.data.azureEvaluation.PronunciationAssessment.FluencyScore,
-            response.data.azureEvaluation.PronunciationAssessment.ProsodyScore,
-          ].reduce(
-            (sum, score, _, arr) =>
-              sum + (score === Math.min(...arr) ? score * 0.4 : score * 0.2),
-            0,
-          ),
-        ),
-        voca: Math.round(response.data.gptEvaluation.vocabulary),
-        grammar: Math.round(response.data.gptEvaluation.grammar),
-        topic: Math.round(response.data.gptEvaluation.topic),
-        contentScore: Math.round(
-          (response.data.gptEvaluation.vocabulary +
-            response.data.gptEvaluation.grammar +
-            response.data.gptEvaluation.topic) /
-            3,
-        ),
-        feedback: [
-          response.data.gptEvaluation.suggestions.grammar,
-          response.data.gptEvaluation.suggestions.vocabulary,
-          response.data.gptEvaluation.suggestions.topic,
-          response.data.gptEvaluation.suggestions["총평"],
-        ].join("\n\n"),
-      };
-
-      setMultipleReplies((prevReplies) => [
-        ...prevReplies,
-        processedResponse, // 새 응답 데이터를 이전 응답 배열에 추가
-      ]);
-
-      setIsSubmitting(false); // StopTalkingModal 닫기
-
-      // 다음 단계로 진행
-      if (currentNumRef.current < 7) {
-        increaseNum();
-        setStage("preparing");
-        setRemainingTime(TIME_SETTINGS.preparing);
-      } else {
-        console.log("모든 문항 완료, 결과 화면으로 이동");
-        setStage("scoring"); // 모든 문항 완료 후 결과 화면으로 이동
-      }
-    } catch (error) {
-      console.error("오디오 업로드 실패:", error);
-      setIsSubmitting(false);
-    }
-  };
-
-  // stage가 responding일 때 녹음 시작 & 종료
-  useEffect(() => {
-    if (stage === "responding") {
-      startRecording();
-    }
-  }, [stage, startRecording]);
 
   if (stage === "loading")
     return (

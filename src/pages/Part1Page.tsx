@@ -58,7 +58,8 @@ const Part1Page: React.FC = () => {
   //모의고사 체크용
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
-  const { partQuestions } = useMockTestStore();
+  const { partQuestions, sessionId } = useMockTestStore();
+  const [isUploadComplete, setIsUploadComplete] = useState(false);
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -95,7 +96,11 @@ const Part1Page: React.FC = () => {
   const currentNumRef = useRef(1);
 
   function increaseNum() {
-    setCurrentNum((prevNum) => prevNum + 1);
+    setCurrentNum((prevNum) => {
+      const newNum = prevNum + 1;
+      currentNumRef.current = newNum;
+      return newNum;
+    });
   }
 
   // 녹음 시작
@@ -116,6 +121,7 @@ const Part1Page: React.FC = () => {
 
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
         const arrayBuffer = await blob.arrayBuffer();
         const audioCtx = new AudioContext();
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -148,16 +154,29 @@ const Part1Page: React.FC = () => {
     formData.append("file", blob, "recording.wav");
 
     try {
-      const response = await axios.post(
-        `/api/upload-audio/part1?questionId=${questionId}&questionNo=${questionNo}`,
-        formData,
-      );
+      if (isMockExam) {
+        console.log("모의고사 업로드 실행");
+        const res = await axios.post(
+          `/api/mocktest/${sessionId}/save/1/${questionNo}`,
+          formData,
+        );
 
-      console.log("업로드 성공:", response.data);
+        console.log("모의고사 업로드 응답:", res.data);
+        setIsUploadComplete(true);
+        setIsSubmitting(false); // 모달 끄기
+      } else {
+        const response = await axios.post(
+          `/api/upload-audio/part1?questionId=${questionId}&questionNo=${questionNo}`,
+          formData,
+        );
 
-      setResponse(response.data);
-      setIsSubmitting(false); // 모달 끄기
-      setStage("scoring");
+        console.log("업로드 성공:", response.data);
+        setResponse(response.data);
+        setIsSubmitting(false); // 모달 끄기
+        if (fromPartSelect) {
+          setStage("scoring");
+        }
+      }
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
       setIsSubmitting(false); // 모달 끄기
@@ -190,33 +209,10 @@ const Part1Page: React.FC = () => {
           setRemainingTime(TIME_SETTINGS.responding);
           // setIsSubmitting(false);
           break;
-        case "responding":
-          if (fromPartSelect) {
-            // responding 시간 종료 시
-            stopRecording();
-            // setIsSubmitting(true);
-            // setStage("scoring");
-
-            break;
-          }
-
-          // 실전 모의고사
-          if (currentNum < 2) {
-            increaseNum();
-            setQuestionIndex(1);
-            setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing);
-          } else {
-            setStage("scoring");
-
-            // 실전 모의고사 모드에서는 자동으로 Part2 페이지로 이동
-            if (isMockExam) {
-              setTimeout(() => {
-                navigate("/part2?mockExam=true"); // 2번 문제 완료 후 Part2로 이동
-              }, 0); //  딜레이없이 바로 이동
-            }
-          }
+        case "responding": {
+          stopRecording();
           break;
+        }
         default:
           break;
       }
@@ -230,6 +226,21 @@ const Part1Page: React.FC = () => {
     navigate,
     stopRecording,
   ]);
+
+  useEffect(() => {
+    if (!isMockExam || !isUploadComplete) return;
+
+    if (currentNum === 1) {
+      increaseNum();
+      setQuestionIndex(1);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+    } else if (currentNum === 2) {
+      navigate("/part2?mockExam=true");
+    }
+
+    setIsUploadComplete(false);
+  }, [isUploadComplete, isMockExam, currentNum, navigate]);
 
   // "direction"일 때만 오디오 자동 재생
   useEffect(() => {
@@ -293,6 +304,7 @@ const Part1Page: React.FC = () => {
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
       setCurrentNum(2);
+      currentNumRef.current = 2;
     } else if (extraQuestions) {
       // 기존 문제 세트가 끝나면 extraQuestions 사용
       setQuestions(extraQuestions);
