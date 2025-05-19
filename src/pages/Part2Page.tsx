@@ -11,6 +11,7 @@ import axios from "axios";
 import { encodeWAV } from "./encodeWAV";
 
 import StopTalkingModal from "../components/StopTalkingModal";
+import { useMockTestStore } from "../stores/MockTestStore";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
@@ -55,8 +56,12 @@ export const TopBlank = styled.div`
 
 const Part2Page: React.FC = () => {
   const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 추가
+
+  //모의고사 체크용
   const [searchParams] = useSearchParams();
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
+  const { partQuestions, sessionId } = useMockTestStore();
+  const [isUploadComplete, setIsUploadComplete] = useState(false);
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -93,143 +98,12 @@ const Part2Page: React.FC = () => {
   const currentNumRef = useRef(3);
 
   function increaseNum() {
-    setCurrentNum((prevNum) => prevNum + 1);
+    setCurrentNum((prevNum) => {
+      const newNum = prevNum + 1;
+      currentNumRef.current = newNum;
+      return newNum;
+    });
   }
-
-  useEffect(() => {
-    if (remainingTime > 0) {
-      const timer = setTimeout(() => {
-        setRemainingTime(remainingTime - 1);
-      }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
-      return () => clearTimeout(timer);
-    } else {
-      switch (stage) {
-        case "direction":
-          if (currentNum !== 4) {
-            setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing);
-          }
-          break;
-        case "preparing":
-          setStage("responding");
-          setRemainingTime(TIME_SETTINGS.responding);
-          setIsSubmitting(false);
-          break;
-        case "responding":
-          if (fromPartSelect) {
-            stopRecording();
-
-            break;
-          }
-          if (currentNum < 4) {
-            increaseNum();
-            setStage("preparing");
-            setRemainingTime(TIME_SETTINGS.preparing);
-          } else {
-            setStage("scoring");
-
-            // 실전 모의고사 모드에서는 자동으로 Part3 페이지로 이동
-            if (isMockExam) {
-              setTimeout(() => {
-                navigate("/part3?mockExam=true"); // 4번 문제 완료 후 Part3로 이동
-              }, 0); //  딜레이없이 바로 이동
-            }
-          }
-          break;
-        default:
-          break;
-      }
-    }
-  }, [remainingTime, stage, currentNum, fromPartSelect, isMockExam, navigate]);
-
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio("/src/assets/audio/part2.mp3");
-    }
-
-    const audio = audioRef.current;
-
-    if (stage === "direction" && !hasPlayedRef.current) {
-      audio
-        .play()
-        .then(() => {
-          hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
-          setRemainingTime(TIME_SETTINGS.direction);
-
-          audio.onended = () => {
-            if (stage === "direction") {
-              setTimeout(() => {
-                setStage("preparing");
-                setRemainingTime(TIME_SETTINGS.preparing);
-              }, 1000);
-            }
-          };
-        })
-        .catch((e) => console.error("Audio play error:", e));
-    } else {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-
-    return () => {
-      audio.pause();
-      audio.currentTime = 0;
-    };
-  }, [stage]);
-
-  // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
-  const handleUserInteraction = () => {
-    if (!hasPlayedRef.current) {
-      console.log("Audio is not allowed to play after direction stage.");
-    }
-  };
-  const getCurrentQuestion = () => {
-    return questionIndex === 0 ? questions?.question3 : questions?.question4;
-  };
-
-  useEffect(() => {
-    console.log("questionPart2Id", questions?.questionPart2Id);
-    console.log("question3:", questions?.question3);
-    console.log("question4:", questions?.question4);
-  }, [questions]);
-
-  const nextQuestion = async () => {
-    if (questionIndex === 0) {
-      // 기존 문제 세트에서 다음 문제로 이동
-      setQuestionIndex(1);
-      setStage("preparing");
-      setRemainingTime(TIME_SETTINGS.preparing);
-      setQuestionCount((prev) => prev + 1);
-      setCurrentNum(4);
-      currentNumRef.current = 4;
-    } else if (extraQuestions) {
-      // 기존 문제 세트가 끝나면 extraQuestions 사용
-      setQuestions(extraQuestions);
-      setExtraQuestions(null);
-      setQuestionIndex(0);
-      setStage("preparing");
-      setRemainingTime(TIME_SETTINGS.preparing);
-      setQuestionCount((prev) => prev + 1);
-      setCurrentNum(3);
-      currentNumRef.current = 3;
-    } else {
-      try {
-        // 새로운 문제 요청
-        const response = await axios.get(`/api/focused-learning/part2`);
-        setExtraQuestions(response.data);
-        setQuestions(response.data);
-        setQuestionIndex(0);
-        setStage("preparing");
-        setRemainingTime(TIME_SETTINGS.preparing);
-        setQuestionCount((prev) => prev + 1);
-        setCurrentNum(3);
-        currentNumRef.current = 3;
-        questionPart2IdRef.current = response.data.questionPart2Id;
-      } catch (error) {
-        console.error("Error fetching next set of questions:", error);
-      }
-    }
-  };
 
   // 녹음 시작
   const startRecording = useCallback(async () => {
@@ -280,7 +154,7 @@ const Part2Page: React.FC = () => {
     const formData = new FormData();
     formData.append("file", blob, "recording.wav");
 
-    try {
+    /*     try {
       const response = await axios.post(
         `/api/upload-audio/part2?questionId=${questionId}&questionNo=${questionNo}`,
         formData,
@@ -294,6 +168,35 @@ const Part2Page: React.FC = () => {
     } catch (error) {
       console.error("오디오 업로드 실패:", error);
       setIsSubmitting(false);
+    } */
+    try {
+      if (isMockExam) {
+        console.log("모의고사 업로드 실행");
+        const res = await axios.post(
+          `/api/mocktest/${sessionId}/save/2/${questionNo}`,
+          formData,
+        );
+
+        console.log("모의고사 업로드 응답:", res.data);
+        setIsUploadComplete(true);
+        setIsSubmitting(false); // 모달 끄기
+      } else {
+        const response = await axios.post(
+          `/api/upload-audio/part2?questionId=${questionId}&questionNo=${questionNo}`,
+          formData,
+        );
+
+        console.log("업로드 성공:", response.data);
+        setResponse(response.data);
+        setReplyContent(response.data.azureEvaluation.UserResponse);
+        setIsSubmitting(false); // 모달 끄기
+        if (fromPartSelect) {
+          setStage("scoring");
+        }
+      }
+    } catch (error) {
+      console.error("오디오 업로드 실패:", error);
+      setIsSubmitting(false); // 모달 끄기
     }
   };
 
@@ -303,6 +206,152 @@ const Part2Page: React.FC = () => {
       startRecording();
     }
   }, [stage, startRecording]);
+
+  useEffect(() => {
+    if (remainingTime > 0) {
+      const timer = setTimeout(() => {
+        setRemainingTime(remainingTime - 1);
+      }, 1000); // 지연시간. 몇초마다 출력할 것인지. 현재 1초
+      return () => clearTimeout(timer);
+    } else {
+      switch (stage) {
+        case "direction":
+          if (currentNum !== 4) {
+            setStage("preparing");
+            setRemainingTime(TIME_SETTINGS.preparing);
+          }
+          break;
+        case "preparing":
+          setStage("responding");
+          setRemainingTime(TIME_SETTINGS.responding);
+          setIsSubmitting(false);
+          break;
+        case "responding":
+          stopRecording();
+          break;
+        default:
+          break;
+      }
+    }
+  }, [
+    remainingTime,
+    stage,
+    currentNum,
+    fromPartSelect,
+    isMockExam,
+    navigate,
+    stopRecording,
+  ]);
+
+  useEffect(() => {
+    if (!isMockExam || !isUploadComplete) return;
+
+    if (currentNum === 3) {
+      increaseNum();
+      setQuestionIndex(1);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+    } else if (currentNum === 4) {
+      navigate("/part3?mockExam=true");
+    }
+
+    setIsUploadComplete(false);
+  }, [isUploadComplete, isMockExam, currentNum, navigate]);
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/src/assets/audio/part2.mp3");
+    }
+
+    const audio = audioRef.current;
+
+    if (stage === "direction" && !hasPlayedRef.current) {
+      audio
+        .play()
+        .then(() => {
+          hasPlayedRef.current = true; // 오디오 재생 완료 시 재생 플래그 설정
+          setRemainingTime(TIME_SETTINGS.direction);
+
+          audio.onended = () => {
+            if (stage === "direction") {
+              setTimeout(() => {
+                setStage("preparing");
+                setRemainingTime(TIME_SETTINGS.preparing);
+              }, 1000);
+            }
+          };
+        })
+        .catch((e) => console.error("Audio play error:", e));
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [stage]);
+
+  // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
+  const handleUserInteraction = () => {
+    if (!hasPlayedRef.current) {
+      console.log("Audio is not allowed to play after direction stage.");
+    }
+  };
+  const getCurrentQuestion = () => {
+    if (!isMockExam) {
+      return questionIndex === 0 ? questions?.question3 : questions?.question4;
+    } else {
+      return questionIndex === 0
+        ? partQuestions.part2.questions[0]
+        : partQuestions.part2.questions[1];
+    }
+  };
+
+  useEffect(() => {
+    console.log("questionPart2Id", questions?.questionPart2Id);
+    console.log("question3:", questions?.question3);
+    console.log("question4:", questions?.question4);
+  }, [questions]);
+
+  const nextQuestion = async () => {
+    if (questionIndex === 0) {
+      // 기존 문제 세트에서 다음 문제로 이동
+      setQuestionIndex(1);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum(4);
+      currentNumRef.current = 4;
+    } else if (extraQuestions) {
+      // 기존 문제 세트가 끝나면 extraQuestions 사용
+      setQuestions(extraQuestions);
+      setExtraQuestions(null);
+      setQuestionIndex(0);
+      setStage("preparing");
+      setRemainingTime(TIME_SETTINGS.preparing);
+      setQuestionCount((prev) => prev + 1);
+      setCurrentNum(3);
+      currentNumRef.current = 3;
+    } else {
+      try {
+        // 새로운 문제 요청
+        const response = await axios.get(`/api/focused-learning/part2`);
+        setExtraQuestions(response.data);
+        setQuestions(response.data);
+        setQuestionIndex(0);
+        setStage("preparing");
+        setRemainingTime(TIME_SETTINGS.preparing);
+        setQuestionCount((prev) => prev + 1);
+        setCurrentNum(3);
+        currentNumRef.current = 3;
+        questionPart2IdRef.current = response.data.questionPart2Id;
+      } catch (error) {
+        console.error("Error fetching next set of questions:", error);
+      }
+    }
+  };
 
   const wrongWordScore =
     response?.azureEvaluation?.IssueWords?.reduce(
