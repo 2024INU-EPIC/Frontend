@@ -11,6 +11,7 @@ import { encodeWAV } from "./encodeWAV";
 
 import StopTalkingModal from "../components/StopTalkingModal";
 import { useMockTestStore } from "../stores/MockTestStore";
+import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
@@ -60,6 +61,7 @@ const Part1Page: React.FC = () => {
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
   const { partQuestions, sessionId } = useMockTestStore();
   const [isUploadComplete, setIsUploadComplete] = useState(false);
+  useMockTestCancel(isMockExam, sessionId);
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -94,6 +96,16 @@ const Part1Page: React.FC = () => {
   //useRef로 동기적 관리
   const questionPart1IdRef = useRef<number>(initialQuestions?.questionPart1Id);
   const currentNumRef = useRef(1);
+
+  // 새로고침 후 sessionId 초기화된 경우 메인으로 리디렉션
+  useEffect(() => {
+    if (isMockExam && !sessionId) {
+      setTimeout(() => {
+        alert("세션이 유효하지 않아 메인으로 이동합니다.");
+        window.location.href = "/";
+      }, 100); // 100ms 지연
+    }
+  }, [isMockExam, sessionId]);
 
   function increaseNum() {
     setCurrentNum((prevNum) => {
