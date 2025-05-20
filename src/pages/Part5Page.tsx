@@ -168,7 +168,7 @@ const Part5Page: React.FC = () => {
       if (isMockExam) {
         console.log("모의고사 업로드 실행");
         const res = await axios.post(
-          `/api/mocktest/${sessionId}/save/3/${questionNo}`,
+          `/api/mocktest/${sessionId}/save/5/${questionNo}`,
           formData,
         );
 
@@ -241,13 +241,19 @@ const Part5Page: React.FC = () => {
       try {
         const res = await axios.post(`/api/mocktest/${sessionId}/complete`);
         console.log("모의고사 완료 응답:", res.data);
+        navigate("/mockresult", {
+          state: {
+            assessmentJsons: res.data.assessmentJsons,
+            grade: res.data.grade,
+          },
+        });
       } catch (err) {
         console.error("모의고사 완료 요청 실패:", err);
       }
     };
 
     completeMockTest();
-  }, [isUploadComplete, isMockExam, sessionId]);
+  }, [isUploadComplete, isMockExam, sessionId, navigate]);
 
   useEffect(() => {
     if (!audioRef.current) {

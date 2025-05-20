@@ -320,12 +320,6 @@ const Part2Page: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    console.log("questionPart2Id", questions?.questionPart2Id);
-    console.log("question3:", questions?.question3);
-    console.log("question4:", questions?.question4);
-  }, [questions]);
-
   const nextQuestion = async () => {
     if (questionIndex === 0) {
       // 기존 문제 세트에서 다음 문제로 이동

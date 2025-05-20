@@ -151,7 +151,7 @@ const MyPage: React.FC = () => {
                   <ExamScore>IM1</ExamScore>
                 </ScoreaArea>
                 <ExamGraph>
-                  <StudyStatChart />
+                  <StudyStatChart scores={[80, 65, 70, 50, 90]} />
                 </ExamGraph>
               </ExamRecord>
               <ExamRecord onClick={() => openModal("2025/01/03")}>

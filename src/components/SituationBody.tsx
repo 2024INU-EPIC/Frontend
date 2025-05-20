@@ -75,7 +75,7 @@ const Part4Question = styled.div<WrapperProps>`
     margin-bottom: 0.5rem;
     align-self: flex-start;
   }
-`
+`;
 
 type SituationBodyProps = {
   stage: string;
@@ -131,14 +131,14 @@ const SituationBody: React.FC<SituationBodyProps> = ({
               <img src={imageSrc} alt="Question Image" />
               <p className="content">{situationText}</p>
             </>
-        ) : (
-          <>
-            <img src={imageSrc} alt="Question Image" />
-            <p className="content">{situationText}</p>
-            <p className="question">Question {questionNum}.</p>
-            <p className="content">{questionText}</p>
-          </>
-        )}
+          ) : (
+            <>
+              <img src={imageSrc} alt="Question Image" />
+              <p className="content">{situationText}</p>
+              <p className="question">Question {questionNum}.</p>
+              <p className="content">{questionText}</p>
+            </>
+          )}
         </Part4Question>
       )}
     </Wrapper>
