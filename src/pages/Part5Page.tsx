@@ -1,3 +1,4 @@
+// Part5Page.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import * as S from "./Main.styled";
@@ -156,7 +157,7 @@ const Part5Page: React.FC = () => {
       if (isMockExam) {
         console.log("모의고사 업로드 실행");
         const res = await axios.post(
-          `/api/mocktest/${sessionId}/save/3/${questionNo}`,
+          `/api/mocktest/${sessionId}/save/5/${questionNo}`,
           formData,
         );
 

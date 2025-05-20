@@ -29,6 +29,7 @@ import {
 } from "./My.styled";
 import ExamModal from "../components/Modal/ExamModal";
 import StudyStatChart from "../components/StudyStatChart";
+import { useAuthStore } from "../stores/authStore";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -39,6 +40,12 @@ const MyPage: React.FC = () => {
   const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<string | null>(null);
+
+  const { userId } = useAuthStore();
+
+  const PrintUserId = () => {
+    console.log(userId);
+  };
 
   const handleMenuClick = (menu: string) => {
     if (menu === "accountDelete") {
@@ -92,7 +99,7 @@ const MyPage: React.FC = () => {
             fill="white"
           />
         </svg>
-        <UserNameText>Hi, Audrey</UserNameText>
+        <UserNameText onClick={PrintUserId}>Hi, Audrey</UserNameText>
       </UserName>
       <MainContent>
         <SideBar>
@@ -111,14 +118,14 @@ const MyPage: React.FC = () => {
             시험 기록 확인
           </a>
           <a
-            href="#"
+            href="##"
             onClick={() => handleMenuClick("editProfile")}
             className={activeMenu === "editProfile" ? "active" : ""}
           >
             회원 정보 수정
           </a>
           <a
-            href="#"
+            href="###"
             onClick={() => handleMenuClick("accountDelete")}
             className={activeMenu === "accountDelete" ? "active" : ""}
           >

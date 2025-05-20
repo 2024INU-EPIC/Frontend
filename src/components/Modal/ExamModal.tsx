@@ -1,3 +1,4 @@
+// ExamModal.tsx
 import React from "react";
 import {
   ModalOverlay,
@@ -11,6 +12,13 @@ import {
 } from "./ExamModal.styled";
 import PassageBody from "../PassageBody";
 import ScoreBody from "../ScoreBody";
+import mockExamResponse from "../../mock/mockExamResponse";
+import ImageBody from "../ImageBody";
+import ReplyBody from "../ReplyBody";
+import ScoreBodyGeneral from "../ScoreBodyGeneral";
+import SituationBody from "../SituationBody";
+import MultipleReplyBody from "../MultipleReplyBox";
+import QuestionBody from "../QuestionBody";
 
 interface ExamModalProps {
   isOpen: boolean;
@@ -18,11 +26,40 @@ interface ExamModalProps {
   examDate: string | null;
 }
 
-const textContent =
-  "Welcome to the Boston International Airport. Your check-in process will take ten to fifteen minutes. In order to speed up the process, please have your identification and boardingpass ready as you approach the counter. Also, please make sure your luggage is labeled with your name, address and telephone number.";
+// 파트별 문제 개수
+const partQuestionCounts = [2, 2, 3, 3, 1];
+
+// assessmentJsons 파싱 제거, 바로 사용
+const parsedAssessments = mockExamResponse.assessmentJsons;
+
+// 파트별로 문제 배열 만들기
+const partResults: any[][] = [];
+let idx = 0;
+for (let i = 0; i < partQuestionCounts.length; i++) {
+  partResults[i] = [];
+  for (let j = 0; j < partQuestionCounts[i]; j++) {
+    partResults[i].push(parsedAssessments[idx]);
+    idx++;
+  }
+}
+
+// wrongWordScore 생성 함수
+function getWrongWordScore(issueWords: any[] = []) {
+  return issueWords.reduce(
+    (acc: Record<string, { score: number; errorType: string }>, item: any) => {
+      acc[item.word.toLowerCase()] = {
+        score: item.AccuracyScore,
+        errorType: item.ErrorType,
+      };
+      return acc;
+    },
+    {},
+  );
+}
 
 const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
   if (!isOpen) return null;
+
   return (
     <ModalOverlay>
       <ModalContainer>
@@ -44,187 +81,242 @@ const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
           </ModalCloseButton>
         </ModalTitleArea>
         <ModalContent>
+          {/* Part 1 */}
           <PartArea>
-            <div></div>
             <p className="partInfo">Part1</p>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={1}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={2}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
+            {partResults[0].map((result, qIdx) => (
+              <ResultArea key={qIdx}>
+                <PassageBody
+                  text={result?.UserResponse || ""}
+                  isScoring={true}
+                  wrongWordScore={getWrongWordScore(result?.IssueWords)}
+                  questionNum={qIdx + 1}
+                  totalQuestions={partQuestionCounts[0]}
+                  fromPartSelect={false}
+                  questionCount={1}
+                  partId={"1"}
+                />
+                <ScoreBody
+                  totalScore={Math.round(
+                    [
+                      result?.PronunciationAssessment?.AccuracyScore ?? 0,
+                      result?.PronunciationAssessment?.CompletenessScore ?? 0,
+                      result?.PronunciationAssessment?.FluencyScore ?? 0,
+                      result?.PronunciationAssessment?.ProsodyScore ?? 0,
+                    ].reduce((sum, score, i, arr) => {
+                      const min = Math.min(...arr);
+                      return sum + (score === min ? score * 0.4 : score * 0.2);
+                    }, 0),
+                  )}
+                  accuracy={Math.round(
+                    result?.PronunciationAssessment?.AccuracyScore ?? 0,
+                  )}
+                  completeness={Math.round(
+                    result?.PronunciationAssessment?.CompletenessScore ?? 0,
+                  )}
+                  fluency={Math.round(
+                    result?.PronunciationAssessment?.FluencyScore ?? 0,
+                  )}
+                  prosody={Math.round(
+                    result?.PronunciationAssessment?.ProsodyScore ?? 0,
+                  )}
+                />
+              </ResultArea>
+            ))}
           </PartArea>
           <PartArea>
             <p className="partInfo">Part2</p>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={3}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={4}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
+            {partResults[1].map((result, qIdx) => (
+              <ResultArea key={qIdx}>
+                <ImageBody
+                  // imageSrc=""
+                  questionNum={qIdx + 1}
+                  totalQuestions={partQuestionCounts[1]}
+                  fromPartSelect={false}
+                  questionCount={1}
+                  partId={"2"}
+                  // ...이미지 관련 props 필요시 추가...
+                />
+                <ReplyBody
+                  text={result?.azureEvaluation?.UserResponse}
+                  wrongWordScore={getWrongWordScore(result?.IssueWords)}
+                  isScoring={true}
+                  gptText={[
+                    result?.gptEvaluation.suggestions.grammar,
+                    result?.gptEvaluation.suggestions.vocabulary,
+                    result?.gptEvaluation.suggestions.topic,
+                    result?.gptEvaluation.suggestions["총평"],
+                  ].join("\n\n")}
+                />
+                <ScoreBodyGeneral
+                  pronunciationScore={Math.round(
+                    [
+                      result?.azureEvaluation.PronunciationAssessment
+                        .AccuracyScore,
+                      result?.azureEvaluation.PronunciationAssessment
+                        .FluencyScore,
+                      result?.azureEvaluation.PronunciationAssessment
+                        .ProsodyScore,
+                    ].reduce(
+                      (sum, score, _, arr) =>
+                        sum +
+                        (score === Math.min(...arr)
+                          ? score * 0.4
+                          : score * 0.2),
+                      0,
+                    ),
+                  )}
+                  accuracy={Math.round(
+                    result?.azureEvaluation?.PronunciationAssessment
+                      ?.AccuracyScore ?? 0,
+                  )}
+                  fluency={Math.round(
+                    result?.azureEvaluation?.PronunciationAssessment
+                      ?.FluencyScore ?? 0,
+                  )}
+                  prosody={Math.round(
+                    result?.azureEvaluation?.PronunciationAssessment
+                      ?.ProsodyScore ?? 0,
+                  )}
+                  contentScore={Math.round(
+                    (result?.gptEvaluation.vocabulary +
+                      result?.gptEvaluation.grammar +
+                      result?.gptEvaluation.topic) /
+                      3,
+                  )}
+                  grammar={result?.gptEvaluation?.grammar}
+                  topic={result?.gptEvaluation?.topic}
+                  voca={result?.gptEvaluation?.vocabulary}
+                />
+              </ResultArea>
+            ))}
           </PartArea>
           <PartArea>
             <p className="partInfo">Part3</p>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
+            {partResults[2].map((result, qIdx) => (
+              <ResultArea key={qIdx}>
+                {/* <SituationBody
                 questionNum={5}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
+                totalQuestions={partQuestionCounts[2]}
+                situationText="dddd"
+
+                // ...상황 관련 props 필요시 추가...
+              /> */}
+                <MultipleReplyBody
+                  questionNum={qIdx + 1}
+                  questionText="dddd"
+                  contentText={result.azureEvaluation.UserResponse}
+                  isScoring={true}
+                  wrongWordScore={getWrongWordScore(result.IssueWords)}
+                  feedback={[
+                    result.gptEvaluation.suggestions.grammar,
+                    result.gptEvaluation.suggestions.vocabulary,
+                    result.gptEvaluation.suggestions.topic,
+                    result.gptEvaluation.suggestions["총평"],
+                  ].join("\n\n")}
+                />
+              </ResultArea>
+            ))}
             <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={6}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={7}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
+              <ScoreBodyGeneral
+                pronunciationScore={Math.round(
+                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.AccuracyScore ?? 0,
+                )}
+                accuracy={Math.round(
+                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.AccuracyScore ?? 0,
+                )}
+                fluency={Math.round(
+                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.FluencyScore ?? 0,
+                )}
+                prosody={Math.round(
+                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.ProsodyScore ?? 0,
+                )}
+                contentScore={Math.round(
+                  (partResults[2][0]?.gptEvaluation.vocabulary +
+                    partResults[2][0]?.gptEvaluation.grammar +
+                    partResults[2][0]?.gptEvaluation.topic) /
+                    3,
+                )}
+                grammar={partResults[2][0]?.gptEvaluation?.grammar}
+                topic={partResults[2][0]?.gptEvaluation?.topic}
+                voca={partResults[2][0]?.gptEvaluation?.vocabulary}
               />
             </ResultArea>
           </PartArea>
-          <PartArea>
+          {/*<PartArea>
             <p className="partInfo">Part4</p>
             <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={8}
-                totalQuestions={11}
+              <SituationBody
+                questionNum={1}
+                totalQuestions={partQuestionCounts[3]}
+                // ...상황 관련 props 필요시 추가...
               />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
+              <MultipleReplyBody
+                results={partResults[3]}
+                gptEvaluations={partResults[3].map((r) => r?.gptEvaluation)}
               />
-            </ResultArea>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={9}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
-              />
-            </ResultArea>
-            <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={10}
-                totalQuestions={11}
-              />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
+              <ScoreBodyGeneral
+                accuracy={Math.round(
+                  partResults[3][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.AccuracyScore ?? 0,
+                )}
+                fluency={Math.round(
+                  partResults[3][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.FluencyScore ?? 0,
+                )}
+                prosody={Math.round(
+                  partResults[3][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.ProsodyScore ?? 0,
+                )}
+                completeness={Math.round(
+                  partResults[3][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.CompletenessScore ?? 0,
+                )}
+                grammar={partResults[3][0]?.gptEvaluation?.grammar}
+                topic={partResults[3][0]?.gptEvaluation?.topic}
+                vocabulary={partResults[3][0]?.gptEvaluation?.vocabulary}
               />
             </ResultArea>
           </PartArea>
           <PartArea>
             <p className="partInfo">Part5</p>
             <ResultArea>
-              <PassageBody
-                text={textContent}
-                isScoring={true}
-                questionNum={11}
-                totalQuestions={11}
+              <QuestionBody
+                questionNum={1}
+                totalQuestions={partQuestionCounts[4]}
+                // ...질문 관련 props 필요시 추가...
               />
-              <ScoreBody
-                totalScore={86}
-                accuracy={80}
-                completeness={60}
-                fluency={85}
-                prosody={70}
+              <ReplyBody
+                text={partResults[4][0]?.azureEvaluation?.UserResponse}
+                gptEvaluation={partResults[4][0]?.gptEvaluation}
+              />
+              <ScoreBodyGeneral
+                accuracy={Math.round(
+                  partResults[4][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.AccuracyScore ?? 0,
+                )}
+                fluency={Math.round(
+                  partResults[4][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.FluencyScore ?? 0,
+                )}
+                prosody={Math.round(
+                  partResults[4][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.ProsodyScore ?? 0,
+                )}
+                completeness={Math.round(
+                  partResults[4][0]?.azureEvaluation?.PronunciationAssessment
+                    ?.CompletenessScore ?? 0,
+                )}
+                grammar={partResults[4][0]?.gptEvaluation?.grammar}
+                topic={partResults[4][0]?.gptEvaluation?.topic}
+                vocabulary={partResults[4][0]?.gptEvaluation?.vocabulary}
               />
             </ResultArea>
-          </PartArea>
+          </PartArea> */}
         </ModalContent>
       </ModalContainer>
     </ModalOverlay>
