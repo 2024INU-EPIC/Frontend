@@ -208,9 +208,6 @@ const Part5Page: React.FC = () => {
           break;
         case "responding":
           stopRecording();
-          if (isUploadComplete) {
-            navigate("/");
-          }
           break;
         default:
           break;
@@ -224,6 +221,21 @@ const Part5Page: React.FC = () => {
     stopRecording,
     isUploadComplete,
   ]);
+
+  useEffect(() => {
+    const completeMockTest = async () => {
+      if (!isMockExam || !isUploadComplete || !sessionId) return;
+
+      try {
+        const res = await axios.post(`/api/mocktest/${sessionId}/complete`);
+        console.log("모의고사 완료 응답:", res.data);
+      } catch (err) {
+        console.error("모의고사 완료 요청 실패:", err);
+      }
+    };
+
+    completeMockTest();
+  }, [isUploadComplete, isMockExam, sessionId]);
 
   useEffect(() => {
     if (!audioRef.current) {
