@@ -14,6 +14,7 @@ import loadingGif from "../assets/img/loading.gif";
 
 import { encodeWAV } from "./encodeWAV";
 import { useMockTestStore } from "../stores/MockTestStore";
+import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
@@ -64,6 +65,7 @@ const Part4Page: React.FC = () => {
   const isMockExam = searchParams.get("mockExam") === "true";
   const { partQuestions, sessionId } = useMockTestStore();
   const [isUploadComplete, setIsUploadComplete] = useState(false);
+  useMockTestCancel(isMockExam, sessionId);
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -121,6 +123,16 @@ const Part4Page: React.FC = () => {
   //useRef로 동기적 관리
   const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
   const currentNumRef = useRef<number>(currentNum); // ← currentNum(8)과 동기화
+
+  // 새로고침 후 sessionId 초기화된 경우 메인으로 리디렉션
+  useEffect(() => {
+    if (isMockExam && !sessionId) {
+      setTimeout(() => {
+        alert("세션이 유효하지 않아 메인으로 이동합니다.");
+        window.location.href = "/";
+      }, 100); // 100ms 지연
+    }
+  }, [isMockExam, sessionId]);
 
   function increaseNum() {
     setCurrentNum((prev) => {
