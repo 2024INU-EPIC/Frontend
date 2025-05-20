@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 const Wrapper = styled.div`
   width: 87.5rem;
-  height: 25rem;
+  min-height: 15rem;
   /* margin-top: 9.625rem; */
   background-color: #ffffff;
   border-radius: 1rem;
