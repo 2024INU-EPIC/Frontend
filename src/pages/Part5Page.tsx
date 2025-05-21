@@ -11,6 +11,7 @@ import { encodeWAV } from "./encodeWAV";
 
 import StopTalkingModal from "../components/StopTalkingModal";
 import { useMockTestStore } from "../stores/MockTestStore";
+import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
@@ -59,6 +60,7 @@ const Part5Page: React.FC = () => {
   const isMockExam = searchParams.get("mockExam") === "true"; // URL에서 mockExam 값 확인
   const { partQuestions, sessionId } = useMockTestStore();
   const [isUploadComplete, setIsUploadComplete] = useState(false);
+  useMockTestCancel(isMockExam, sessionId);
 
   const location = useLocation();
   const fromPartSelect = location.state?.fromPartSelect;
@@ -93,6 +95,16 @@ const Part5Page: React.FC = () => {
   //useRef로 동기적 관리
   const questionPart5IdRef = useRef<number>(initialQuestions?.questionPart5Id);
   const currentNum = 11;
+
+  // 새로고침 후 sessionId 초기화된 경우 메인으로 리디렉션
+  useEffect(() => {
+    if (isMockExam && !sessionId) {
+      setTimeout(() => {
+        alert("세션이 유효하지 않아 메인으로 이동합니다.");
+        window.location.href = "/";
+      }, 100); // 100ms 지연
+    }
+  }, [isMockExam, sessionId]);
 
   useEffect(() => {
     if (isMockExam) {
@@ -229,13 +241,19 @@ const Part5Page: React.FC = () => {
       try {
         const res = await axios.post(`/api/mocktest/${sessionId}/complete`);
         console.log("모의고사 완료 응답:", res.data);
+        navigate("/mockresult", {
+          state: {
+            assessmentJsons: res.data.assessmentJsons,
+            grade: res.data.grade,
+          },
+        });
       } catch (err) {
         console.error("모의고사 완료 요청 실패:", err);
       }
     };
 
     completeMockTest();
-  }, [isUploadComplete, isMockExam, sessionId]);
+  }, [isUploadComplete, isMockExam, sessionId, navigate]);
 
   useEffect(() => {
     if (!audioRef.current) {

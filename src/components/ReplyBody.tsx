@@ -89,7 +89,7 @@ export const Highlight = styled.span<{ score: number }>`
 
 const Wrapper = styled.div`
   width: 87.5rem;
-  min-height: 36rem;
+  min-height: 24rem;
   margin: 3rem 0 -1.5rem 0;
   background-color: #ffffff;
   border-radius: 1rem;
