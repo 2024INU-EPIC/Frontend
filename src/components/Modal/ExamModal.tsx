@@ -1,5 +1,5 @@
 // ExamModal.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ModalOverlay,
   ModalContainer,
@@ -19,6 +19,8 @@ import ScoreBodyGeneral from "../ScoreBodyGeneral";
 import SituationBody from "../SituationBody";
 import MultipleReplyBody from "../MultipleReplyBox";
 import QuestionBody from "../QuestionBody";
+import { useAuthStore } from "../../stores/authStore";
+import axios from "axios";
 
 interface ExamModalProps {
   isOpen: boolean;
@@ -58,9 +60,28 @@ function getWrongWordScore(issueWords: any[] = []) {
 }
 
 const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
-  if (!isOpen) return null;
+  const { userId } = useAuthStore();
 
-  return (
+  const result = async () => {
+    const response = await axios.get(`/api/mocktest/history/${userId}`);
+    const data = response.data;
+    // console.log(data);
+    return data;
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      result()
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+        });
+    }
+  }, [isOpen, userId]);
+
+  return isOpen ? (
     <ModalOverlay>
       <ModalContainer>
         <ModalTitleArea>
@@ -308,7 +329,7 @@ const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
         </ModalContent>
       </ModalContainer>
     </ModalOverlay>
-  );
+  ) : null;
 };
 
 export default ExamModal;
