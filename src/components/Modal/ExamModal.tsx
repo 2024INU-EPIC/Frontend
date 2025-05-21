@@ -237,18 +237,19 @@ const ExamModal: React.FC<ExamModalProps> = ({
 
           <PartArea>
             <p className="partInfo">Part3</p>
-            <ResultArea>
-              <SituationBody
-                stage="scoring"
-                partNum={3}
-                situationText={questions[2]?.situationText ?? ""}
-                questionText={""}
-                questionNum={5}
-                totalQuestions={11}
-                questionCount={1}
-                partId={"3"}
-              />
-            </ResultArea>
+
+            <div style={{ height: "5rem" }}></div>
+            <SituationBody
+              stage="scoring"
+              partNum={3}
+              situationText={questions[2]?.situationText ?? ""}
+              questionText={""}
+              questionNum={5}
+              totalQuestions={11}
+              questionCount={1}
+              partId={"3"}
+            />
+
             {getPartIndexes(2).map((idx, qIdx) => {
               const evalData = parsedEvaluations[idx];
               const qData = questions[2]?.questions?.[qIdx] || "";
@@ -321,19 +322,18 @@ const ExamModal: React.FC<ExamModalProps> = ({
 
           <PartArea>
             <p className="partInfo">Part4</p>
-            <ResultArea>
-              <SituationBody
-                stage="scoring"
-                partNum={4}
-                situationText={questions[3]?.situationText ?? ""}
-                imageSrc={questions[3]?.situationImage ?? ""}
-                questionText={""}
-                questionNum={8}
-                totalQuestions={11}
-                questionCount={1}
-                partId={"4"}
-              />
-            </ResultArea>
+            <div style={{ height: "5rem" }}></div>
+            <SituationBody
+              stage="scoring"
+              partNum={4}
+              situationText={questions[3]?.situationText ?? ""}
+              imageSrc={questions[3]?.situationImage ?? ""}
+              questionText={""}
+              questionNum={8}
+              totalQuestions={11}
+              questionCount={1}
+              partId={"4"}
+            />
             {getPartIndexes(3).map((idx, qIdx) => {
               const evalData = parsedEvaluations[idx];
               const qData = questions[3]?.questions?.[qIdx] || "";
