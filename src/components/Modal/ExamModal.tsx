@@ -21,12 +21,7 @@ import MultipleReplyBody from "../MultipleReplyBox";
 import QuestionBody from "../QuestionBody";
 import { useAuthStore } from "../../stores/authStore";
 import axios from "axios";
-
-interface ExamModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  examDate: string | null;
-}
+import { formatDate } from "../../utils/dateUtils";
 
 // 파트별 문제 개수
 const partQuestionCounts = [2, 2, 3, 3, 1];
@@ -59,6 +54,12 @@ function getWrongWordScore(issueWords: any[] = []) {
   );
 }
 
+interface ExamModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  examDate: string | null;
+}
+
 const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
   const { userId } = useAuthStore();
 
@@ -85,7 +86,10 @@ const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
     <ModalOverlay>
       <ModalContainer>
         <ModalTitleArea>
-          <ModalTitle>{examDate} 1회차 모의고사 &nbsp; &nbsp; IM1 </ModalTitle>
+          <ModalTitle>
+            {examDate ? `${formatDate(examDate)} 1회차 모의고사` : ""} &nbsp;
+            &nbsp; IM1
+          </ModalTitle>
           <ModalCloseButton onClick={onClose}>
             <svg
               xmlns="http://www.w3.org/2000/svg"

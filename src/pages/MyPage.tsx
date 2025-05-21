@@ -31,6 +31,7 @@ import ExamModal from "../components/Modal/ExamModal";
 import StudyStatChart from "../components/StudyStatChart";
 import { useAuthStore } from "../stores/authStore";
 import axios from "axios";
+import { formatDate } from "../utils/dateUtils";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -78,18 +79,6 @@ const MyPage: React.FC = () => {
       });
     }
   }, [activeMenu, userId]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    // 예: 2025-05-20 22:22
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    // const hh = String(date.getHours()).padStart(2, "0");
-    // const min = String(date.getMinutes()).padStart(2, "0");
-    // return `${yyyy} / ${mm} / ${dd} ${hh}:${min}`;
-    return `${yyyy} / ${mm} / ${dd}`;
-  };
 
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
