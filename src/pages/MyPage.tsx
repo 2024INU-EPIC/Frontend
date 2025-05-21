@@ -43,6 +43,7 @@ const MyPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<string | null>(null);
   const [examHistory, setExamHistory] = useState<any[]>([]);
+  const [gradeId, setGradeId] = useState<number>(1);
 
   const { userId } = useAuthStore();
 
@@ -182,7 +183,10 @@ const MyPage: React.FC = () => {
                 examHistory.map((exam, idx) => (
                   <ExamRecord
                     key={exam.id || idx}
-                    onClick={() => openModal(exam.date)}
+                    onClick={() => {
+                      openModal(exam.date);
+                      setGradeId(exam.gradeId);
+                    }}
                   >
                     <ScoreaArea>
                       <ExamDate>{formatDate(exam.date)}</ExamDate>
@@ -203,6 +207,7 @@ const MyPage: React.FC = () => {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 examDate={selectedExam}
+                gradeId={gradeId}
               />
             </>
           )}
