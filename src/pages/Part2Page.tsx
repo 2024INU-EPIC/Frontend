@@ -78,6 +78,7 @@ const Part2Page: React.FC = () => {
 
   //direction용
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const beepAudioRef = useRef<HTMLAudioElement | null>(null);
   const hasPlayedRef = useRef(false);
 
   //recoding용
@@ -155,6 +156,12 @@ const Part2Page: React.FC = () => {
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
     setIsSubmitting(true);
+    if (!beepAudioRef.current) {
+      beepAudioRef.current = new Audio("/src/assets/audio/beep.mp3");
+    }
+    beepAudioRef.current
+      .play()
+      .catch((e) => console.error("Beep play error:", e));
   }, []);
 
   const uploadAudio = async (
@@ -211,10 +218,26 @@ const Part2Page: React.FC = () => {
     }
   };
 
-  // stage가 responding일 때 녹음 시작 & 종료
+  // stage가 responding일 때 녹음 시작 beep음 재생 & 종료
   useEffect(() => {
     if (stage === "responding") {
-      startRecording();
+      if (!beepAudioRef.current) {
+        beepAudioRef.current = new Audio("/src/assets/audio/beep.mp3");
+      }
+
+      const playBeepThenRecord = async () => {
+        try {
+          await beepAudioRef.current!.play();
+          setTimeout(() => {
+            startRecording();
+          }, 1000); // beep 길이만큼 지연
+        } catch (e) {
+          console.error("Beep play error:", e);
+          startRecording(); // fallback
+        }
+      };
+
+      playBeepThenRecord();
     }
   }, [stage, startRecording]);
 
