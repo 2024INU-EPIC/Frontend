@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   PageContainer,
@@ -29,6 +29,9 @@ import {
 } from "./My.styled";
 import ExamModal from "../components/Modal/ExamModal";
 import StudyStatChart from "../components/StudyStatChart";
+import { useAuthStore } from "../stores/authStore";
+import axios from "axios";
+import { formatDate } from "../utils/dateUtils";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -39,6 +42,14 @@ const MyPage: React.FC = () => {
   const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<string | null>(null);
+  const [examHistory, setExamHistory] = useState<any[]>([]);
+  const [gradeId, setGradeId] = useState<number>(1);
+
+  const { userId } = useAuthStore();
+
+  const PrintUserId = () => {
+    console.log(userId);
+  };
 
   const handleMenuClick = (menu: string) => {
     if (menu === "accountDelete") {
@@ -47,6 +58,28 @@ const MyPage: React.FC = () => {
       setActiveMenu(menu);
     }
   };
+
+  useEffect(() => {
+    if (activeMenu === "examRecord") {
+      axios.get(`/api/mocktest/history/${userId}`).then((response) => {
+        // 응답 데이터를 가공하여 scores 배열 추가
+        const processed = response.data.map((exam: any) => ({
+          ...exam,
+          scores: [
+            exam.part1Grade,
+            exam.part2Grade,
+            exam.part3Grade,
+            exam.part4Grade,
+            exam.part5Grade,
+          ],
+          date: exam.testDate,
+          score: exam.testGrade,
+        }));
+        setExamHistory(processed);
+        console.log(processed);
+      });
+    }
+  }, [activeMenu, userId]);
 
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
@@ -92,7 +125,7 @@ const MyPage: React.FC = () => {
             fill="white"
           />
         </svg>
-        <UserNameText>Hi, Audrey</UserNameText>
+        <UserNameText onClick={PrintUserId}>Hi, Audrey</UserNameText>
       </UserName>
       <MainContent>
         <SideBar>
@@ -111,14 +144,14 @@ const MyPage: React.FC = () => {
             시험 기록 확인
           </a>
           <a
-            href="#"
+            href="##"
             onClick={() => handleMenuClick("editProfile")}
             className={activeMenu === "editProfile" ? "active" : ""}
           >
             회원 정보 수정
           </a>
           <a
-            href="#"
+            href="###"
             onClick={() => handleMenuClick("accountDelete")}
             className={activeMenu === "accountDelete" ? "active" : ""}
           >
@@ -144,90 +177,37 @@ const MyPage: React.FC = () => {
           )}
           {activeMenu === "examRecord" && (
             <>
-              <ExamRecord onClick={() => openModal("2025/01/02")}>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  <StudyStatChart scores={[80, 65, 70, 50, 90]} />
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord onClick={() => openModal("2025/01/03")}>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 03</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
-              <ExamRecord>
-                <ScoreaArea>
-                  <ExamDate>2025 / 01 / 02</ExamDate>
-                  <ExamScoreText>성적</ExamScoreText>
-                  <ExamScore>IM1</ExamScore>
-                </ScoreaArea>
-                <ExamGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
-                </ExamGraph>
-              </ExamRecord>
+              {examHistory.length === 0 ? (
+                <div>아직 시험 기록이 없어요.</div>
+              ) : (
+                examHistory.map((exam, idx) => (
+                  <ExamRecord
+                    key={exam.id || idx}
+                    onClick={() => {
+                      openModal(exam.date);
+                      setGradeId(exam.gradeId);
+                    }}
+                  >
+                    <ScoreaArea>
+                      <ExamDate>{formatDate(exam.date)}</ExamDate>
+                      <ExamScoreText>성적</ExamScoreText>
+                      <ExamScore>{exam.score}</ExamScore>
+                    </ScoreaArea>
+                    <ExamGraph>
+                      {exam.scores && exam.scores.length > 0 ? (
+                        <StudyStatChart scores={exam.scores} />
+                      ) : (
+                        "아직 학습 데이터가 없어요. 학습을 시작해보세요."
+                      )}
+                    </ExamGraph>
+                  </ExamRecord>
+                ))
+              )}
               <ExamModal
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 examDate={selectedExam}
+                gradeId={gradeId}
               />
             </>
           )}
