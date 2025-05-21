@@ -215,37 +215,25 @@ const ExamModal: React.FC<ExamModalProps> = ({ isOpen, onClose, examDate }) => {
                     result.gptEvaluation.suggestions["총평"],
                   ].join("\n\n")}
                 />
+                {/* 
+                <ScoreBodyGeneral
+                  pronunciationScore={Math.round(
+                    result.azureEvaluation.PronunciationAssessment
+                      .AccuracyScore,
+                  )}
+                  accuracy={Math.round(
+                    result.azureEvaluation.PronunciationAssessment
+                      .AccuracyScore,
+                  )}
+                  fluency={Math.round(
+                    result.azureEvaluation.PronunciationAssessment.FluencyScore,
+                  )}
+                  prosody={Math.round(
+                    result.azureEvaluation.PronunciationAssessment.ProsodyScore,
+                  )}
+                /> */}
               </ResultArea>
             ))}
-            <ResultArea>
-              <ScoreBodyGeneral
-                pronunciationScore={Math.round(
-                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
-                    ?.AccuracyScore ?? 0,
-                )}
-                accuracy={Math.round(
-                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
-                    ?.AccuracyScore ?? 0,
-                )}
-                fluency={Math.round(
-                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
-                    ?.FluencyScore ?? 0,
-                )}
-                prosody={Math.round(
-                  partResults[2][0]?.azureEvaluation?.PronunciationAssessment
-                    ?.ProsodyScore ?? 0,
-                )}
-                contentScore={Math.round(
-                  (partResults[2][0]?.gptEvaluation.vocabulary +
-                    partResults[2][0]?.gptEvaluation.grammar +
-                    partResults[2][0]?.gptEvaluation.topic) /
-                    3,
-                )}
-                grammar={partResults[2][0]?.gptEvaluation?.grammar}
-                topic={partResults[2][0]?.gptEvaluation?.topic}
-                voca={partResults[2][0]?.gptEvaluation?.vocabulary}
-              />
-            </ResultArea>
           </PartArea>
           {/*<PartArea>
             <p className="partInfo">Part4</p>
