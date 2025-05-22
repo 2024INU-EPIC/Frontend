@@ -106,57 +106,6 @@ export const StatGraph = styled.div`
   align-items: center;
 `;
 
-export const ExamRecord = styled.div`
-  width: 81rem;
-  height: 21rem;
-  border-radius: 1.25rem;
-  background: white;
-  filter: drop-shadow(0px 20px 10px rgba(0, 0, 0, 0.25));
-  margin: 3.25rem 5.5rem 2.5rem 5.5rem;
-  display: flex;
-  flex-direction: row;
-  margin: 3.6rem 0 -1rem 0;
-`;
-
-export const ScoreaArea = styled.div`
-  width: 15.75rem;
-  height: 21rem;
-  border-radius: 1.25rem 0rem 0rem 1.25rem;
-  border-right: 1px solid #8a8a8a;
-`;
-
-export const ExamDate = styled.div`
-  text-align: center;
-  font-family: "Noto Sans KR", serif;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 2rem 0 3rem 0;
-`;
-
-export const ExamScoreText = styled.div`
-  text-align: center;
-  font-family: "Noto Sans KR", serif;
-  font-size: 1.5rem;
-  font-weight: bold;
-`;
-
-export const ExamScore = styled.div`
-  text-align: center;
-  font-family: "Noto Sans KR", serif;
-  font-size: 4rem;
-  font-weight: bold;
-`;
-
-export const ExamGraph = styled.div`
-  flex: 1;
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 400;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 export const ProfileArea = styled.div`
   align-self: flex-start;
   display: flex;
