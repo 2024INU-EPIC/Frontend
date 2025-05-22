@@ -2,7 +2,7 @@ import React from "react";
 import ScoreBody from "../components/ScoreBody";
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
 import ReplyBody from "../components/ReplyBody";
-import MultipleReplyBody from "../components/MultipleReplyBox";
+import MultipleReplyBody from "../components/MultipleReplyBody";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMockTestStore } from "../stores/MockTestStore";
 import PassageBody from "../components/PassageBody";

@@ -16,7 +16,7 @@ import ImageBody from "../ImageBody";
 import ReplyBody from "../ReplyBody";
 import ScoreBodyGeneral from "../ScoreBodyGeneral";
 import SituationBody from "../SituationBody";
-import MultipleReplyBody from "../MultipleReplyBox";
+import MultipleReplyBody from "../MultipleReplyBody";
 import QuestionBody from "../QuestionBody";
 import { formatDate } from "../../utils/dateUtils";
 import axios from "axios";
@@ -65,6 +65,7 @@ const ExamModal: React.FC<ExamModalProps> = ({
           console.log(evaluations);
           setParsedEvaluations(evaluations.map((e: string) => JSON.parse(e)));
           setQuestions(questions);
+          console.log(questions);
         } catch (error) {
           console.error("Error fetching data:", error);
         }
@@ -82,6 +83,19 @@ const ExamModal: React.FC<ExamModalProps> = ({
       (_, i) => start + i,
     );
   };
+
+  // question 본문의 '?' 이후 줄바꿈용
+  const formattedText = (questionText: any) =>
+    // .toString()
+    questionText
+      .split("?")
+      .map((part: string, index: number, arr: string[]) => (
+        <React.Fragment key={index}>
+          {part}
+          {index < arr.length - 1 && "?"}
+          {index === 0 && <br />}
+        </React.Fragment>
+      ));
 
   return isOpen ? (
     <ModalOverlay>
@@ -119,7 +133,7 @@ const ExamModal: React.FC<ExamModalProps> = ({
                     isScoring={true}
                     wrongWordScore={getWrongWordScore(evalData?.IssueWords)}
                     questionNum={qIdx + 1}
-                    totalQuestions={partQuestionCounts[0]}
+                    totalQuestions={11}
                     fromPartSelect={false}
                     questionCount={qIdx + 1}
                     partId={"1"}
@@ -166,8 +180,8 @@ const ExamModal: React.FC<ExamModalProps> = ({
                 <ResultArea key={idx}>
                   <ImageBody
                     imageSrc={qData}
-                    questionNum={qIdx + 1}
-                    totalQuestions={partQuestionCounts[1]}
+                    questionNum={qIdx + 3}
+                    totalQuestions={11}
                     fromPartSelect={false}
                     questionCount={qIdx + 1}
                     partId={"2"}
@@ -412,7 +426,8 @@ const ExamModal: React.FC<ExamModalProps> = ({
               return (
                 <ResultArea key={idx}>
                   <QuestionBody
-                    text={qData}
+                    text={formattedText(qData)}
+                    // text="What are the pros and cons of using artificial intelligence in education?"
                     questionNum={11}
                     totalQuestions={11}
                     questionCount={1}
