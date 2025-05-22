@@ -25,7 +25,7 @@ const IS_DEV_MODE = true;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 2 : 16, // direction 단계
-  situation: IS_DEV_MODE ? 1 : 45, //situation 단계
+  situation: IS_DEV_MODE ? 1 : 3, //situation 단계
   preparing: IS_DEV_MODE ? 1 : 3, // 문제 준비 시간
   responding: (
     questionNum: number, // 파라미터에 따라 문제별 응답시간을 다르게 설정하는 화살표 함수
@@ -375,10 +375,9 @@ const Part3Page: React.FC = () => {
           break;
         case "situation":
           setStage("preparing");
-          setRemainingTime(TIME_SETTINGS.preparing); // 준비 시간 설정
+          setRemainingTime(TIME_SETTINGS.preparing);
           break;
         case "preparing":
-          setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 문항별 응답 시간 설정
           setIsSubmitting(false);
           break;
@@ -420,10 +419,8 @@ const Part3Page: React.FC = () => {
 
           audio.onended = () => {
             if (stage === "direction") {
-              setTimeout(() => {
-                setStage("situation");
-                setRemainingTime(TIME_SETTINGS.situation);
-              }, 1000);
+              setStage("situation");
+              setRemainingTime(TIME_SETTINGS.situation);
             }
           };
         })
@@ -498,14 +495,6 @@ const Part3Page: React.FC = () => {
           questionCount={questionCount}
           partId={partId}
         />
-      )}
-
-      {stage === "situation" && (
-        <>
-          <TopBlank />
-          <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
-          <TimeInfoText>Preparation Time</TimeInfoText>
-        </>
       )}
 
       {stage === "preparing" && (
