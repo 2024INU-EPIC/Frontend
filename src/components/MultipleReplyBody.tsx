@@ -109,11 +109,13 @@ const Wrapper = styled.div`
       margin: 0.75rem 0;
       font-size: 2rem;
       font-weight: bold;
+      align-self: flex-start;
     }
 
     div {
       font-size: 2rem;
       font-weight: normal;
+      text-align: start;
     }
   }
 
@@ -160,6 +162,7 @@ const Wrapper = styled.div`
     font-size: 1.5rem;
     font-weight: 400;
     overflow-y: scroll;
+    text-align: start;
   }
 `;
 

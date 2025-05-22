@@ -2,8 +2,9 @@ import styled from "styled-components";
 
 const Wrapper = styled.div`
   width: 87.5rem;
-  min-height: 15rem;
+  min-height: 13rem;
   /* margin-top: 9.625rem; */
+  padding-bottom: 1rem;
   background-color: #ffffff;
   border-radius: 1rem;
   filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
@@ -24,6 +25,7 @@ const Wrapper = styled.div`
   }
 
   p.paragraph {
+    margin-top: 1rem;
     position: relative;
     font-size: 2rem;
     font-weight: 400;

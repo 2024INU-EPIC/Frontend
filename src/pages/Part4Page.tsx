@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
 import ScoreBodyGeneral from "../components/ScoreBodyGeneral";
-import MultipleReplyBody from "../components/MultipleReplyBox";
+import MultipleReplyBody from "../components/MultipleReplyBody";
 import SituationBody from "../components/SituationBody";
 import DirectionBody from "../components/DirectionBody";
 import StopTalkingModal from "../components/StopTalkingModal";
