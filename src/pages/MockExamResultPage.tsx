@@ -21,10 +21,12 @@ import {
   Part3Area,
   Part4Area,
   PartArea,
+  ScoreArea,
   SubTitleContainer,
   TitleContainer,
 } from "./MockExamResult.styled";
 import QuestionBody from "../components/QuestionBody";
+import { GradationBarBox } from "../components/GradationBarBox";
 
 const MockExamResultPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,6 +34,24 @@ const MockExamResultPage: React.FC = () => {
   const { assessmentJsons, grade } = location.state || {};
   const parsed = assessmentJsons.map((json: string) => JSON.parse(json));
   const { partQuestions } = useMockTestStore();
+
+  // question 본문의 '?' 이후 줄바꿈용
+  const formattedText = (partQuestions.part5.questions[0] ?? "")
+    .split("?")
+    .map((part: string, index: number, arr: string[]) => (
+      <React.Fragment key={index}>
+        {part}
+        {index < arr.length - 1 && "?"}
+        {index === 0 && <br />}
+      </React.Fragment>
+    ));
+
+  // finalGrade에서 등급(level)만 추출
+  const parseFinalGrade = (finalGrade: string): string => {
+    return finalGrade.replace(/^\d+\s*/, ""); // 숫자와 공백 제거 → 등급만 반환
+  };
+
+  const level = parseFinalGrade(grade.finalGrade);
 
   const getPronScores = (
     assess: any,
@@ -126,8 +146,11 @@ const MockExamResultPage: React.FC = () => {
       <GradeContainer>
         <GradeArea>
           <GradeTitle>성적</GradeTitle>
-          <Grade>{grade.finalGrade}</Grade>
+          <Grade>{level}</Grade>
         </GradeArea>
+        <ScoreArea>
+          <GradationBarBox testGrade={grade.finalGrade} />
+        </ScoreArea>
         <ChartArea>
           <StudyStatChart
             scores={[
@@ -139,7 +162,6 @@ const MockExamResultPage: React.FC = () => {
             ]}
           />
         </ChartArea>
-        <div></div>
       </GradeContainer>
       <SubTitleContainer>Part 1</SubTitleContainer>
       {[0, 1].map((i) => {
@@ -275,7 +297,7 @@ const MockExamResultPage: React.FC = () => {
       <SubTitleContainer>Part 5</SubTitleContainer>
       <PartArea>
         <QuestionBody
-          text={partQuestions.part5.questions[0]}
+          text={formattedText}
           questionNum={11}
           totalQuestions={11}
           questionCount={1}

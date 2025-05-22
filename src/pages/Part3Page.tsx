@@ -378,6 +378,7 @@ const Part3Page: React.FC = () => {
           setRemainingTime(TIME_SETTINGS.preparing);
           break;
         case "preparing":
+          setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 문항별 응답 시간 설정
           setIsSubmitting(false);
           break;
