@@ -16,6 +16,8 @@ import StopTalkingModal from "../components/StopTalkingModal";
 import { useMockTestStore } from "../stores/MockTestStore";
 import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
+import { fetchTTSBlob, playAudioBlob } from "../utils/tts";
+
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
 // false : 배포 모드 (실제 시험 진행 방식)
@@ -124,6 +126,10 @@ const Part3Page: React.FC = () => {
   //useRef로 동기적 관리
   const questionPart3IdRef = useRef<number>(initialQuestions?.questionPart3Id);
   const currentNumRef = useRef(5);
+
+  //tts 용
+  const hasSpokenRef = useRef(false);
+  const [isPlayingTTS, setIsPlayingTTS] = useState(false);
 
   // 새로고침 후 sessionId 초기화된 경우 메인으로 리디렉션
   useEffect(() => {
@@ -351,6 +357,61 @@ const Part3Page: React.FC = () => {
     }
   }, [stage, startRecording]);
 
+  //tts
+  //situation 용
+  useEffect(() => {
+    if (stage === "situation" && !hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      const playSituation = async () => {
+        try {
+          setIsPlayingTTS(true);
+          const blob = await fetchTTSBlob(situationText);
+          await playAudioBlob(blob); //situation 재생 완료 후
+          setIsPlayingTTS(false);
+
+          //preparing으로 전환
+          setStage("preparing");
+          setRemainingTime(TIME_SETTINGS.preparing);
+        } catch (e) {
+          console.error("situation TTS 오류:", e);
+          setIsPlayingTTS(false);
+          setStage("preparing");
+          setRemainingTime(TIME_SETTINGS.preparing);
+        }
+      };
+      playSituation();
+    }
+
+    if (stage !== "situation") hasSpokenRef.current = false;
+  }, [stage, situationText]);
+
+  //question 용
+  useEffect(() => {
+    if (stage === "preparing" && !hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+      const questionText = questionTextArray[currentNum - 5];
+
+      const playQuestionAndStartTimer = async () => {
+        try {
+          setIsPlayingTTS(true);
+          const blob = await fetchTTSBlob(questionText);
+          await playAudioBlob(blob); // TTS 재생 종료 시점
+          setIsPlayingTTS(false); // 이제 타이머 활성화화
+
+          setRemainingTime(TIME_SETTINGS.preparing); // 카운트다운 시작
+        } catch (err) {
+          console.error("질문 TTS 오류:", err);
+          setIsPlayingTTS(false);
+          setRemainingTime(TIME_SETTINGS.preparing);
+        }
+      };
+
+      playQuestionAndStartTimer();
+    }
+
+    if (stage !== "preparing") hasSpokenRef.current = false;
+  }, [stage, questionTextArray, currentNum]);
+
   useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
     const loadingTimer = setTimeout(() => {
@@ -361,6 +422,7 @@ const Part3Page: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isPlayingTTS) return;
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
         setRemainingTime(remainingTime - 1);
@@ -373,11 +435,8 @@ const Part3Page: React.FC = () => {
             setRemainingTime(TIME_SETTINGS.situation);
           }
           break;
-        case "situation":
-          setStage("preparing");
-          setRemainingTime(TIME_SETTINGS.preparing);
-          break;
         case "preparing":
+          setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 문항별 응답 시간 설정
           setIsSubmitting(false);
           break;
@@ -388,7 +447,15 @@ const Part3Page: React.FC = () => {
           break;
       }
     }
-  }, [remainingTime, stage, currentNum, isMockExam, navigate, stopRecording]);
+  }, [
+    remainingTime,
+    stage,
+    currentNum,
+    isMockExam,
+    navigate,
+    stopRecording,
+    isPlayingTTS,
+  ]);
 
   useEffect(() => {
     if (!isMockExam || !isUploadComplete) return;
@@ -497,10 +564,12 @@ const Part3Page: React.FC = () => {
         />
       )}
 
-      {stage === "preparing" && (
+      {stage === "preparing" && !isPlayingTTS && (
         <>
           <TopBlank />
-          <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
+          <TimeRemainingIndicator>
+            {`00 : ${remainingTime.toString().padStart(2, "0")}`}
+          </TimeRemainingIndicator>
           <TimeInfoText>Preparation Time</TimeInfoText>
         </>
       )}
