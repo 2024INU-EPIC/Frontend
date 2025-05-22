@@ -80,10 +80,16 @@ export const Grade = styled.div`
   font-weight: 700;
 `;
 
+export const ScoreArea = styled.div`
+  display: flex;
+  padding: 1rem;
+  align-items: center;
+`;
+
 export const ChartArea = styled.div`
   display: flex;
   height: 19rem;
-  margin-right: 10rem;
+  margin-right: 15rem;
   padding: 1rem;
 `;
 
