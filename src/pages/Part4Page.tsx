@@ -15,6 +15,7 @@ import loadingGif from "../assets/img/loading.gif";
 import { encodeWAV } from "./encodeWAV";
 import { useMockTestStore } from "../stores/MockTestStore";
 import { useMockTestCancel } from "../hooks/useMockTestCancel";
+import { fetchTTSBlob, playAudioBlob } from "../utils/tts";
 
 // 개발 모드인지 여부를 플래그 변수로 설정
 // true : 개발 모드 (빠른 UI 확인용)
@@ -125,6 +126,10 @@ const Part4Page: React.FC = () => {
   const questionPart4IdRef = useRef<number>(initialQuestions?.questionPart4Id);
   const currentNumRef = useRef<number>(currentNum); // ← currentNum(8)과 동기화
 
+  //tts용
+  const [isPlayingTTS, setIsPlayingTTS] = useState(false);
+  const hasSpokenRef = useRef(false);
+
   // 새로고침 후 sessionId 초기화된 경우 메인으로 리디렉션
   useEffect(() => {
     if (isMockExam && !sessionId) {
@@ -144,6 +149,7 @@ const Part4Page: React.FC = () => {
   }
 
   useEffect(() => {
+    if (fromPartSelect) return;
     if (isMockExam) {
       const { situationImage, questions } = partQuestions.part4;
       setSituationImage(situationImage);
@@ -157,12 +163,12 @@ const Part4Page: React.FC = () => {
       ]);
     }
   }, [
+    fromPartSelect,
     initialQuestions?.question5,
     initialQuestions?.question6,
     initialQuestions?.question7,
     initialQuestions?.situationText,
     isMockExam,
-    partQuestions.part3,
     partQuestions.part4,
   ]);
 
@@ -351,6 +357,49 @@ const Part4Page: React.FC = () => {
     }
   }, [stage, startRecording]);
 
+  //tts
+  useEffect(() => {
+    if (stage === "preparing" && !hasSpokenRef.current) {
+      hasSpokenRef.current = true;
+
+      const questionText = questionTextArray[currentNum - 8];
+
+      const playTTSAndStartTimer = async () => {
+        try {
+          setIsPlayingTTS(true);
+          const blob = await fetchTTSBlob(questionText);
+          await playAudioBlob(blob); // 문제 읽기 끝난 시점
+          setIsPlayingTTS(false);
+
+          // 이제 타이머 시작
+          setRemainingTime(TIME_SETTINGS.preparing);
+
+          const interval = setInterval(() => {
+            setRemainingTime((prev) => {
+              if (prev <= 1) {
+                clearInterval(interval);
+                setStage("responding");
+                setRemainingTime(TIME_SETTINGS.responding(currentNum));
+                setIsSubmitting(false);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        } catch (err) {
+          console.error("Part4 TTS 오류:", err);
+          setIsPlayingTTS(false);
+        }
+      };
+
+      playTTSAndStartTimer();
+    }
+
+    if (stage !== "preparing") {
+      hasSpokenRef.current = false;
+    }
+  }, [stage, questionTextArray, currentNum]);
+
   useEffect(() => {
     // 2초 동안 로딩 화면 표시 후 "direction"으로 변경
     const loadingTimer = setTimeout(() => {
@@ -361,6 +410,8 @@ const Part4Page: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isPlayingTTS) return;
+
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
         setRemainingTime(remainingTime - 1);
@@ -375,11 +426,9 @@ const Part4Page: React.FC = () => {
           break;
         case "situation":
           setStage("preparing");
-          setRemainingTime(TIME_SETTINGS.preparing); // 8번 문제 준비 시간
+          setRemainingTime(TIME_SETTINGS.preparing);
           break;
         case "preparing":
-          setStage("responding");
-          setRemainingTime(TIME_SETTINGS.responding(currentNum)); // 10번 문제만 30초, 나머지는 15초
           setIsSubmitting(false);
           break;
         case "responding":
@@ -389,7 +438,15 @@ const Part4Page: React.FC = () => {
           break;
       }
     }
-  }, [remainingTime, stage, currentNum, isMockExam, navigate, stopRecording]);
+  }, [
+    remainingTime,
+    stage,
+    currentNum,
+    isMockExam,
+    navigate,
+    stopRecording,
+    isPlayingTTS,
+  ]);
 
   useEffect(() => {
     if (!isMockExam || !isUploadComplete) return;
@@ -450,7 +507,7 @@ const Part4Page: React.FC = () => {
       questionPart4Id,
       situationImage,
       question8,
-      quesiton9,
+      question9,
       question10,
     } = (await axios.get(`/api/focused-learning/part4`)).data;
 
@@ -459,7 +516,7 @@ const Part4Page: React.FC = () => {
 
     // 문항 이미지 갱신
     setSituationImage(situationImage);
-    setQuestionTextArray([question8, quesiton9, question10]);
+    setQuestionTextArray([question8, question9, question10]);
 
     // state 초기화
     setQuestionCount((prev) => prev + 1);
@@ -519,9 +576,11 @@ const Part4Page: React.FC = () => {
         </>
       )}
 
-      {stage === "preparing" && (
+      {stage === "preparing" && !isPlayingTTS && (
         <>
-          <TimeRemainingIndicator>{`00 : ${remainingTime.toString().padStart(2, "0")}`}</TimeRemainingIndicator>
+          <TimeRemainingIndicator>
+            {`00 : ${remainingTime.toString().padStart(2, "0")}`}
+          </TimeRemainingIndicator>
           <TimeInfoText>Preparation Time</TimeInfoText>
         </>
       )}

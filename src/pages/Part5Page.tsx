@@ -13,12 +13,14 @@ import StopTalkingModal from "../components/StopTalkingModal";
 import { useMockTestStore } from "../stores/MockTestStore";
 import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
+import { fetchTTSBlob, playAudioBlob } from "../utils/tts";
+
 const IS_DEV_MODE = true;
 //const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 2 : 13, // direction 단계
-  preparing: IS_DEV_MODE ? 1 : 45, // 문제 준비 시간
+  preparing: IS_DEV_MODE ? 3 : 45, // 문제 준비 시간
   responding: IS_DEV_MODE ? 5 : 60, // 답변 시간.
 };
 
@@ -96,6 +98,9 @@ const Part5Page: React.FC = () => {
   //useRef로 동기적 관리
   const questionPart5IdRef = useRef<number>(initialQuestions?.questionPart5Id);
   const currentNum = 11;
+
+  //tts 용
+  const [ttsPlayed, setTtsPlayed] = useState(false);
 
   // 새로고침 후 sessionId 초기화된 경우 메인으로 리디렉션
   useEffect(() => {
@@ -226,6 +231,9 @@ const Part5Page: React.FC = () => {
   }, [stage, startRecording]);
 
   useEffect(() => {
+    if (stage === "direction") return;
+    if (stage === "preparing" && !ttsPlayed) return; // TTS 끝나기 전에는 타이머 멈춤
+
     if (remainingTime > 0) {
       const timer = setTimeout(() => {
         setRemainingTime(remainingTime - 1);
@@ -233,10 +241,6 @@ const Part5Page: React.FC = () => {
       return () => clearTimeout(timer);
     } else {
       switch (stage) {
-        case "direction":
-          setStage("preparing");
-          setRemainingTime(TIME_SETTINGS.preparing);
-          break;
         case "preparing":
           setStage("responding");
           setRemainingTime(TIME_SETTINGS.responding);
@@ -256,6 +260,7 @@ const Part5Page: React.FC = () => {
     navigate,
     stopRecording,
     isUploadComplete,
+    ttsPlayed,
   ]);
 
   useEffect(() => {
@@ -296,6 +301,7 @@ const Part5Page: React.FC = () => {
             if (stage === "direction") {
               setTimeout(() => {
                 setStage("preparing");
+                setTtsPlayed(false);
                 setRemainingTime(TIME_SETTINGS.preparing);
               }, 1000);
             }
@@ -311,7 +317,7 @@ const Part5Page: React.FC = () => {
       audio.pause();
       audio.currentTime = 0;
     };
-  }, [stage]);
+  }, [stage, questions]);
 
   // 이후 클릭 이벤트로는 오디오가 재생되지 않도록 함
   const handleUserInteraction = () => {
@@ -319,6 +325,25 @@ const Part5Page: React.FC = () => {
       console.log("Audio is not allowed to play after direction stage.");
     }
   };
+
+  useEffect(() => {
+    const runTTS = async () => {
+      if (stage === "preparing" && !ttsPlayed) {
+        try {
+          const blob = await fetchTTSBlob(questions);
+          await playAudioBlob(blob);
+          setTtsPlayed(true);
+          setRemainingTime(TIME_SETTINGS.preparing); // TTS 끝나면 타이머 시작
+        } catch (e) {
+          console.error("TTS 재생 실패", e);
+          setTtsPlayed(true); // 실패해도 타이머는 진행되게
+          setRemainingTime(TIME_SETTINGS.preparing);
+        }
+      }
+    };
+
+    runTTS();
+  }, [stage, ttsPlayed, questions]);
 
   const nextQuestion = async () => {
     try {
@@ -330,6 +355,7 @@ const Part5Page: React.FC = () => {
       setRemainingTime(TIME_SETTINGS.preparing);
       setQuestionCount((prev) => prev + 1);
       questionPart5IdRef.current = response.data.questionPart5Id;
+      setTtsPlayed(false);
     } catch (error) {
       console.error("Error fetching next set of questions:", error);
     }
@@ -427,7 +453,7 @@ const Part5Page: React.FC = () => {
           partId={partId}
         />
       )}
-      {stage === "preparing" && (
+      {stage === "preparing" && ttsPlayed && (
         <>
           <TimeRemainingIndicator>
             {`00 : ${remainingTime.toString().padStart(2, "0")}`}
