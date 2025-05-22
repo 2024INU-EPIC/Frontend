@@ -10,12 +10,6 @@ import {
   LearnStat,
   StatText,
   StatGraph,
-  ExamRecord,
-  ExamDate,
-  ExamScoreText,
-  ScoreaArea,
-  ExamScore,
-  ExamGraph,
   PopupOverlay,
   PopupContainer,
   PopupTitle,
@@ -28,10 +22,9 @@ import {
   ProfileArea,
 } from "./My.styled";
 import ExamModal from "../components/Modal/ExamModal";
-import StudyStatChart from "../components/StudyStatChart";
 import { useAuthStore } from "../stores/authStore";
 import axios from "axios";
-import { formatDate } from "../utils/dateUtils";
+import ExamHistoryCard from "../components/ExamHistoryCard";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -181,26 +174,12 @@ const MyPage: React.FC = () => {
                 <div>아직 시험 기록이 없어요.</div>
               ) : (
                 examHistory.map((exam, idx) => (
-                  <ExamRecord
+                  <ExamHistoryCard
                     key={exam.id || idx}
-                    onClick={() => {
-                      openModal(exam.date);
-                      setGradeId(exam.gradeId);
-                    }}
-                  >
-                    <ScoreaArea>
-                      <ExamDate>{formatDate(exam.date)}</ExamDate>
-                      <ExamScoreText>성적</ExamScoreText>
-                      <ExamScore>{exam.score}</ExamScore>
-                    </ScoreaArea>
-                    <ExamGraph>
-                      {exam.scores && exam.scores.length > 0 ? (
-                        <StudyStatChart scores={exam.scores} />
-                      ) : (
-                        "아직 학습 데이터가 없어요. 학습을 시작해보세요."
-                      )}
-                    </ExamGraph>
-                  </ExamRecord>
+                    exam={exam}
+                    openModal={openModal}
+                    setGradeId={setGradeId}
+                  />
                 ))
               )}
               <ExamModal

@@ -34,7 +34,7 @@ const StudyStatChart: React.FC<StudyStatChartProps> = ({ scores }) => {
         backgroundColor: "#FF5151",
         borderRadius: 50,
         borderSkipped: false,
-        barThickness: 30,
+        barThickness: 22.5,
       },
     ],
   };
@@ -79,7 +79,7 @@ const StudyStatChart: React.FC<StudyStatChartProps> = ({ scores }) => {
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return <Bar data={data} options={options} width={350} height={200} />;
 };
 
 export default StudyStatChart;
