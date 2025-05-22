@@ -89,7 +89,7 @@ export const ExamGraph = styled.div`
   // border: 1px solid #d9d9d9;
   // width: 28rem;
   // height: 16.25rem;
-  height: 100%;
+  /* height: 500px; */
 
   border-radius: 4px;
 
@@ -101,4 +101,5 @@ export const ExamGraph = styled.div`
   justify-content: center;
   align-items: center;
   margin-right: 2rem;
+  margin-top: 2rem;
 `;
