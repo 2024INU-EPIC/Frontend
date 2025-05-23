@@ -173,14 +173,16 @@ const MyPage: React.FC = () => {
               {examHistory.length === 0 ? (
                 <div>아직 시험 기록이 없어요.</div>
               ) : (
-                examHistory.map((exam, idx) => (
-                  <ExamHistoryCard
-                    key={exam.id || idx}
-                    exam={exam}
-                    openModal={openModal}
-                    setGradeId={setGradeId}
-                  />
-                ))
+                [...examHistory]
+                  .reverse()
+                  .map((exam, idx) => (
+                    <ExamHistoryCard
+                      key={exam.id || idx}
+                      exam={exam}
+                      openModal={openModal}
+                      setGradeId={setGradeId}
+                    />
+                  ))
               )}
               <ExamModal
                 isOpen={isModalOpen}
