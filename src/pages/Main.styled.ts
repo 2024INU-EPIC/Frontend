@@ -41,18 +41,40 @@ export const learnStat = styled.div`
   filter: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.25));
   margin: 3.25rem 5.5rem 2.5rem 5.5rem;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+
+  align-items: center;
 `;
 
-export const statText = styled.div`
+export const ExamRecord = styled.div`
+  width: 81rem;
+  height: 21rem;
+  border-radius: 1.25rem;
+  background: white;
+  filter: drop-shadow(0px 20px 10px rgba(0, 0, 0, 0.25));
+  margin: 3.25rem 5.5rem 2.5rem 5.5rem;
+  display: flex;
+  align-items: center;
+
+  margin: 3.6rem 0 -1rem 0;
+`;
+
+export const statText = styled.span`
   font-size: 2rem;
   font-weight: 700;
-  margin: 3rem 7.5rem 0 4rem;
+  width: 70rem;
+
+  margin-left: 3rem;
+  margin-top: 2.5rem;
+
+  text-align: left;
 `;
 
 export const statGraph = styled.div`
   font-size: 2rem;
   font-weight: 400;
+
+  height: 20rem;
   display: flex;
   justify-content: center;
   align-items: center;

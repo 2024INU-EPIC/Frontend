@@ -4,7 +4,7 @@ import { levelMap } from "../utils/levelMap";
 import { styled } from "styled-components";
 
 interface GradationBarBoxProps {
-  testGrade: string; // e.g. "140 IH"
+  testGrade: string | null; // e.g. "140 IH"
 }
 
 export const GradationBarBox: React.FC<GradationBarBoxProps> = ({
@@ -14,7 +14,7 @@ export const GradationBarBox: React.FC<GradationBarBoxProps> = ({
   const [scoreValueVisible, setScoreValueVisible] = useState(false);
 
   useEffect(() => {
-    const targetScore = Number(testGrade.split(" ")[0]);
+    const targetScore = Number(testGrade?.split(" ")[0]);
 
     const animate = setTimeout(() => {
       setAnimatedScore(targetScore);
@@ -31,7 +31,7 @@ export const GradationBarBox: React.FC<GradationBarBoxProps> = ({
     };
   }, [testGrade]);
 
-  const levelAbbr = testGrade.split(" ")[1];
+  const levelAbbr = testGrade?.split(" ")[1];
 
   return (
     <ScoreDetailsArea>

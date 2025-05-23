@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as S from "./Main.styled";
 import tLogo from "../assets/img/toeicLogo.svg";
@@ -9,14 +9,18 @@ import axios from "axios";
 import { useUserStore } from "../stores/userStore";
 import { useAuthStore } from "../stores/authStore";
 import { useMockTestStore } from "../stores/MockTestStore";
+import StudyStatChart from "../components/StudyStatChart";
+import { GradationBarBox } from "../components/GradationBarBox";
 
 const Main: React.FC = () => {
   const targetRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { setUserInfo, name, level } = useUserStore();
   const { userId, accessToken } = useAuthStore();
+  const [grade, setGrade] = useState<any>([]);
 
   useEffect(() => {
+    // console.log("userId", u);
     const fetchUser = async () => {
       if (!userId) {
         navigate("/login");
@@ -29,6 +33,7 @@ const Main: React.FC = () => {
       setUserInfo(name, level);
     };
     fetchUser();
+    fetchLearningStats();
   }, [accessToken, navigate, setUserInfo, userId]);
 
   const scrollToSection = () => {
@@ -66,6 +71,19 @@ const Main: React.FC = () => {
     navigate("/voca");
   };
 
+  const fetchLearningStats = async () => {
+    try {
+      const response = await axios.get(`/api/stats/learning/${userId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      console.log(response.data);
+      setGrade(response.data);
+    } catch (error) {
+      console.error("Error fetching learning stats:", error);
+    }
+  };
+
   return (
     <S.mainContainer>
       <S.userRank>
@@ -76,9 +94,24 @@ const Main: React.FC = () => {
       </S.userRank>
       <S.midContent>
         <S.learnStat>
-          <S.statText>학습 통계</S.statText>
+          <S.statText>최근 학습 기록</S.statText>
           <S.statGraph>
-            아직 학습 데이터가 없어요. 학습을 시작해보세요.
+            {grade ? (
+              <>
+                <GradationBarBox testGrade={grade.lastGrade} />
+                <StudyStatChart
+                  scores={[
+                    Math.round(grade.part1),
+                    Math.round(grade.part2),
+                    Math.round(grade.part3),
+                    Math.round(grade.part4),
+                    Math.round(grade.part5),
+                  ]}
+                />
+              </>
+            ) : (
+              "아직 학습 데이터가 없어요. 학습을 시작해보세요."
+            )}
           </S.statGraph>
         </S.learnStat>
         <S.dailyWord>
