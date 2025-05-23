@@ -25,6 +25,7 @@ import ExamModal from "../components/Modal/ExamModal";
 import { useAuthStore } from "../stores/authStore";
 import axios from "axios";
 import ExamHistoryCard from "../components/ExamHistoryCard";
+import { useUserStore } from "../stores/userStore";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -39,6 +40,7 @@ const MyPage: React.FC = () => {
   const [gradeId, setGradeId] = useState<number>(1);
 
   const { userId } = useAuthStore();
+  const { name } = useUserStore();
 
   const PrintUserId = () => {
     console.log(userId);
@@ -118,7 +120,7 @@ const MyPage: React.FC = () => {
             fill="white"
           />
         </svg>
-        <UserNameText onClick={PrintUserId}>Hi, Audrey</UserNameText>
+        <UserNameText onClick={PrintUserId}>Hi, {name}</UserNameText>
       </UserName>
       <MainContent>
         <SideBar>
