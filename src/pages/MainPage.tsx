@@ -20,7 +20,6 @@ const Main: React.FC = () => {
   const [grade, setGrade] = useState<any>([]);
 
   useEffect(() => {
-    // console.log("userId", u);
     const fetchUser = async () => {
       if (!userId) {
         navigate("/login");

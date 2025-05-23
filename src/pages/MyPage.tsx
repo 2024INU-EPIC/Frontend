@@ -26,6 +26,8 @@ import { useAuthStore } from "../stores/authStore";
 import axios from "axios";
 import ExamHistoryCard from "../components/ExamHistoryCard";
 import { useUserStore } from "../stores/userStore";
+import { GradationBarBox } from "../components/GradationBarBox";
+import StudyStatChart from "../components/StudyStatChart";
 
 const MyPage: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string>("learnStat");
@@ -39,8 +41,10 @@ const MyPage: React.FC = () => {
   const [examHistory, setExamHistory] = useState<any[]>([]);
   const [gradeId, setGradeId] = useState<number>(1);
 
-  const { userId } = useAuthStore();
+  const { userId, accessToken } = useAuthStore();
   const { name } = useUserStore();
+
+  const [grade, setGrade] = useState<any>([]);
 
   const PrintUserId = () => {
     console.log(userId);
@@ -74,6 +78,7 @@ const MyPage: React.FC = () => {
         console.log(processed);
       });
     }
+    fetchLearningStats();
   }, [activeMenu, userId]);
 
   const handleConfirmPasswordChange = (value: string) => {
@@ -103,6 +108,19 @@ const MyPage: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedExam(null);
+  };
+
+  const fetchLearningStats = async () => {
+    try {
+      const response = await axios.get(`/api/stats/learning/${userId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      console.log(response.data);
+      setGrade(response.data);
+    } catch (error) {
+      console.error("Error fetching learning stats:", error);
+    }
   };
 
   return (
@@ -157,9 +175,21 @@ const MyPage: React.FC = () => {
           {activeMenu === "learnStat" && (
             <>
               <LearnStat>
-                <StatText>학습 통계</StatText>
+                <StatText>누적 학습 통계</StatText>
                 <StatGraph>
-                  아직 학습 데이터가 없어요. 학습을 시작해보세요.
+                  {grade ? (
+                    <StudyStatChart
+                      scores={[
+                        Math.round(grade.part1),
+                        Math.round(grade.part2),
+                        Math.round(grade.part3),
+                        Math.round(grade.part4),
+                        Math.round(grade.part5),
+                      ]}
+                    />
+                  ) : (
+                    "아직 학습 데이터가 없어요. 학습을 시작해보세요."
+                  )}
                 </StatGraph>
               </LearnStat>
               <LearnStat>

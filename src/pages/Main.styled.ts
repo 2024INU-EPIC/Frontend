@@ -46,19 +46,6 @@ export const learnStat = styled.div`
   align-items: center;
 `;
 
-export const ExamRecord = styled.div`
-  width: 81rem;
-  height: 21rem;
-  border-radius: 1.25rem;
-  background: white;
-  filter: drop-shadow(0px 20px 10px rgba(0, 0, 0, 0.25));
-  margin: 3.25rem 5.5rem 2.5rem 5.5rem;
-  display: flex;
-  align-items: center;
-
-  margin: 3.6rem 0 -1rem 0;
-`;
-
 export const statText = styled.span`
   font-size: 2rem;
   font-weight: 700;
