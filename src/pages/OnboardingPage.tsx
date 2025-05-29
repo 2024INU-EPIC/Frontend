@@ -338,6 +338,13 @@ const OnboardingPage: React.FC = () => {
   //   window.location.href = "https://github.com/your-repo"; // 이동할 GitHub 링크
   // };
 
+  const wrongWordScore = {
+    international: { score: 45, errorType: "Mispronunciation" },
+    fifteen: { score: 65, errorType: "Omission" },
+    identification: { score: 30, errorType: "Mispronunciation" },
+    luggage: { score: 80, errorType: "None" },
+  };
+
   return (
     <Wrapper>
       <FirstScene>
@@ -427,6 +434,10 @@ const OnboardingPage: React.FC = () => {
               isScoring={true}
               questionNum={1}
               totalQuestions={2}
+              wrongWordScore={wrongWordScore}
+              fromPartSelect={true}
+              questionCount={2}
+              partId={"1"}
             />
             <p>
               *<RedHighlight>하이라이트된 단어</RedHighlight>에 마우스를

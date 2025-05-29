@@ -26,7 +26,6 @@ import { useAuthStore } from "../stores/authStore";
 import axios from "axios";
 import ExamHistoryCard from "../components/ExamHistoryCard";
 import { useUserStore } from "../stores/userStore";
-import { GradationBarBox } from "../components/GradationBarBox";
 import StudyStatChart from "../components/StudyStatChart";
 
 const MyPage: React.FC = () => {
