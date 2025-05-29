@@ -161,7 +161,7 @@ const Part5Page: React.FC = () => {
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
     setIsSubmitting(true);
     if (!beepAudioRef.current) {
-      beepAudioRef.current = new Audio("/src/assets/audio/beep.mp3");
+      beepAudioRef.current = new Audio("/audio/beep.mp3");
     }
     beepAudioRef.current
       .play()
@@ -211,7 +211,7 @@ const Part5Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       if (!beepAudioRef.current) {
-        beepAudioRef.current = new Audio("/src/assets/audio/beep.mp3");
+        beepAudioRef.current = new Audio("/audio/beep.mp3");
       }
 
       const playBeepThenRecord = async () => {
@@ -286,7 +286,7 @@ const Part5Page: React.FC = () => {
 
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio("/src/assets/audio/part5.mp3");
+      audioRef.current = new Audio("/audio/part5.mp3");
     }
 
     const audio = audioRef.current;

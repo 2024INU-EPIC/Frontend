@@ -156,7 +156,7 @@ const Part1Page: React.FC = () => {
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
     setIsSubmitting(true);
     if (!beepAudioRef.current) {
-      beepAudioRef.current = new Audio("/src/assets/audio/beep.mp3");
+      beepAudioRef.current = new Audio("/audio/beep.mp3");
     }
     beepAudioRef.current
       .play()
@@ -206,7 +206,7 @@ const Part1Page: React.FC = () => {
   useEffect(() => {
     if (stage === "responding") {
       if (!beepAudioRef.current) {
-        beepAudioRef.current = new Audio("/src/assets/audio/beep.mp3");
+        beepAudioRef.current = new Audio("/audio/beep.mp3");
       }
 
       const playBeepThenRecord = async () => {
@@ -280,7 +280,7 @@ const Part1Page: React.FC = () => {
   // "direction"일 때만 오디오 자동 재생
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio("/src/assets/audio/part1.mp3");
+      audioRef.current = new Audio("/audio/part1.mp3");
     }
 
     const audio = audioRef.current;
