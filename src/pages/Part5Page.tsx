@@ -15,8 +15,8 @@ import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
 import { fetchTTSBlob, playAudioBlob } from "../utils/tts";
 
-const IS_DEV_MODE = true;
-//const IS_DEV_MODE = false;
+//const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 2 : 13, // direction 단계

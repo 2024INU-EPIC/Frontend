@@ -13,8 +13,8 @@ import StopTalkingModal from "../components/StopTalkingModal";
 import { useMockTestStore } from "../stores/MockTestStore";
 import { useMockTestCancel } from "../hooks/useMockTestCancel";
 
-const IS_DEV_MODE = true;
-//const IS_DEV_MODE = false;
+//const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 13, // direction 단계
