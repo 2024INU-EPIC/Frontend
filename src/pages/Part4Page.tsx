@@ -21,8 +21,8 @@ import { fetchTTSBlob, playAudioBlob } from "../utils/tts";
 // true : 개발 모드 (빠른 UI 확인용)
 // false : 배포 모드 (실제 시험 진행 방식)
 
-const IS_DEV_MODE = true;
-//const IS_DEV_MODE = false;
+//const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 const TIME_SETTINGS = {
   direction: IS_DEV_MODE ? 5 : 21, // direction 단계
