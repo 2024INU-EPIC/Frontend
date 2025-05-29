@@ -48,9 +48,13 @@ const Header: React.FC = () => {
           </svg>
           {isDropdownOpen && (
             <S.DropdownMenu>
-              <S.DropdownItem href="/mypage">My Page</S.DropdownItem>
+              <S.DropdownItem onClick={() => navigate("/mypage")}>
+                My Page
+              </S.DropdownItem>
               <S.DropdownItem onClick={handleLogout}>Sign Out</S.DropdownItem>
-              <S.DropdownItem href="/aboutus">About Us</S.DropdownItem>
+              <S.DropdownItem onClick={() => navigate("/onboarding")}>
+                About Us
+              </S.DropdownItem>
             </S.DropdownMenu>
           )}
         </S.UserIconContainer>
